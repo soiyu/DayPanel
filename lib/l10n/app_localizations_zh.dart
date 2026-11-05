@@ -9,6 +9,210 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get restoreRefreshFailed => '数据已恢复，但页面刷新失败。请返回并重试加载，勿重复恢复。';
+
+  @override
+  String get dataBackup => '数据与备份';
+
+  @override
+  String get backupBody => '习惯、计划、记录、小事、手记和外观设置，完整保存在一份文件中。';
+
+  @override
+  String get exportBackup => '导出完整备份';
+
+  @override
+  String get importBackup => '从文件恢复';
+
+  @override
+  String get exportHint => '选择保存位置，备份文件不加密，请妥善保管。';
+
+  @override
+  String get restoreHint => '先检查文件并预览内容，确认后才替换当前数据。';
+
+  @override
+  String get backupSaved => '备份已保存';
+
+  @override
+  String get backupError => '文件无法读取或保存，请换一个位置重试。';
+
+  @override
+  String get backupInvalid => '这不是有效的当前版本 DayPanel 备份，或文件已损坏。当前数据未改变。';
+
+  @override
+  String get restorePreview => '检查这份备份';
+
+  @override
+  String get restoreConfirm => '恢复并替换';
+
+  @override
+  String get replaceWarning => '恢复会替换当前所有数据，不会合并。恢复前的数据会保留一份，可在本页回退。';
+
+  @override
+  String get restoreDone => '已恢复备份';
+
+  @override
+  String get rollbackTitle => '回到恢复前';
+
+  @override
+  String get rollbackBody => '用最近一次恢复前的数据替换当前内容。恢复后新增或修改的内容也会被替换。';
+
+  @override
+  String get rollbackDone => '已回到恢复前的数据';
+
+  @override
+  String get noRecovery => '还没有恢复前副本';
+
+  @override
+  String get backupDate => '备份时间';
+
+  @override
+  String get backupItems => '文件内容';
+
+  @override
+  String get recordsLabel => '记录';
+
+  @override
+  String get plansLabel => '计划版本';
+
+  @override
+  String get groupsLabel => '习惯分组';
+
+  @override
+  String get backupLocal => '完整文件备份，免费且无需账号。';
+
+  @override
+  String get restoreFailed => '恢复未完成，当前数据保持不变，请重试。';
+
+  @override
+  String get contextLabel => '情境';
+
+  @override
+  String get anytime => '不限时段';
+
+  @override
+  String get morning => '早晨';
+
+  @override
+  String get daytime => '白天';
+
+  @override
+  String get evening => '夜晚';
+
+  @override
+  String get allHabits => '全部习惯';
+
+  @override
+  String get allGroups => '全部分组';
+
+  @override
+  String get ungrouped => '未分组';
+
+  @override
+  String get groupLabel => '所属分组';
+
+  @override
+  String get manageGroups => '管理分组';
+
+  @override
+  String get newGroup => '新建分组';
+
+  @override
+  String get groupName => '分组名称';
+
+  @override
+  String get groupDeleteHint => '删除分组只会解除习惯的归属，习惯与记录都会保留。';
+
+  @override
+  String get groupNameError => '请输入 1–40 个字符，名称不能与已有分组重复。';
+
+  @override
+  String get noGroups => '把相关习惯放在一起';
+
+  @override
+  String get noGroupsBody => '例如健康、阅读或学习，也可以先不分组。';
+
+  @override
+  String get filterHabits => '筛选习惯';
+
+  @override
+  String get applyFilter => '应用筛选';
+
+  @override
+  String get resetFilter => '清除筛选';
+
+  @override
+  String get noFilterMatches => '这个筛选下没有习惯';
+
+  @override
+  String get sortHabits => '调整顺序';
+
+  @override
+  String get sortHint => '拖动右侧手柄，或用上下按钮调整。保存后日常页按此顺序显示。';
+
+  @override
+  String get moveUp => '上移';
+
+  @override
+  String get moveDown => '下移';
+
+  @override
+  String get frequency => '安排方式';
+
+  @override
+  String get byWeekday => '指定星期';
+
+  @override
+  String get everyNDays => '每隔几天';
+
+  @override
+  String get weeklyTarget => '每周目标';
+
+  @override
+  String get intervalLabel => '间隔天数';
+
+  @override
+  String get weeklyGoalLabel => '每周达标天数';
+
+  @override
+  String get scheduleNumberError => '间隔为 1–365 天；每周目标为 1–7 天。';
+
+  @override
+  String get planTomorrow => '目标、单位和安排改动从明天生效。过去的计划和记录保持原样。';
+
+  @override
+  String get planPending => '有计划从明天生效';
+
+  @override
+  String get planHistory => '计划历史';
+
+  @override
+  String get effectiveFrom => '生效日期';
+
+  @override
+  String get weeklyAvailable => '本周可记录';
+
+  @override
+  String get weeklyHint => '按周一至周日统计达标日，自行选择哪天做；不计入每日必做。';
+
+  @override
+  String get weekProgress => '本周达标';
+
+  @override
+  String get partialWeek => '新计划从生效日起计本周';
+
+  @override
+  String get scheduleStarts => '从计划生效日计算间隔';
+
+  @override
+  String get organization => '安排与整理';
+
+  @override
+  String get planVersionNote => '迁移前的计划改动无法还原；当前保存的版本从本次升级起准确追踪。';
+
+  @override
+  String get restoreStale => '数据已发生变化，请重新选择备份后再操作。';
+
+  @override
   String get dailyCardTitle => '一点一滴，都是进步';
 
   @override

@@ -5,6 +5,7 @@ import '../domain/models.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
+import 'organization.dart';
 
 Future<void> openEditor(
   BuildContext context,
@@ -44,6 +45,11 @@ class _EntryEditorState extends State<EntryEditor> {
   late final TextEditingController title, target, unit;
   late HabitKind kind;
   late int weekdays, icon;
+  late ScheduleKind schedule;
+  late HabitContext habitContext;
+  String? groupId;
+  late final TextEditingController scheduleNumber;
+  late int epoch;
   Day? due;
   bool saving = false;
   String? error;
@@ -64,6 +70,14 @@ class _EntryEditorState extends State<EntryEditor> {
     weekdays = widget.habit?.weekdays ?? 127;
     icon = widget.habit?.icon ?? 0;
     due = widget.task?.dueDay;
+    schedule = widget.habit?.schedule ?? ScheduleKind.weekdays;
+    habitContext = widget.habit?.context ?? HabitContext.anytime;
+    groupId = widget.habit?.groupId;
+    scheduleNumber = TextEditingController(
+      text:
+          '${schedule == ScheduleKind.interval ? (widget.habit?.intervalDays ?? 2) : (widget.habit?.weeklyGoal ?? 3)}',
+    );
+    epoch = widget.app.generation;
   }
 
   @override
@@ -71,6 +85,7 @@ class _EntryEditorState extends State<EntryEditor> {
     title.dispose();
     target.dispose();
     unit.dispose();
+    scheduleNumber.dispose();
     super.dispose();
   }
 
@@ -78,7 +93,7 @@ class _EntryEditorState extends State<EntryEditor> {
     if (saving) return;
     final s = AppLocalizations.of(context);
     if (!form.currentState!.validate()) return;
-    if (isHabit && weekdays == 0) {
+    if (isHabit && schedule == ScheduleKind.weekdays && weekdays == 0) {
       setState(() => error = s.selectWeekday);
       return;
     }
@@ -99,11 +114,22 @@ class _EntryEditorState extends State<EntryEditor> {
                 ? parseQuantity(target.text)!
                 : 1000,
             unit: kind == HabitKind.quantity ? unit.text.trim() : '',
-            weekdays: weekdays,
+            weekdays: weekdays == 0 ? 127 : weekdays,
             icon: icon,
             archived: widget.habit?.archived ?? false,
+            context: habitContext,
+            groupId: groupId,
+            position: widget.habit?.position ?? 0,
+            schedule: schedule,
+            intervalDays: schedule == ScheduleKind.interval
+                ? int.parse(scheduleNumber.text)
+                : widget.habit?.intervalDays ?? 1,
+            weeklyGoal: schedule == ScheduleKind.weekly
+                ? int.parse(scheduleNumber.text)
+                : widget.habit?.weeklyGoal ?? 3,
           ),
           create: widget.habit == null,
+          today: app.today,
         );
       } else if (isNote) {
         await app.store.saveNote(
@@ -124,7 +150,7 @@ class _EntryEditorState extends State<EntryEditor> {
           create: widget.task == null,
         );
       }
-    });
+    }, expectedGeneration: epoch);
     if (!mounted) return;
     if (ok) {
       Navigator.pop(context);
@@ -267,62 +293,121 @@ class _EntryEditorState extends State<EntryEditor> {
                 ),
               ],
               const SizedBox(height: 22),
-              fieldLabel(s.schedule),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (var i = 0; i < 7; i++)
-                      Padding(
-                        padding: EdgeInsets.only(right: i == 6 ? 0 : 4),
-                        child: Tooltip(
-                          message: names[i],
-                          child: Semantics(
-                            label: names[i],
-                            selected: (weekdays & (1 << i)) != 0,
-                            button: true,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(15),
-                                onTap: saving
-                                    ? null
-                                    : () => setState(() {
-                                        weekdays = (weekdays & (1 << i)) == 0
-                                            ? weekdays | (1 << i)
-                                            : weekdays & ~(1 << i);
-                                      }),
-                                child: Container(
-                                  constraints: const BoxConstraints(
-                                    minWidth: 48,
-                                    minHeight: 52,
-                                  ),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(15),
-                                    color: (weekdays & (1 << i)) != 0
-                                        ? UiTone.blue.wash(context)
-                                        : Theme.of(context).colorScheme.surface,
-                                    border: Border.all(
-                                      color: (weekdays & (1 << i)) != 0
-                                          ? UiTone.blue
-                                                .ink(context)
-                                                .withValues(alpha: .4)
-                                          : Theme.of(
-                                              context,
-                                            ).colorScheme.outlineVariant,
+              fieldLabel(s.frequency),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final mode in ScheduleKind.values)
+                    AppAction(
+                      label: switch (mode) {
+                        ScheduleKind.weekdays => s.byWeekday,
+                        ScheduleKind.interval => s.everyNDays,
+                        ScheduleKind.weekly => s.weeklyTarget,
+                      },
+                      icon: schedule == mode
+                          ? Icons.check_circle_rounded
+                          : Icons.circle_outlined,
+                      tone: UiTone.violet,
+                      onTap: saving
+                          ? null
+                          : () => setState(() {
+                              if (schedule == mode) return;
+                              schedule = mode;
+                              scheduleNumber.text =
+                                  mode == ScheduleKind.interval ? '2' : '3';
+                            }),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (schedule != ScheduleKind.weekdays) ...[
+                TextFormField(
+                  key: const Key('schedule-number'),
+                  controller: scheduleNumber,
+                  enabled: !saving,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: schedule == ScheduleKind.interval
+                        ? s.intervalLabel
+                        : s.weeklyGoalLabel,
+                  ),
+                  validator: (v) {
+                    final n = int.tryParse(v ?? '');
+                    return n == null ||
+                            n < 1 ||
+                            n > (schedule == ScheduleKind.interval ? 365 : 7)
+                        ? s.scheduleNumberError
+                        : null;
+                  },
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  schedule == ScheduleKind.weekly
+                      ? s.weeklyHint
+                      : s.scheduleStarts,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              if (schedule == ScheduleKind.weekdays)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < 7; i++)
+                        Padding(
+                          padding: EdgeInsets.only(right: i == 6 ? 0 : 4),
+                          child: Tooltip(
+                            message: names[i],
+                            child: Semantics(
+                              label: names[i],
+                              selected: (weekdays & (1 << i)) != 0,
+                              button: true,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(15),
+                                  onTap: saving
+                                      ? null
+                                      : () => setState(() {
+                                          weekdays = (weekdays & (1 << i)) == 0
+                                              ? weekdays | (1 << i)
+                                              : weekdays & ~(1 << i);
+                                        }),
+                                  child: Container(
+                                    constraints: const BoxConstraints(
+                                      minWidth: 48,
+                                      minHeight: 52,
                                     ),
-                                  ),
-                                  child: Text(
-                                    short[i],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
                                       color: (weekdays & (1 << i)) != 0
-                                          ? UiTone.blue.ink(context)
+                                          ? UiTone.blue.wash(context)
                                           : Theme.of(
                                               context,
-                                            ).colorScheme.onSurfaceVariant,
+                                            ).colorScheme.surface,
+                                      border: Border.all(
+                                        color: (weekdays & (1 << i)) != 0
+                                            ? UiTone.blue
+                                                  .ink(context)
+                                                  .withValues(alpha: .4)
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.outlineVariant,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      short[i],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: (weekdays & (1 << i)) != 0
+                                            ? UiTone.blue.ink(context)
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -330,11 +415,55 @@ class _EntryEditorState extends State<EntryEditor> {
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
               const SizedBox(height: 22),
+              fieldLabel(s.contextLabel),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final c in HabitContext.values)
+                    AppAction(
+                      label: contextName(s, c),
+                      icon: habitContext == c
+                          ? Icons.check_circle_rounded
+                          : contextIcon(c),
+                      tone: UiTone.peach,
+                      onTap: saving
+                          ? null
+                          : () => setState(() => habitContext = c),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              fieldLabel(s.groupLabel),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final g in <HabitGroup?>[null, ...widget.app.groups])
+                    AppAction(
+                      label: g?.name ?? s.ungrouped,
+                      icon: groupId == g?.id
+                          ? Icons.check_circle_rounded
+                          : Icons.folder_outlined,
+                      tone: UiTone.violet,
+                      onTap: saving
+                          ? null
+                          : () => setState(() => groupId = g?.id),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              if (widget.habit != null) ...[
+                Text(
+                  s.planTomorrow,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 18),
+              ],
               fieldLabel(s.icon),
               Wrap(
                 spacing: 10,
@@ -541,9 +670,11 @@ class _QuantityEditorState extends State<QuantityEditor> {
   late final TextEditingController value;
   String? error;
   bool saving = false;
+  late int epoch;
   @override
   void initState() {
     super.initState();
+    epoch = widget.app.generation;
     final current = widget.app.value(widget.habit, widget.day);
     value = TextEditingController(
       text: current == null ? '' : quantityText(current),
@@ -572,6 +703,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
         amount,
         today: widget.app.today,
       ),
+      expectedGeneration: epoch,
     );
     if (!mounted) return;
     if (ok) {
@@ -587,7 +719,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
-    final h = widget.habit;
+    final h = widget.app.forDay(widget.habit, widget.day);
     final current = widget.app.value(h, widget.day);
     final tone = habitTone(h.icon);
     return SheetFrame(

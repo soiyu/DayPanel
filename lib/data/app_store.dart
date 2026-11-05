@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
+import 'schema.dart';
+import '../domain/backup.dart';
+part 'store_backup.dart';
 
 class AppStore {
   AppStore._(this.db);
@@ -13,7 +17,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 1,
+        version: 2,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           await db.execute(
@@ -31,6 +35,10 @@ class AppStore {
           await db.execute(
             'CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)',
           );
+          await upgradeToV2(db);
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 2) await upgradeToV2(db);
         },
       ),
     );
@@ -38,8 +46,20 @@ class AppStore {
   }
 
   Future<void> close() => db.close();
-  Future<List<Habit>> habits() async =>
-      (await db.query('habits', orderBy: 'rowid')).map(Habit.fromMap).toList();
+  Future<List<Habit>> habits() async => (await db.query(
+    'habits',
+    orderBy: 'position,rowid',
+  )).map(Habit.fromMap).toList();
+  Future<List<HabitGroup>> groups() async => (await db.query(
+    'habit_groups',
+    orderBy: 'position,rowid',
+  )).map(HabitGroup.fromMap).toList();
+  Future<List<HabitPlan>> plans() async => (await db.query(
+    'plans',
+    orderBy: 'effective_day',
+  )).map(HabitPlan.fromMap).toList();
+  Future<int> generation() async =>
+      (await db.query('runtime')).single['generation'] as int;
   Future<List<SmallTask>> tasks() async => (await db.query(
     'tasks',
     orderBy: 'rowid DESC',
@@ -62,7 +82,7 @@ class AppStore {
       m['key'] as String: m['value'] as String,
   };
 
-  Future<void> saveHabit(Habit habit, {bool create = false}) async {
+  Future<void> saveHabit(Habit habit, {bool create = false, Day? today}) async {
     if (habit.title.trim().isEmpty ||
         habit.title.length > 100 ||
         habit.target <= 0 ||
@@ -75,9 +95,26 @@ class AppStore {
         habit.icon > 5) {
       throw ArgumentError('Invalid habit');
     }
+    if (habit.intervalDays < 1 ||
+        habit.intervalDays > 365 ||
+        habit.weeklyGoal < 1 ||
+        habit.weeklyGoal > 7) {
+      throw ArgumentError('Invalid schedule');
+    }
+    final date = today ?? Day(DateTime.now());
     await db.transaction((txn) async {
       if (create) {
-        await txn.insert('habits', habit.toMap());
+        final last = await txn.rawQuery(
+          'SELECT COALESCE(MAX(position),-1)+1 AS next FROM habits',
+        );
+        await txn.insert('habits', {
+          ...habit.toMap(),
+          'position': last.single['next'],
+        });
+        await txn.insert(
+          'plans',
+          HabitPlan.fromHabit(habit, habit.startDay).toMap(),
+        );
       } else {
         final old = await txn.query(
           'habits',
@@ -89,13 +126,106 @@ class AppStore {
             old.single['start_day'] != habit.startDay.key) {
           throw StateError('Habit missing or incompatible edit');
         }
+        final oldHabit = Habit.fromMap(old.single);
+        final desired = HabitPlan.fromHabit(habit, date.plus(1));
+        final latestRows = await txn.query(
+          'plans',
+          where: 'habit_id=?',
+          whereArgs: [habit.id],
+          orderBy: 'effective_day DESC',
+          limit: 1,
+        );
+        if (!desired.sameRules(HabitPlan.fromMap(latestRows.single))) {
+          if (date.compareTo(oldHabit.startDay) < 0) {
+            throw StateError('Clock precedes habit');
+          }
+          await txn.delete(
+            'plans',
+            where: 'habit_id=? AND effective_day>?',
+            whereArgs: [habit.id, date.key],
+          );
+          final active = (await txn.query(
+            'plans',
+            where: 'habit_id=? AND effective_day<=?',
+            whereArgs: [habit.id, date.key],
+            orderBy: 'effective_day DESC',
+            limit: 1,
+          )).single;
+          if (!desired.sameRules(HabitPlan.fromMap(active))) {
+            await txn.insert('plans', desired.toMap());
+          }
+        }
         await txn.update(
           'habits',
-          habit.toMap(),
+          {
+            ...habit.toMap(),
+            'position': oldHabit.position,
+            'archived': oldHabit.archived ? 1 : 0,
+          },
           where: 'id = ?',
           whereArgs: [habit.id],
         );
       }
+    });
+  }
+
+  Future<void> saveGroup(HabitGroup group, {bool create = false}) async {
+    if (group.name.trim().isEmpty || group.name.length > 40) {
+      throw ArgumentError('Invalid group');
+    }
+    await db.transaction((txn) async {
+      final existing = await txn.query('habit_groups');
+      if (existing.any(
+        (m) =>
+            m['id'] != group.id &&
+            (m['name'] as String).trim().toLowerCase() ==
+                group.name.trim().toLowerCase(),
+      )) {
+        throw StateError('Duplicate group');
+      }
+      if (create) {
+        final rows = await txn.rawQuery(
+          'SELECT COALESCE(MAX(position),-1)+1 AS next FROM habit_groups',
+        );
+        await txn.insert('habit_groups', {
+          ...group.toMap(),
+          'name': group.name.trim(),
+          'position': rows.single['next'],
+        });
+      } else if (await txn.update(
+            'habit_groups',
+            {'name': group.name.trim()},
+            where: 'id=?',
+            whereArgs: [group.id],
+          ) !=
+          1) {
+        throw StateError('Group missing');
+      }
+    });
+  }
+
+  Future<void> removeGroup(String id) async =>
+      db.delete('habit_groups', where: 'id=?', whereArgs: [id]);
+  Future<void> reorderHabits(List<String> ids) async {
+    await db.transaction((txn) async {
+      final existing = (await txn.query(
+        'habits',
+      )).map((m) => m['id'] as String).toSet();
+      if (ids.length != existing.length ||
+          ids.toSet().length != ids.length ||
+          !existing.containsAll(ids)) {
+        throw ArgumentError('Invalid order');
+      }
+      final batch = txn.batch();
+      for (var i = 0; i < ids.length; i++) {
+        batch.update(
+          'habits',
+          {'position': i},
+          where: 'id=?',
+          whereArgs: [ids[i]],
+        );
+      }
+      await batch.commit(noResult: true);
     });
   }
 

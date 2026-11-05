@@ -1,11 +1,26 @@
 // New DayPanel domain; no dependency on Flutter or the Loop schema.
 class Day implements Comparable<Day> {
   Day(DateTime value) : date = DateTime(value.year, value.month, value.day);
-  factory Day.parse(String value) => Day(DateTime.parse(value));
+  factory Day.parse(String value) {
+    if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) {
+      throw const FormatException('Invalid calendar date');
+    }
+    final day = Day(DateTime.parse(value));
+    if (day.key != value || day.date.year < 1900 || day.date.year > 2200) {
+      throw const FormatException('Invalid calendar date');
+    }
+    return day;
+  }
   final DateTime date;
   String get key =>
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   Day plus(int days) => Day(DateTime(date.year, date.month, date.day + days));
+  int daysSince(Day other) => DateTime.utc(date.year, date.month, date.day)
+      .difference(
+        DateTime.utc(other.date.year, other.date.month, other.date.day),
+      )
+      .inDays;
+  Day get monday => plus(1 - date.weekday);
   @override
   int compareTo(Day other) => key.compareTo(other.key);
   @override
@@ -15,6 +30,89 @@ class Day implements Comparable<Day> {
 }
 
 enum HabitKind { check, quantity }
+
+enum ScheduleKind { weekdays, interval, weekly }
+
+enum HabitContext { anytime, morning, daytime, evening }
+
+class HabitGroup {
+  const HabitGroup({required this.id, required this.name, this.position = 0});
+  final String id, name;
+  final int position;
+  Map<String, Object?> toMap() => {
+    'id': id,
+    'name': name,
+    'position': position,
+  };
+  factory HabitGroup.fromMap(Map<String, Object?> m) => HabitGroup(
+    id: m['id'] as String,
+    name: m['name'] as String,
+    position: m['position'] as int,
+  );
+}
+
+class HabitPlan {
+  const HabitPlan({
+    required this.habitId,
+    required this.effectiveDay,
+    required this.target,
+    required this.unit,
+    this.schedule = ScheduleKind.weekdays,
+    this.weekdays = 127,
+    this.intervalDays = 1,
+    this.weeklyGoal = 3,
+  });
+  final String habitId, unit;
+  final Day effectiveDay;
+  final int target, weekdays, intervalDays, weeklyGoal;
+  final ScheduleKind schedule;
+  factory HabitPlan.fromHabit(Habit h, Day day) => HabitPlan(
+    habitId: h.id,
+    effectiveDay: day,
+    target: h.target,
+    unit: h.unit,
+    schedule: h.schedule,
+    weekdays: h.weekdays,
+    intervalDays: h.intervalDays,
+    weeklyGoal: h.weeklyGoal,
+  );
+  Map<String, Object?> toMap() => {
+    'habit_id': habitId,
+    'effective_day': effectiveDay.key,
+    'target': target,
+    'unit': unit,
+    'schedule': schedule.name,
+    'weekdays': weekdays,
+    'interval_days': intervalDays,
+    'weekly_goal': weeklyGoal,
+  };
+  factory HabitPlan.fromMap(Map<String, Object?> m) => HabitPlan(
+    habitId: m['habit_id'] as String,
+    effectiveDay: Day.parse(m['effective_day'] as String),
+    target: m['target'] as int,
+    unit: m['unit'] as String,
+    schedule: ScheduleKind.values.byName(m['schedule'] as String),
+    weekdays: m['weekdays'] as int,
+    intervalDays: m['interval_days'] as int,
+    weeklyGoal: m['weekly_goal'] as int,
+  );
+  bool scheduled(Day day) =>
+      day.compareTo(effectiveDay) >= 0 &&
+      switch (schedule) {
+        ScheduleKind.weekdays =>
+          (weekdays & (1 << (day.date.weekday - 1))) != 0,
+        ScheduleKind.interval =>
+          day.daysSince(effectiveDay) % intervalDays == 0,
+        ScheduleKind.weekly => true,
+      };
+  bool sameRules(HabitPlan other) =>
+      target == other.target &&
+      unit == other.unit &&
+      schedule == other.schedule &&
+      weekdays == other.weekdays &&
+      intervalDays == other.intervalDays &&
+      weeklyGoal == other.weeklyGoal;
+}
 
 class Habit {
   const Habit({
@@ -27,16 +125,35 @@ class Habit {
     this.weekdays = 127,
     this.icon = 0,
     this.archived = false,
+    this.context = HabitContext.anytime,
+    this.groupId,
+    this.position = 0,
+    this.schedule = ScheduleKind.weekdays,
+    this.intervalDays = 1,
+    this.weeklyGoal = 3,
   });
   final String id, title, unit;
   final HabitKind kind;
   final Day startDay;
   final int target, weekdays, icon;
   final bool archived;
+  final HabitContext context;
+  final String? groupId;
+  final int position, intervalDays, weeklyGoal;
+  final ScheduleKind schedule;
   bool scheduled(Day day) =>
       !archived &&
       day.compareTo(startDay) >= 0 &&
-      (weekdays & (1 << (day.date.weekday - 1))) != 0;
+      HabitPlan.fromHabit(this, startDay).scheduled(day);
+  Habit withPlan(HabitPlan plan) => Habit.fromMap({
+    ...toMap(),
+    'target': plan.target,
+    'unit': plan.unit,
+    'weekdays': plan.weekdays,
+    'schedule': plan.schedule.name,
+    'interval_days': plan.intervalDays,
+    'weekly_goal': plan.weeklyGoal,
+  });
   Map<String, Object?> toMap() => {
     'id': id,
     'title': title,
@@ -47,6 +164,12 @@ class Habit {
     'weekdays': weekdays,
     'icon': icon,
     'archived': archived ? 1 : 0,
+    'context': context.name,
+    'group_id': groupId,
+    'position': position,
+    'schedule': schedule.name,
+    'interval_days': intervalDays,
+    'weekly_goal': weeklyGoal,
   };
   factory Habit.fromMap(Map<String, Object?> m) => Habit(
     id: m['id'] as String,
@@ -58,6 +181,14 @@ class Habit {
     weekdays: m['weekdays'] as int,
     icon: m['icon'] as int,
     archived: m['archived'] == 1,
+    context: HabitContext.values.byName(m['context'] as String? ?? 'anytime'),
+    groupId: m['group_id'] as String?,
+    position: m['position'] as int? ?? 0,
+    schedule: ScheduleKind.values.byName(
+      m['schedule'] as String? ?? 'weekdays',
+    ),
+    intervalDays: m['interval_days'] as int? ?? 1,
+    weeklyGoal: m['weekly_goal'] as int? ?? 3,
   );
 }
 

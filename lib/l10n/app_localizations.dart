@@ -98,6 +98,414 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @restoreRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Data was restored, but the screen could not refresh. Go back and reload before making more changes.'**
+  String get restoreRefreshFailed;
+
+  /// No description provided for @dataBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & backup'**
+  String get dataBackup;
+
+  /// No description provided for @backupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your habits, plans, logs, tasks, journal and preferences in one file.'**
+  String get backupBody;
+
+  /// No description provided for @exportBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Export backup'**
+  String get exportBackup;
+
+  /// No description provided for @importBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from file'**
+  String get importBackup;
+
+  /// No description provided for @exportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a location. Backup files are not encrypted; keep them private.'**
+  String get exportHint;
+
+  /// No description provided for @restoreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the file first. Your data changes only after confirmation.'**
+  String get restoreHint;
+
+  /// No description provided for @backupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get backupSaved;
+
+  /// No description provided for @backupError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read or save the file. Try another location.'**
+  String get backupError;
+
+  /// No description provided for @backupInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not a valid supported DayPanel backup, or it is damaged. Your data is unchanged.'**
+  String get backupInvalid;
+
+  /// No description provided for @restorePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review this backup'**
+  String get restorePreview;
+
+  /// No description provided for @restoreConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore & replace'**
+  String get restoreConfirm;
+
+  /// No description provided for @replaceWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore replaces all current data; it does not merge. A copy of your previous data will be kept here for rollback.'**
+  String get replaceWarning;
+
+  /// No description provided for @restoreDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored'**
+  String get restoreDone;
+
+  /// No description provided for @rollbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to previous data'**
+  String get rollbackTitle;
+
+  /// No description provided for @rollbackBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace current content with the copy from before the last restore. Newer additions and changes will also be replaced.'**
+  String get rollbackBody;
+
+  /// No description provided for @rollbackDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous data restored'**
+  String get rollbackDone;
+
+  /// No description provided for @noRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous restore copy'**
+  String get noRecovery;
+
+  /// No description provided for @backupDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup date'**
+  String get backupDate;
+
+  /// No description provided for @backupItems.
+  ///
+  /// In en, this message translates to:
+  /// **'File contents'**
+  String get backupItems;
+
+  /// No description provided for @recordsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs'**
+  String get recordsLabel;
+
+  /// No description provided for @plansLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan versions'**
+  String get plansLabel;
+
+  /// No description provided for @groupsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit groups'**
+  String get groupsLabel;
+
+  /// No description provided for @backupLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Full file backups, free and without an account.'**
+  String get backupLocal;
+
+  /// No description provided for @restoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore failed. Your current data is unchanged. Please retry.'**
+  String get restoreFailed;
+
+  /// No description provided for @contextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Time of day'**
+  String get contextLabel;
+
+  /// No description provided for @anytime.
+  ///
+  /// In en, this message translates to:
+  /// **'Anytime'**
+  String get anytime;
+
+  /// No description provided for @morning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get morning;
+
+  /// No description provided for @daytime.
+  ///
+  /// In en, this message translates to:
+  /// **'Daytime'**
+  String get daytime;
+
+  /// No description provided for @evening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get evening;
+
+  /// No description provided for @allHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'All habits'**
+  String get allHabits;
+
+  /// No description provided for @allGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'All groups'**
+  String get allGroups;
+
+  /// No description provided for @ungrouped.
+  ///
+  /// In en, this message translates to:
+  /// **'Ungrouped'**
+  String get ungrouped;
+
+  /// No description provided for @groupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get groupLabel;
+
+  /// No description provided for @manageGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage groups'**
+  String get manageGroups;
+
+  /// No description provided for @newGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'New group'**
+  String get newGroup;
+
+  /// No description provided for @groupName.
+  ///
+  /// In en, this message translates to:
+  /// **'Group name'**
+  String get groupName;
+
+  /// No description provided for @groupDeleteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting a group removes membership only. Habits and records are kept.'**
+  String get groupDeleteHint;
+
+  /// No description provided for @groupNameError.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 1–40 characters and a name that is not already in use.'**
+  String get groupNameError;
+
+  /// No description provided for @noGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring related habits together'**
+  String get noGroups;
+
+  /// No description provided for @noGroupsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Health, Reading or Learning. Grouping is optional.'**
+  String get noGroupsBody;
+
+  /// No description provided for @filterHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter habits'**
+  String get filterHabits;
+
+  /// No description provided for @applyFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply filters'**
+  String get applyFilter;
+
+  /// No description provided for @resetFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get resetFilter;
+
+  /// No description provided for @noFilterMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No habits match these filters'**
+  String get noFilterMatches;
+
+  /// No description provided for @sortHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange habits'**
+  String get sortHabits;
+
+  /// No description provided for @sortHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the handle or use the arrows. Daily follows this order after saving.'**
+  String get sortHint;
+
+  /// No description provided for @moveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get moveUp;
+
+  /// No description provided for @moveDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get moveDown;
+
+  /// No description provided for @frequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get frequency;
+
+  /// No description provided for @byWeekday.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekdays'**
+  String get byWeekday;
+
+  /// No description provided for @everyNDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Every few days'**
+  String get everyNDays;
+
+  /// No description provided for @weeklyTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly target'**
+  String get weeklyTarget;
+
+  /// No description provided for @intervalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Days between'**
+  String get intervalLabel;
+
+  /// No description provided for @weeklyGoalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Days per week'**
+  String get weeklyGoalLabel;
+
+  /// No description provided for @scheduleNumberError.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 1–365 days for intervals, or 1–7 days per week.'**
+  String get scheduleNumberError;
+
+  /// No description provided for @planTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Target, unit and schedule changes start tomorrow. Past plans and logs stay intact.'**
+  String get planTomorrow;
+
+  /// No description provided for @planPending.
+  ///
+  /// In en, this message translates to:
+  /// **'An updated plan starts tomorrow'**
+  String get planPending;
+
+  /// No description provided for @planHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan history'**
+  String get planHistory;
+
+  /// No description provided for @effectiveFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective from'**
+  String get effectiveFrom;
+
+  /// No description provided for @weeklyAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Flexible this week'**
+  String get weeklyAvailable;
+
+  /// No description provided for @weeklyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Count achieved days Monday–Sunday. Choose your days; these are not daily obligations.'**
+  String get weeklyHint;
+
+  /// No description provided for @weekProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved this week'**
+  String get weekProgress;
+
+  /// No description provided for @partialWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan counts from its start date this week'**
+  String get partialWeek;
+
+  /// No description provided for @scheduleStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'Intervals start on the plan’s effective date'**
+  String get scheduleStarts;
+
+  /// No description provided for @organization.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule & organize'**
+  String get organization;
+
+  /// No description provided for @planVersionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes made before this upgrade cannot be reconstructed. Saved versions track changes from this upgrade onward.'**
+  String get planVersionNote;
+
+  /// No description provided for @restoreStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Data has changed. Select the backup again before continuing.'**
+  String get restoreStale;
+
   /// No description provided for @dailyCardTitle.
   ///
   /// In en, this message translates to:

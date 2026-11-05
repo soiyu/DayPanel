@@ -5,6 +5,7 @@ import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'editors.dart';
 import 'theme.dart';
+import 'organization.dart';
 
 class HabitTile extends StatelessWidget {
   const HabitTile({
@@ -21,6 +22,8 @@ class HabitTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
+    final display = app.forDay(habit, day);
+    final plan = app.planAt(habit, day);
     final amount = app.value(habit, day);
     final done = app.achieved(habit, day);
     final tone = habitTone(habit.icon);
@@ -66,7 +69,7 @@ class HabitTile extends StatelessWidget {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          isQuantity ? s.quantityHabit : s.checkHabit,
+                          '${contextName(s, habit.context)} · ${isQuantity ? s.quantityHabit : s.checkHabit}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -116,7 +119,8 @@ class HabitTile extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: ' / ${quantityText(habit.target)} ${habit.unit}',
+                        text:
+                            ' / ${quantityText(display.target)} ${display.unit}',
                       ),
                     ],
                   ),
@@ -167,12 +171,23 @@ class HabitTile extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
-                value: ((amount ?? 0) / habit.target).clamp(0.0, 1.0),
+                value: ((amount ?? 0) / display.target).clamp(0.0, 1.0),
                 minHeight: 5,
                 color: tone.ink(context),
                 backgroundColor: tone.wash(context),
               ),
             ),
+          ],
+          if (plan.schedule == ScheduleKind.weekly) ...[
+            const SizedBox(height: 12),
+            AppBadge(
+              '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
+              tone: UiTone.violet,
+            ),
+            if (plan.effectiveDay.compareTo(day.monday) > 0) ...[
+              const SizedBox(height: 6),
+              Text(s.partialWeek, style: Theme.of(context).textTheme.bodySmall),
+            ],
           ],
           if (day.compareTo(app.today) > 0)
             Padding(
@@ -213,6 +228,38 @@ class HabitLibrary extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              SoftPanel(
+                padding: const EdgeInsets.all(4),
+                tinted: true,
+                tone: UiTone.violet,
+                child: Column(
+                  children: [
+                    SettingRow(
+                      icon: Icons.folder_outlined,
+                      title: s.manageGroups,
+                      tone: UiTone.violet,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => GroupsPage(app: app),
+                        ),
+                      ),
+                    ),
+                    if (app.habits.length > 1)
+                      SettingRow(
+                        icon: Icons.sort_rounded,
+                        title: s.sortHabits,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => HabitOrderPage(app: app),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
               if (app.error != null)
                 Text(
                   s.storageError,
@@ -344,6 +391,10 @@ class _HabitDetailsState extends State<HabitDetails> {
               ),
               const SizedBox(height: 16),
               HabitTile(app: app, habit: h, day: day, openDetails: false),
+              if (app.pending(h) != null) ...[
+                const SizedBox(height: 12),
+                AppBadge(s.planPending, tone: UiTone.peach),
+              ],
               const SizedBox(height: 24),
               SectionTitle(s.history, tone: tone),
               SoftPanel(
@@ -361,7 +412,7 @@ class _HabitDetailsState extends State<HabitDetails> {
                           subtitle: app.value(h, app.today.plus(-i)) == null
                               ? s.notRecorded
                               : h.kind == HabitKind.quantity
-                              ? '${quantityText(app.value(h, app.today.plus(-i))!)} ${h.unit}'
+                              ? '${quantityText(app.value(h, app.today.plus(-i))!)} ${app.planAt(h, app.today.plus(-i)).unit}'
                               : app.achieved(h, app.today.plus(-i))
                               ? s.finished
                               : s.notCompleted,
@@ -379,6 +430,39 @@ class _HabitDetailsState extends State<HabitDetails> {
                 ),
               ),
               const SizedBox(height: 24),
+              SectionTitle(s.planHistory, tone: UiTone.violet),
+              for (final p
+                  in app.plans
+                      .where((p) => p.habitId == h.id)
+                      .toList()
+                      .reversed)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: SoftPanel(
+                    tinted: true,
+                    tone: UiTone.violet,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${s.effectiveFrom} ${p.effectiveDay.key}',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(scheduleText(s, p)),
+                        if (h.kind == HabitKind.quantity)
+                          Text(
+                            '${s.target} ${quantityText(p.target)} ${p.unit}',
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              Text(
+                s.planVersionNote,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 20),
               Text(
                 s.archivedHint,
                 style: Theme.of(context).textTheme.bodySmall,

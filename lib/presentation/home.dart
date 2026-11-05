@@ -9,6 +9,8 @@ import 'editors.dart';
 import 'habits.dart';
 import 'review.dart';
 import 'theme.dart';
+import 'organization.dart';
+import 'backup_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.app});
@@ -157,6 +159,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final scheme = Theme.of(context).colorScheme;
     final day = app.selectedDay;
     final planned = app.planned;
+    final weekly = app.weeklyPlanned;
+    final summaryCount = app.allDailyPlanned.length;
+    final summaryDone = app.allDailyCompleted;
     final anyActive = app.habits.any((h) => !h.archived);
     final scale = MediaQuery.textScalerOf(context).scale(1);
     return ListView(
@@ -307,7 +312,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           },
         ),
         const SizedBox(height: 20),
-        if (planned.isNotEmpty) ...[
+        AppAction(
+          label: app.contextFilter == null && app.groupFilter == null
+              ? s.filterHabits
+              : [
+                  if (app.contextFilter != null)
+                    contextName(s, app.contextFilter!),
+                  if (app.groupFilter != null)
+                    app.groups.firstWhere((g) => g.id == app.groupFilter).name,
+                ].join(' · '),
+          icon: Icons.tune_rounded,
+          tone: UiTone.violet,
+          onTap: () => showHabitFilter(context, app),
+        ),
+        const SizedBox(height: 12),
+        if (summaryCount > 0) ...[
           SoftPanel(
             tinted: true,
             tone: UiTone.blue,
@@ -319,14 +338,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        app.completed == planned.length
+                        summaryDone == summaryCount
                             ? s.allDone
                             : s.dailyCardTitle,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '${app.completed} / ${planned.length}  ${s.habitCount}',
+                        '$summaryDone / $summaryCount  ${s.habitCount}',
                         style: TextStyle(
                           color: scheme.onSurfaceVariant,
                           fontSize: 13,
@@ -343,16 +362,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     children: [
                       SizedBox.expand(
                         child: CircularProgressIndicator(
-                          value: app.completed / planned.length,
+                          value: summaryDone / summaryCount,
                           strokeWidth: 5,
                           strokeCap: StrokeCap.round,
                           backgroundColor: scheme.primary.withValues(alpha: .1),
                           semanticsLabel:
-                              '${s.planned} ${app.completed}/${planned.length}',
+                              '${s.planned} $summaryDone/$summaryCount',
                         ),
                       ),
                       Icon(
-                        app.completed == planned.length
+                        summaryDone == summaryCount
                             ? Icons.done_rounded
                             : Icons.spa_outlined,
                         color: scheme.primary,
@@ -365,12 +384,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
           ),
           const SizedBox(height: 20),
-          SectionTitle(s.planned, count: planned.length),
         ],
-        if (planned.isEmpty)
+        if (planned.isNotEmpty) SectionTitle(s.planned, count: planned.length),
+        if (planned.isEmpty && weekly.isEmpty)
           EmptyState(
             icon: Icons.spa_outlined,
-            title: anyActive ? s.emptyDay : s.emptyHabits,
+            title: app.contextFilter != null || app.groupFilter != null
+                ? s.noFilterMatches
+                : anyActive
+                ? s.emptyDay
+                : s.emptyHabits,
             body: anyActive ? s.emptyDayBody : s.emptyHabitsBody,
             action: s.newHabit,
             onAction: () => openEditor(context, app, 'habit'),
@@ -380,13 +403,34 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             padding: const EdgeInsets.only(bottom: 12),
             child: HabitTile(app: app, habit: h, day: day),
           ),
+        if (weekly.isNotEmpty) ...[
+          SectionTitle(
+            s.weeklyAvailable,
+            count: weekly.length,
+            tone: UiTone.violet,
+          ),
+          Text(s.weeklyHint, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 12),
+          for (final h in weekly)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: HabitTile(app: app, habit: h, day: day),
+            ),
+        ],
         if (app.habits.any(
-          (h) => !h.archived && !h.scheduled(day) && app.value(h, day) != null,
+          (h) =>
+              !h.archived &&
+              !app.scheduled(h, day) &&
+              app.matchesFilter(h) &&
+              app.value(h, day) != null,
         )) ...[
           SectionTitle(s.extraRecords, tone: UiTone.violet),
           for (final h in app.habits.where(
             (h) =>
-                !h.archived && !h.scheduled(day) && app.value(h, day) != null,
+                !h.archived &&
+                !app.scheduled(h, day) &&
+                app.matchesFilter(h) &&
+                app.value(h, day) != null,
           ))
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -860,35 +904,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         ),
         const SizedBox(height: 20),
         SoftPanel(
+          padding: const EdgeInsets.all(5),
           tinted: true,
-          tone: UiTone.blue,
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.shield_outlined,
-                size: 20,
-                color: UiTone.blue.ink(context),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.localData,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      s.localDataBody,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          child: SettingRow(
+            icon: Icons.shield_outlined,
+            title: s.dataBackup,
+            subtitle: s.backupLocal,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(builder: (_) => BackupPage(app: app)),
+            ),
           ),
         ),
         const SizedBox(height: 14),

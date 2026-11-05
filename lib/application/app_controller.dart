@@ -17,6 +17,11 @@ class AppController extends ChangeNotifier {
   List<SmallTask> tasks = [];
   List<Note> notes = [];
   Map<String, String> preferences = {};
+  List<HabitPlan> plans = [];
+  List<HabitGroup> groups = [];
+  int generation = 0;
+  String? groupFilter;
+  HabitContext? contextFilter;
   bool ready = false;
   bool busy = false;
   String? error;
@@ -27,21 +32,43 @@ class AppController extends ChangeNotifier {
     final t = await store.tasks();
     final n = await store.notes();
     final p = await store.settings();
+    final versions = await store.plans();
+    final g = await store.groups();
+    final epoch = await store.generation();
     habits = h;
     entries = e;
     tasks = t;
     notes = n;
     preferences = p;
+    plans = versions;
+    groups = g;
+    generation = epoch;
+    if (groupFilter != null && !g.any((g) => g.id == groupFilter)) {
+      groupFilter = null;
+    }
     ready = true;
     notifyListeners();
   }
 
-  Future<bool> run(Future<void> Function() operation) async {
+  Future<bool> run(
+    Future<void> Function() operation, {
+    int? expectedGeneration,
+  }) async {
     if (busy) return false;
+    if (expectedGeneration != null && expectedGeneration != generation) {
+      error = 'storage';
+      notifyListeners();
+      return false;
+    }
     busy = true;
     error = null;
     notifyListeners();
     try {
+      final storedGeneration = await store.generation();
+      if (storedGeneration != generation) {
+        await load();
+        throw StateError('Data generation changed; refresh before retrying');
+      }
       await operation();
       await load();
       return true;
@@ -71,8 +98,71 @@ class AppController extends ChangeNotifier {
     return null;
   }
 
-  bool achieved(Habit h, Day day) => (value(h, day) ?? -1) >= h.target;
-  List<Habit> get planned =>
-      habits.where((h) => h.scheduled(selectedDay)).toList();
+  HabitPlan planAt(Habit h, Day day) => plans.lastWhere(
+    (p) => p.habitId == h.id && p.effectiveDay.compareTo(day) <= 0,
+    orElse: () => HabitPlan.fromHabit(h, h.startDay),
+  );
+  Habit forDay(Habit h, Day day) => h.withPlan(planAt(h, day));
+  HabitPlan? pending(Habit h) => plans
+      .where((p) => p.habitId == h.id && p.effectiveDay.compareTo(today) > 0)
+      .firstOrNull;
+  bool scheduled(Habit h, Day day) =>
+      !h.archived &&
+      day.compareTo(h.startDay) >= 0 &&
+      planAt(h, day).scheduled(day);
+  bool achieved(Habit h, Day day) =>
+      (value(h, day) ?? -1) >= planAt(h, day).target;
+  int weekCount(Habit h, Day day) {
+    final plan = planAt(h, day);
+    final start = day.monday.compareTo(plan.effectiveDay) < 0
+        ? plan.effectiveDay
+        : day.monday;
+    final end = day.compareTo(today) > 0 ? today : day;
+    return entries
+        .where(
+          (e) =>
+              e.habitId == h.id &&
+              e.day.compareTo(start) >= 0 &&
+              e.day.compareTo(end) <= 0 &&
+              e.value >= plan.target,
+        )
+        .length;
+  }
+
+  bool matchesFilter(Habit h) =>
+      (contextFilter == null || h.context == contextFilter) &&
+      (groupFilter == null || h.groupId == groupFilter);
+  void filter({HabitContext? context, String? group}) {
+    contextFilter = context;
+    groupFilter = group;
+    notifyListeners();
+  }
+
+  List<Habit> get dailyPlanned => habits
+      .where(
+        (h) =>
+            scheduled(h, selectedDay) &&
+            planAt(h, selectedDay).schedule != ScheduleKind.weekly &&
+            matchesFilter(h),
+      )
+      .toList();
+  List<Habit> get weeklyPlanned => habits
+      .where(
+        (h) =>
+            scheduled(h, selectedDay) &&
+            planAt(h, selectedDay).schedule == ScheduleKind.weekly &&
+            matchesFilter(h),
+      )
+      .toList();
+  List<Habit> get planned => dailyPlanned;
   int get completed => planned.where((h) => achieved(h, selectedDay)).length;
+  List<Habit> get allDailyPlanned => habits
+      .where(
+        (h) =>
+            scheduled(h, selectedDay) &&
+            planAt(h, selectedDay).schedule != ScheduleKind.weekly,
+      )
+      .toList();
+  int get allDailyCompleted =>
+      allDailyPlanned.where((h) => achieved(h, selectedDay)).length;
 }

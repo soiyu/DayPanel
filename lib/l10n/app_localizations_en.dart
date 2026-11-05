@@ -9,6 +9,228 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get restoreRefreshFailed =>
+      'Data was restored, but the screen could not refresh. Go back and reload before making more changes.';
+
+  @override
+  String get dataBackup => 'Data & backup';
+
+  @override
+  String get backupBody =>
+      'Keep your habits, plans, logs, tasks, journal and preferences in one file.';
+
+  @override
+  String get exportBackup => 'Export backup';
+
+  @override
+  String get importBackup => 'Restore from file';
+
+  @override
+  String get exportHint =>
+      'Choose a location. Backup files are not encrypted; keep them private.';
+
+  @override
+  String get restoreHint =>
+      'Review the file first. Your data changes only after confirmation.';
+
+  @override
+  String get backupSaved => 'Backup saved';
+
+  @override
+  String get backupError =>
+      'Could not read or save the file. Try another location.';
+
+  @override
+  String get backupInvalid =>
+      'This is not a valid supported DayPanel backup, or it is damaged. Your data is unchanged.';
+
+  @override
+  String get restorePreview => 'Review this backup';
+
+  @override
+  String get restoreConfirm => 'Restore & replace';
+
+  @override
+  String get replaceWarning =>
+      'Restore replaces all current data; it does not merge. A copy of your previous data will be kept here for rollback.';
+
+  @override
+  String get restoreDone => 'Backup restored';
+
+  @override
+  String get rollbackTitle => 'Return to previous data';
+
+  @override
+  String get rollbackBody =>
+      'Replace current content with the copy from before the last restore. Newer additions and changes will also be replaced.';
+
+  @override
+  String get rollbackDone => 'Previous data restored';
+
+  @override
+  String get noRecovery => 'No previous restore copy';
+
+  @override
+  String get backupDate => 'Backup date';
+
+  @override
+  String get backupItems => 'File contents';
+
+  @override
+  String get recordsLabel => 'Logs';
+
+  @override
+  String get plansLabel => 'Plan versions';
+
+  @override
+  String get groupsLabel => 'Habit groups';
+
+  @override
+  String get backupLocal => 'Full file backups, free and without an account.';
+
+  @override
+  String get restoreFailed =>
+      'Restore failed. Your current data is unchanged. Please retry.';
+
+  @override
+  String get contextLabel => 'Time of day';
+
+  @override
+  String get anytime => 'Anytime';
+
+  @override
+  String get morning => 'Morning';
+
+  @override
+  String get daytime => 'Daytime';
+
+  @override
+  String get evening => 'Evening';
+
+  @override
+  String get allHabits => 'All habits';
+
+  @override
+  String get allGroups => 'All groups';
+
+  @override
+  String get ungrouped => 'Ungrouped';
+
+  @override
+  String get groupLabel => 'Group';
+
+  @override
+  String get manageGroups => 'Manage groups';
+
+  @override
+  String get newGroup => 'New group';
+
+  @override
+  String get groupName => 'Group name';
+
+  @override
+  String get groupDeleteHint =>
+      'Deleting a group removes membership only. Habits and records are kept.';
+
+  @override
+  String get groupNameError =>
+      'Use 1–40 characters and a name that is not already in use.';
+
+  @override
+  String get noGroups => 'Bring related habits together';
+
+  @override
+  String get noGroupsBody =>
+      'Try Health, Reading or Learning. Grouping is optional.';
+
+  @override
+  String get filterHabits => 'Filter habits';
+
+  @override
+  String get applyFilter => 'Apply filters';
+
+  @override
+  String get resetFilter => 'Clear filters';
+
+  @override
+  String get noFilterMatches => 'No habits match these filters';
+
+  @override
+  String get sortHabits => 'Arrange habits';
+
+  @override
+  String get sortHint =>
+      'Drag the handle or use the arrows. Daily follows this order after saving.';
+
+  @override
+  String get moveUp => 'Move up';
+
+  @override
+  String get moveDown => 'Move down';
+
+  @override
+  String get frequency => 'Schedule';
+
+  @override
+  String get byWeekday => 'Weekdays';
+
+  @override
+  String get everyNDays => 'Every few days';
+
+  @override
+  String get weeklyTarget => 'Weekly target';
+
+  @override
+  String get intervalLabel => 'Days between';
+
+  @override
+  String get weeklyGoalLabel => 'Days per week';
+
+  @override
+  String get scheduleNumberError =>
+      'Use 1–365 days for intervals, or 1–7 days per week.';
+
+  @override
+  String get planTomorrow =>
+      'Target, unit and schedule changes start tomorrow. Past plans and logs stay intact.';
+
+  @override
+  String get planPending => 'An updated plan starts tomorrow';
+
+  @override
+  String get planHistory => 'Plan history';
+
+  @override
+  String get effectiveFrom => 'Effective from';
+
+  @override
+  String get weeklyAvailable => 'Flexible this week';
+
+  @override
+  String get weeklyHint =>
+      'Count achieved days Monday–Sunday. Choose your days; these are not daily obligations.';
+
+  @override
+  String get weekProgress => 'Achieved this week';
+
+  @override
+  String get partialWeek => 'This plan counts from its start date this week';
+
+  @override
+  String get scheduleStarts => 'Intervals start on the plan’s effective date';
+
+  @override
+  String get organization => 'Schedule & organize';
+
+  @override
+  String get planVersionNote =>
+      'Changes made before this upgrade cannot be reconstructed. Saved versions track changes from this upgrade onward.';
+
+  @override
+  String get restoreStale =>
+      'Data has changed. Select the backup again before continuing.';
+
+  @override
   String get dailyCardTitle => 'Little steps, real progress';
 
   @override
