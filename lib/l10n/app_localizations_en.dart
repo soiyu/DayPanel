@@ -9,6 +9,49 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get dailyCardTitle => 'Little steps, real progress';
+
+  @override
+  String get journalHeading => 'A page for your everyday';
+
+  @override
+  String get journalEmptyHint => 'A sentence is a lovely place to start.';
+
+  @override
+  String get yourSpace => 'Your everyday';
+
+  @override
+  String get preferencesTitle => 'Make yourself at home';
+
+  @override
+  String get habitEditorHint => 'Make a little space for something good.';
+
+  @override
+  String get taskEditorHint => 'Capture it now. Make time for it later.';
+
+  @override
+  String get notePlaceholder => 'What would you like to remember today?';
+
+  @override
+  String get habitPlaceholder => 'For example: read a few pages';
+
+  @override
+  String get taskPlaceholder => 'For example: return a friend\'s book';
+
+  @override
+  String get unitPlaceholder => 'For example: pages, cups, ml';
+
+  @override
+  String get currentRecord => 'Already logged';
+
+  @override
+  String get prefillTotal => 'Quick totals';
+
+  @override
+  String get confirmBeforeWrite =>
+      'Choosing a total fills the field. Only Save updates your record.';
+
+  @override
   String get appName => 'DayPanel';
 
   @override

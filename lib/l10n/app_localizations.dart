@@ -98,6 +98,90 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @dailyCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Little steps, real progress'**
+  String get dailyCardTitle;
+
+  /// No description provided for @journalHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'A page for your everyday'**
+  String get journalHeading;
+
+  /// No description provided for @journalEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A sentence is a lovely place to start.'**
+  String get journalEmptyHint;
+
+  /// No description provided for @yourSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Your everyday'**
+  String get yourSpace;
+
+  /// No description provided for @preferencesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make yourself at home'**
+  String get preferencesTitle;
+
+  /// No description provided for @habitEditorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a little space for something good.'**
+  String get habitEditorHint;
+
+  /// No description provided for @taskEditorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture it now. Make time for it later.'**
+  String get taskEditorHint;
+
+  /// No description provided for @notePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to remember today?'**
+  String get notePlaceholder;
+
+  /// No description provided for @habitPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: read a few pages'**
+  String get habitPlaceholder;
+
+  /// No description provided for @taskPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: return a friend\'s book'**
+  String get taskPlaceholder;
+
+  /// No description provided for @unitPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: pages, cups, ml'**
+  String get unitPlaceholder;
+
+  /// No description provided for @currentRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Already logged'**
+  String get currentRecord;
+
+  /// No description provided for @prefillTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick totals'**
+  String get prefillTotal;
+
+  /// No description provided for @confirmBeforeWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Choosing a total fills the field. Only Save updates your record.'**
+  String get confirmBeforeWrite;
+
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:

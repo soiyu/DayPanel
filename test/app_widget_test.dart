@@ -116,6 +116,48 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('tab navigation keeps each list scroll position independent', (
+    tester,
+  ) async {
+    for (var i = 0; i < 12; i++) {
+      await store.saveTask(SmallTask(id: '$i', title: 'Task $i'), create: true);
+    }
+    await app.load();
+    await tester.pumpWidget(DayPanelApp(app: app));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('tab-1')));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byKey(const PageStorageKey('taskList')),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+    final taskScroll = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position
+        .pixels;
+    expect(taskScroll, greaterThan(100));
+    await tester.tap(find.byKey(const Key('tab-3')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .pixels,
+      0,
+    );
+    await tester.tap(find.byKey(const Key('tab-1')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .pixels,
+      closeTo(taskScroll, 1),
+    );
+    await tester.pumpWidget(const SizedBox());
+  });
+
   for (final locale in ['zh', 'en']) {
     for (final theme in ['light', 'dark']) {
       testWidgets(
@@ -162,6 +204,32 @@ void main() {
             await tester.pumpAndSettle();
             expect(tester.takeException(), isNull);
           }
+          await tester.ensureVisible(
+            find.text(locale == 'zh' ? '七日回顾' : 'Seven-day review'),
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.text(locale == 'zh' ? '七日回顾' : 'Seven-day review'),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          await tester.tap(find.byType(BackButton));
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(
+            find.text(locale == 'zh' ? '外观' : 'Appearance'),
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.text(locale == 'zh' ? '外观' : 'Appearance'));
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          await tester.tap(find.text(locale == 'zh' ? '取消' : 'Cancel'));
+          await tester.pumpAndSettle();
+          await tester.scrollUntilVisible(
+            find.text(locale == 'zh' ? '管理习惯' : 'Manage habits'),
+            -180,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.pumpAndSettle();
           await tester.tap(
             find.text(locale == 'zh' ? '管理习惯' : 'Manage habits'),
           );

@@ -9,6 +9,48 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get dailyCardTitle => '一点一滴，都是进步';
+
+  @override
+  String get journalHeading => '给回忆，留一页空白';
+
+  @override
+  String get journalEmptyHint => '不用写得完整，从一句话开始。';
+
+  @override
+  String get yourSpace => '我的日常';
+
+  @override
+  String get preferencesTitle => '用自己喜欢的方式';
+
+  @override
+  String get habitEditorHint => '从一个小习惯开始，慢慢坚持。';
+
+  @override
+  String get taskEditorHint => '记下要做的事，再安排时间。';
+
+  @override
+  String get notePlaceholder => '今天，有什么想记住的？';
+
+  @override
+  String get habitPlaceholder => '例如：读几页书';
+
+  @override
+  String get taskPlaceholder => '例如：把书还给朋友';
+
+  @override
+  String get unitPlaceholder => '例如：页、杯、ml';
+
+  @override
+  String get currentRecord => '已记录';
+
+  @override
+  String get prefillTotal => '快速填写总量';
+
+  @override
+  String get confirmBeforeWrite => '选择只会填写输入框，保存后才更新记录。';
+
+  @override
   String get appName => 'DayPanel';
 
   @override
