@@ -43,3 +43,5 @@ FL14 卡片册、原创卡面、翻面/收藏/心得与反馈设置延续同一�
 FL15 四个统计视图复用共享组件，年月日定位采用暖橙、历史与统计用淡紫，柱形显示实际数量。规则/交互与可追溯性见 [STATISTICS](STATISTICS.md)。
 
 FL16 原生组件采用独立浅/深渐层背景、细边、圆角、蓝色主动作和淡紫设置区；日期、名称、真实状态分层。配置和数量 Activity 复用 AppCanvas/SoftPanel/SettingRow/AppAction/QuantityEditor；窄尺寸日期按年份与月日分行，完整信息可在读屏/详情取得。具体见 [WIDGETS](WIDGETS.md)。
+
+FL17 将主色提取为统一主题，保留回顾紫/日期橙语义；新增林间青与暮色紫、离线书页体及习惯独立装扮。主动作渐层白字对比度经过测试，不靠颜色表达完成状态。预览和固定保存/取消复用共享组件，见 [PERSONALIZATION](PERSONALIZATION.md)。

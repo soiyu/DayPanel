@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
 import 'organization.dart';
+import 'appearance.dart';
 
 String noteHabitLabel(BuildContext context, AppController app, String? id) {
   final s = AppLocalizations.of(context);
@@ -133,6 +134,7 @@ class _EntryEditorState extends State<EntryEditor> {
   late final TextEditingController title, target, unit;
   late HabitKind kind;
   late int weekdays, icon;
+  late String decorationColor, decorationFrame;
   late ScheduleKind schedule;
   late HabitContext habitContext;
   String? groupId;
@@ -160,6 +162,8 @@ class _EntryEditorState extends State<EntryEditor> {
     kind = widget.habit?.kind ?? HabitKind.check;
     weekdays = widget.habit?.weekdays ?? 127;
     icon = widget.habit?.icon ?? 0;
+    decorationColor = widget.habit?.color ?? 'auto';
+    decorationFrame = widget.habit?.frame ?? 'auto';
     due = widget.task?.dueDay;
     resident = widget.task?.resident ?? false;
     schedule = widget.habit?.schedule ?? ScheduleKind.weekdays;
@@ -210,6 +214,8 @@ class _EntryEditorState extends State<EntryEditor> {
             unit: kind == HabitKind.quantity ? unit.text.trim() : '',
             weekdays: weekdays == 0 ? 127 : weekdays,
             icon: icon,
+            color: decorationColor,
+            frame: decorationFrame,
             archived: widget.habit?.archived ?? false,
             context: habitContext,
             groupId: groupId,
@@ -383,6 +389,7 @@ class _EntryEditorState extends State<EntryEditor> {
             TextFormField(
               key: const Key('entry-title'),
               controller: title,
+              onChanged: isHabit ? (_) => setState(() {}) : null,
               enabled: !saving,
               maxLength: isNote ? 10000 : 100,
               minLines: isNote ? 5 : 1,
@@ -627,33 +634,18 @@ class _EntryEditorState extends State<EntryEditor> {
                 ),
                 const SizedBox(height: 18),
               ],
-              fieldLabel(s.icon),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  for (var i = 0; i < habitIcons.length; i++)
-                    Semantics(
-                      selected: icon == i,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(17),
-                          border: Border.all(
-                            width: 1.5,
-                            color: icon == i
-                                ? habitTone(i).ink(context)
-                                : Colors.transparent,
-                          ),
-                        ),
-                        child: AppIconAction(
-                          icon: habitIcons[i],
-                          label: '${s.icon} ${i + 1}',
-                          tone: habitTone(i),
-                          onTap: saving ? null : () => setState(() => icon = i),
-                        ),
-                      ),
-                    ),
-                ],
+              HabitStylePicker(
+                icon: icon,
+                color: decorationColor,
+                frame: decorationFrame,
+                title: title.text,
+                onIcon: saving ? null : (v) => setState(() => icon = v),
+                onColor: saving
+                    ? null
+                    : (v) => setState(() => decorationColor = v),
+                onFrame: saving
+                    ? null
+                    : (v) => setState(() => decorationFrame = v),
               ),
             ],
             if (!isHabit && !isNote) ...[
@@ -917,7 +909,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
     final s = AppLocalizations.of(context);
     final h = widget.app.forDay(widget.habit, widget.day);
     final current = widget.app.value(h, widget.day);
-    final tone = habitTone(h.icon);
+    final tone = habitTone(h.icon, h.color);
     return SheetFrame(
       title: h.title,
       subtitle: MaterialLocalizations.of(

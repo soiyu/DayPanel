@@ -413,9 +413,15 @@ class _RemindersPageState extends State<RemindersPage>
                   child: SoftPanel(
                     padding: const EdgeInsets.all(4),
                     child: SettingRow(
+                      leading: ToneIcon(
+                        habitIcons[h.icon],
+                        tone: habitTone(h.icon, h.color),
+                        frame: h.frame,
+                        size: 40,
+                      ),
                       icon: habitIcons[h.icon],
                       title: h.title,
-                      tone: habitTone(h.icon),
+                      tone: habitTone(h.icon, h.color),
                       subtitle: h.archived
                           ? s.reminderArchived
                           : app.reminderFor(h.id).enabled

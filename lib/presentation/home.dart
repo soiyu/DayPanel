@@ -1,5 +1,6 @@
 import 'tasks.dart';
 import 'home_widgets.dart';
+import 'appearance.dart';
 import 'journal.dart';
 import 'achievements.dart';
 import 'statistics.dart';
@@ -580,11 +581,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   'dark' => s.dark,
                   _ => s.system,
                 },
-                onTap: () => preferencePicker(context, 'theme', {
-                  'system': s.system,
-                  'light': s.light,
-                  'dark': s.dark,
-                }),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => AppearancePage(app: app),
+                  ),
+                ),
               ),
               SettingRow(
                 icon: Icons.touch_app_outlined,

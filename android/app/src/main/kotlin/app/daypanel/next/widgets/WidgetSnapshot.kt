@@ -13,16 +13,17 @@ data class WidgetItem(
     val unit: String = "", val schedule: String = "weekdays", val scheduled: Boolean = true,
     val weekCount: Int = 0, val weekGoal: Int = 0, val resident: Boolean = false,
     val doneDay: String? = null, val dueDay: String? = null,
+    val icon: Int = 0, val color: String = "auto", val frame: String = "auto",
 ) { val done: Boolean get() = if (kind == "habit") (value ?: -1) >= target else doneDay != null }
 data class WidgetSnapshot(val generation: Long, val day: LocalDate, val chinese: Boolean,
-    val dark: Boolean, val items: Map<String, WidgetItem>)
+    val dark: Boolean, val items: Map<String, WidgetItem>, val palette: String = "blue", val frame: String = "soft")
 
 object WidgetSnapshotReader {
     fun read(context: Context, day: LocalDate = LocalDate.now()): WidgetSnapshot? {
         val file = context.getDatabasePath("daypanel_flutter.db")
         if (!file.exists()) return null
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
-            if (db.version != 7) return null
+            if (db.version !in 7..8) return null
             db.beginTransactionNonExclusive()
             try {
                 val generation = db.rawQuery("SELECT generation FROM runtime WHERE id=1", null).use { c ->
@@ -38,7 +39,8 @@ object WidgetSnapshotReader {
                 val dark = settings["theme"] == "dark" || (settings["theme"] !in listOf("dark", "light") &&
                     context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES)
                 val items = mutableMapOf<String, WidgetItem>()
-                db.rawQuery("""SELECT h.id,h.title,h.kind,h.archived,h.start_day,p.effective_day,p.target,p.unit,p.schedule,p.weekdays,p.interval_days,p.weekly_goal
+                val decoration = if(db.version >= 8) "h.icon,h.color,h.frame" else "0,'auto','auto'"
+                db.rawQuery("""SELECT h.id,h.title,h.kind,h.archived,h.start_day,p.effective_day,p.target,p.unit,p.schedule,p.weekdays,p.interval_days,p.weekly_goal,$decoration
                     FROM habits h JOIN plans p ON p.habit_id=h.id
                     WHERE p.effective_day=(SELECT MAX(effective_day) FROM plans WHERE habit_id=h.id AND effective_day<=?)""", arrayOf(day.toString())).use { c ->
                     while (c.moveToNext()) {
@@ -58,7 +60,7 @@ object WidgetSnapshotReader {
                             }
                         }
                         items["habit:$id"] = WidgetItem(id, "habit", c.getString(1), c.getInt(3) == 1 || day < start,
-                            c.getString(2) == "quantity", value, target, c.getString(7), schedule, scheduled, weekCount, c.getInt(11))
+                            c.getString(2) == "quantity", value, target, c.getString(7), schedule, scheduled, weekCount, c.getInt(11), icon=c.getInt(12), color=c.getString(13), frame=c.getString(14))
                     }
                 }
                 db.rawQuery("SELECT id,title,resident,archived,completed_day,due_day,start_day FROM tasks", null).use { c ->
@@ -73,7 +75,7 @@ object WidgetSnapshotReader {
                     }
                 }
                 db.setTransactionSuccessful()
-                return WidgetSnapshot(generation, day, chinese, dark, items)
+                return WidgetSnapshot(generation, day, chinese, dark, items, settings["palette"] ?: "blue", settings["icon_frame"] ?: "soft")
             } finally { db.endTransaction() }
         }
     }

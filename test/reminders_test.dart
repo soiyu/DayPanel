@@ -132,6 +132,10 @@ void main() {
       final payload =
           jsonDecode(e['payload'] as String) as Map<String, dynamic>;
       payload['schema'] = 2;
+      for (final h in payload['tables']['habits'] as List) {
+        (h as Map).remove('color');
+        h.remove('frame');
+      }
       (payload['tables'] as Map).remove('cards');
       (payload['tables'] as Map).remove('habit_activity');
       (payload['tables'] as Map).remove('reminders');

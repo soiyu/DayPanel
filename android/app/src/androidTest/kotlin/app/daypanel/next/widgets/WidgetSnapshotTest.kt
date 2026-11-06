@@ -62,7 +62,7 @@ class WidgetSnapshotTest {
         val snap=WidgetSnapshotReader.read(c,day)!!
         assertEquals(3L,snap.generation);assertTrue(snap.chinese);assertTrue(snap.dark);assertTrue(snap.items["habit:h"]!!.archived)
         db.execSQL("DELETE FROM habits");assertNull(WidgetSnapshotReader.read(c,day)!!.items["habit:h"])
-        db.version=8;assertNull(WidgetSnapshotReader.read(c,day));assertEquals(8,db.version)
+        db.version=9;assertNull(WidgetSnapshotReader.read(c,day));assertEquals(9,db.version)
     }
     @Test fun pendingIntentsSeparateInstancesConfigurationDayAndAction() {
         val a=WidgetBinding(101,"habit","h",0,"a")
@@ -75,4 +75,22 @@ class WidgetSnapshotTest {
         assertNotEquals(first,WidgetEngine.pending(c,101,"complete",a.copy(token="new"),day))
         assertNotEquals(first,WidgetEngine.pending(c,101,"complete",a.copy(generation=1),day))
     }
+    @Test fun versionEightDecorationAndThemeReadWithMaterialGlyphs() {
+        db.execSQL("ALTER TABLE habits ADD COLUMN icon INTEGER NOT NULL DEFAULT 23")
+        db.execSQL("ALTER TABLE habits ADD COLUMN color TEXT NOT NULL DEFAULT 'rose'")
+        db.execSQL("ALTER TABLE habits ADD COLUMN frame TEXT NOT NULL DEFAULT 'ring'")
+        db.execSQL("INSERT INTO settings VALUES('palette','teal')")
+        db.execSQL("INSERT INTO settings VALUES('icon_frame','plain')")
+        db.version=8
+        val snapshot=WidgetSnapshotReader.read(c,day)!!
+        val h=snapshot.items["habit:h"]!!
+        assertEquals("teal",snapshot.palette);assertEquals("plain",snapshot.frame)
+        assertEquals(23,h.icon);assertEquals("rose",h.color);assertEquals("ring",h.frame)
+        for(index in 0..23) {
+            val bitmap=WidgetAppearance.icon(c,h.copy(icon=index),snapshot)
+            assertTrue(bitmap.width>0);bitmap.recycle()
+        }
+        assertEquals(8,db.version)
+    }
+
 }

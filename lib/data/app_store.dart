@@ -8,6 +8,7 @@ import '../domain/backup.dart';
 import '../domain/reminder.dart';
 import '../domain/achievement.dart';
 import '../domain/activity.dart';
+import '../domain/appearance.dart';
 part 'store_backup.dart';
 part 'store_cards.dart';
 
@@ -26,7 +27,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 7,
+        version: 8,
         singleInstance: false,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
@@ -51,6 +52,7 @@ class AppStore {
           await upgradeToV5(db);
           await upgradeToV6(db);
           await upgradeToV7(db, migrationDay ?? Day(DateTime.now()));
+          await upgradeToV8(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
@@ -61,6 +63,7 @@ class AppStore {
           if (oldVersion < 7) {
             await upgradeToV7(db, migrationDay ?? Day(DateTime.now()));
           }
+          if (oldVersion < 8) await upgradeToV8(db);
         },
       ),
     );
@@ -172,7 +175,9 @@ class AppStore {
         habit.weekdays > 127 ||
         habit.unit.length > 12 ||
         habit.icon < 0 ||
-        habit.icon > 5) {
+        habit.icon >= Appearance.iconCount ||
+        !Appearance.habitColors.contains(habit.color) ||
+        !Appearance.habitFrames.contains(habit.frame)) {
       throw ArgumentError('Invalid habit');
     }
     if (habit.intervalDays < 1 ||
@@ -558,17 +563,17 @@ class AppStore {
     await _executor.delete(table, where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> saveAppearance(Appearance appearance) async {
+    if (!appearance.valid) throw ArgumentError('Invalid appearance');
+    await _transaction((txn) async {
+      for (final entry in appearance.toSettings().entries) {
+        await preference(entry.key, entry.value);
+      }
+    });
+  }
+
   Future<void> preference(String key, String value) async {
-    if (key == 'locale' && !{'system', 'en', 'zh'}.contains(value) ||
-        key == 'theme' && !{'system', 'light', 'dark'}.contains(value) ||
-        {'completion_sound', 'completion_haptics'}.contains(key) &&
-            !{'on', 'off'}.contains(value) ||
-        !{
-          'theme',
-          'locale',
-          'completion_sound',
-          'completion_haptics',
-        }.contains(key)) {
+    if (!Appearance.validPreference(key, value)) {
       throw ArgumentError('Invalid preference');
     }
     await _executor.insert('settings', {

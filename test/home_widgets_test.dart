@@ -172,7 +172,7 @@ void main() {
     expect(await store.entries(), isEmpty);
   });
   test(
-    'restore and rollback invalidate old widget generation, backup stays schema7',
+    'restore and rollback invalidate old widget generation, backup stays schema8',
     () async {
       await store.saveHabit(habit('h'), create: true);
       await app.load();

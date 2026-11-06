@@ -5,6 +5,7 @@ import 'models.dart';
 import 'reminder.dart';
 import 'achievement.dart';
 import 'activity.dart';
+import 'appearance.dart';
 
 class BackupInvalid implements Exception {
   const BackupInvalid();
@@ -31,7 +32,7 @@ class BackupSnapshot {
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 7,
+      'schema': 8,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -74,7 +75,7 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3, 4, 5, 6, 7}.contains(content['schema'])) {
+      if (!{2, 3, 4, 5, 6, 7, 8}.contains(content['schema'])) {
         throw const BackupInvalid();
       }
       final created = DateTime.parse(content['created_at'] as String);
@@ -95,6 +96,22 @@ class BackupSnapshot {
             )
             .toSet(),
       );
+      if (schema < 8) {
+        for (final row in raw['habits'] as List) {
+          if ((row as Map).containsKey('color') || row.containsKey('frame')) {
+            throw const BackupInvalid();
+          }
+          _int(row, 'icon', 0, 5);
+          row['color'] = 'auto';
+          row['frame'] = 'auto';
+        }
+        // New preference identifiers are only valid in schema8.
+        for (final row in raw['settings'] as List) {
+          if (['palette', 'font', 'icon_frame'].contains(row['key'])) {
+            throw const BackupInvalid();
+          }
+        }
+      }
       if (schema < 3) raw['reminders'] = <Object>[];
       if (schema < 6) raw['cards'] = <Object>[];
       if (schema < 7) {
@@ -188,6 +205,8 @@ class BackupSnapshot {
         'unit',
         'weekdays',
         'icon',
+        'color',
+        'frame',
         'archived',
         'context',
         'group_id',
@@ -201,7 +220,11 @@ class BackupSnapshot {
       _text(m, 'unit', 12, empty: true);
       _int(m, 'target', 1, 999999999999);
       _int(m, 'weekdays', 1, 127);
-      _int(m, 'icon', 0, 5);
+      _int(m, 'icon', 0, Appearance.iconCount - 1);
+      if (!Appearance.habitColors.contains(m['color']) ||
+          !Appearance.habitFrames.contains(m['frame'])) {
+        throw const BackupInvalid();
+      }
       _int(m, 'archived', 0, 1);
       _int(m, 'position', 0, 1000000);
       _int(m, 'interval_days', 1, 365);
@@ -365,18 +388,9 @@ class BackupSnapshot {
     for (final m in t['settings']!) {
       _keys(m, {'key', 'value'});
       if (!settingKeys.add(m['key'] as String)) throw const BackupInvalid();
-      if ({'completion_sound', 'completion_haptics'}.contains(m['key']) &&
-          {'on', 'off'}.contains(m['value'])) {
-        continue;
+      if (!Appearance.validPreference(m['key'] as String, m['value'])) {
+        throw const BackupInvalid();
       }
-      if (m['key'] == 'theme' &&
-          {'system', 'light', 'dark'}.contains(m['value'])) {
-        continue;
-      }
-      if (m['key'] == 'locale' && {'system', 'en', 'zh'}.contains(m['value'])) {
-        continue;
-      }
-      throw const BackupInvalid();
     }
   }
 }

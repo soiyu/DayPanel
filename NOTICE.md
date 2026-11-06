@@ -7,3 +7,8 @@ Product and design references: the owner's approved Stitch Luminous Focus direct
 Flutter and third-party packages retain their own licenses. The app exposes Flutter's package license page. Pin resolved versions in pubspec.lock and audit their notices before release. No root distribution license has been chosen; absence of a LICENSE is not a grant to redistribute this project.
 
 FL14 artwork: the six scenes in `lib/presentation/card_art.dart` are original code-drawn compositions authored for this project. Completion audio `android/app/src/main/res/raw/daypanel_complete.wav` is an original 0.22-second synthesized two-note PCM sound, reproducible with `scripts/generate-feedback.ps1`. Neither uses third-party illustrations, recordings or melodies.
+
+
+FL17 font asset: `assets/fonts/NotoSerifSC.ttf` is Noto Serif SC from google/fonts, distributed under SIL Open Font License 1.1. See `assets/fonts/OFL-NotoSerifSC.txt` and `SOURCE.md`.
+
+Habit icons use the Material Icons font already distributed with Flutter (Apache 2.0). Android widgets render the same 24 referenced glyphs from the bundled Flutter font; no Loop or competitor icon assets are used.

@@ -1146,4 +1146,163 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get widgetOpening => '正在打开记录';
+
+  @override
+  String get appearancePreview => '外观预览';
+
+  @override
+  String get appearanceHint => '先看看效果，保存后才应用。所有选择免费。';
+
+  @override
+  String get appearanceSample => '排版样张';
+
+  @override
+  String get appearanceSampleText => '把喜欢的小事，放进每一天。';
+
+  @override
+  String get appearanceMode => '明暗模式';
+
+  @override
+  String get appearancePalette => '主题配色';
+
+  @override
+  String get paletteBlue => '晴空蓝';
+
+  @override
+  String get paletteTeal => '林间青';
+
+  @override
+  String get paletteViolet => '暮色紫';
+
+  @override
+  String get appearanceFont => '字体';
+
+  @override
+  String get fontSystem => '系统字体';
+
+  @override
+  String get fontSerif => '书页体';
+
+  @override
+  String get fontHint => '书页体采用本地 Noto Serif SC，无需下载。桌面组件使用 Android 系统字体。';
+
+  @override
+  String get appearanceFrame => '默认图标边框';
+
+  @override
+  String get frameSoft => '柔和底';
+
+  @override
+  String get frameRing => '圆环';
+
+  @override
+  String get framePlain => '无边框';
+
+  @override
+  String get followDefault => '跟随默认';
+
+  @override
+  String get automaticColor => '自动配色';
+
+  @override
+  String get appearanceReset => '恢复默认预览';
+
+  @override
+  String get habitDecoration => '图标与装扮';
+
+  @override
+  String get habitColor => '图标配色';
+
+  @override
+  String get habitFrame => '图标边框';
+
+  @override
+  String get colorBlue => '蓝色';
+
+  @override
+  String get colorViolet => '紫色';
+
+  @override
+  String get colorPeach => '暖橙';
+
+  @override
+  String get colorTeal => '青色';
+
+  @override
+  String get colorRose => '玫瑰';
+
+  @override
+  String get decorationHint => '装扮不改变安排、目标或完成记录。';
+
+  @override
+  String get iconSun => '阳光';
+
+  @override
+  String get iconWater => '水滴';
+
+  @override
+  String get iconBook => '阅读';
+
+  @override
+  String get iconWalk => '散步';
+
+  @override
+  String get iconHeart => '爱心';
+
+  @override
+  String get iconMoon => '月亮';
+
+  @override
+  String get iconStrength => '力量';
+
+  @override
+  String get iconMeditate => '舒展';
+
+  @override
+  String get iconRun => '跑步';
+
+  @override
+  String get iconBike => '骑行';
+
+  @override
+  String get iconMeal => '餐食';
+
+  @override
+  String get iconFlower => '花朵';
+
+  @override
+  String get iconMusic => '音乐';
+
+  @override
+  String get iconArt => '绘画';
+
+  @override
+  String get iconWrite => '书写';
+
+  @override
+  String get iconLanguage => '语言';
+
+  @override
+  String get iconSavings => '储蓄';
+
+  @override
+  String get iconClean => '整理';
+
+  @override
+  String get iconPet => '宠物';
+
+  @override
+  String get iconCoffee => '咖啡';
+
+  @override
+  String get iconMedicine => '用药';
+
+  @override
+  String get iconSleep => '睡眠';
+
+  @override
+  String get iconUnplug => '少看手机';
+
+  @override
+  String get iconCare => '关怀';
 }

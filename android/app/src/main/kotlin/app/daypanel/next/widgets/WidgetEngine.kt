@@ -56,6 +56,7 @@ object WidgetEngine {
         fun t(chinese: String, english: String) = if (zh) chinese else english
         val day = snapshot?.day ?: LocalDate.now()
         val views = RemoteViews(c.packageName, R.layout.daypanel_widget)
+        views.setInt(R.id.widget_action, "setBackgroundResource", WidgetAppearance.action(snapshot?.palette ?: "blue"))
         val dark = snapshot?.dark ?: (c.resources.configuration.uiMode and 48 == 32)
         val ink = Color.parseColor(if (dark) "#EDF1FF" else "#18223B")
         val secondary = Color.parseColor(if (dark) "#B6C2E0" else "#52627F")
@@ -76,6 +77,10 @@ object WidgetEngine {
         views.setInt(R.id.widget_title, "setMaxLines", if (compactText) 1 else 2)
         views.setInt(R.id.widget_state, "setMaxLines", if (compactText) 1 else 2)
         views.setViewVisibility(R.id.widget_hint, if (large) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.widget_icon, if (large && item?.kind == "habit") View.VISIBLE else View.GONE)
+        if (large && item?.kind == "habit" && snapshot != null) {
+            views.setImageViewBitmap(R.id.widget_icon, WidgetAppearance.icon(c,item,snapshot))
+        }
         val title: String
         val state: String
         val hint: String

@@ -9,11 +9,20 @@ import 'data/reminder_platform.dart';
 import 'data/completion_feedback.dart';
 import 'presentation/habits.dart';
 import 'domain/models.dart';
+import 'domain/appearance.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'data/widget_platform.dart';
 import 'presentation/home_widgets.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString(
+      'assets/fonts/OFL-NotoSerifSC.txt',
+    );
+    yield LicenseEntryWithLineBreaks(['Noto Serif SC'], license);
+  });
   runApp(const Bootstrap());
 }
 
@@ -191,8 +200,14 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
       navigatorKey: navigatorKey,
       title: 'DayPanel',
       debugShowCheckedModeBanner: false,
-      theme: dayPanelTheme(Brightness.light),
-      darkTheme: dayPanelTheme(Brightness.dark),
+      theme: dayPanelTheme(
+        Brightness.light,
+        appearance: Appearance.fromSettings(app.preferences),
+      ),
+      darkTheme: dayPanelTheme(
+        Brightness.dark,
+        appearance: Appearance.fromSettings(app.preferences),
+      ),
       themeMode: switch (app.preferences['theme']) {
         'dark' => ThemeMode.dark,
         'light' => ThemeMode.light,

@@ -1218,4 +1218,167 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get widgetOpening => 'Opening your record';
+
+  @override
+  String get appearancePreview => 'Appearance preview';
+
+  @override
+  String get appearanceHint =>
+      'Try it here. Only Save applies your choices. All styles are free.';
+
+  @override
+  String get appearanceSample => 'Typography sample';
+
+  @override
+  String get appearanceSampleText =>
+      'Make room for the little things you enjoy.';
+
+  @override
+  String get appearanceMode => 'Display mode';
+
+  @override
+  String get appearancePalette => 'Color theme';
+
+  @override
+  String get paletteBlue => 'Clear blue';
+
+  @override
+  String get paletteTeal => 'Forest teal';
+
+  @override
+  String get paletteViolet => 'Evening violet';
+
+  @override
+  String get appearanceFont => 'Font';
+
+  @override
+  String get fontSystem => 'System font';
+
+  @override
+  String get fontSerif => 'Book serif';
+
+  @override
+  String get fontHint =>
+      'Book serif uses bundled Noto Serif SC, with no download. Home widgets use the Android system font.';
+
+  @override
+  String get appearanceFrame => 'Default icon frame';
+
+  @override
+  String get frameSoft => 'Soft tile';
+
+  @override
+  String get frameRing => 'Ring';
+
+  @override
+  String get framePlain => 'Plain';
+
+  @override
+  String get followDefault => 'Use default';
+
+  @override
+  String get automaticColor => 'Automatic';
+
+  @override
+  String get appearanceReset => 'Preview defaults';
+
+  @override
+  String get habitDecoration => 'Icon and style';
+
+  @override
+  String get habitColor => 'Icon color';
+
+  @override
+  String get habitFrame => 'Icon frame';
+
+  @override
+  String get colorBlue => 'Blue';
+
+  @override
+  String get colorViolet => 'Violet';
+
+  @override
+  String get colorPeach => 'Orange';
+
+  @override
+  String get colorTeal => 'Teal';
+
+  @override
+  String get colorRose => 'Rose';
+
+  @override
+  String get decorationHint =>
+      'Style changes keep your schedule, target and records.';
+
+  @override
+  String get iconSun => 'Sun';
+
+  @override
+  String get iconWater => 'Water';
+
+  @override
+  String get iconBook => 'Reading';
+
+  @override
+  String get iconWalk => 'Walking';
+
+  @override
+  String get iconHeart => 'Heart';
+
+  @override
+  String get iconMoon => 'Moon';
+
+  @override
+  String get iconStrength => 'Strength';
+
+  @override
+  String get iconMeditate => 'Stretching';
+
+  @override
+  String get iconRun => 'Running';
+
+  @override
+  String get iconBike => 'Cycling';
+
+  @override
+  String get iconMeal => 'Meals';
+
+  @override
+  String get iconFlower => 'Flower';
+
+  @override
+  String get iconMusic => 'Music';
+
+  @override
+  String get iconArt => 'Art';
+
+  @override
+  String get iconWrite => 'Writing';
+
+  @override
+  String get iconLanguage => 'Language';
+
+  @override
+  String get iconSavings => 'Savings';
+
+  @override
+  String get iconClean => 'Tidying';
+
+  @override
+  String get iconPet => 'Pet';
+
+  @override
+  String get iconCoffee => 'Coffee';
+
+  @override
+  String get iconMedicine => 'Medicine';
+
+  @override
+  String get iconSleep => 'Sleep';
+
+  @override
+  String get iconUnplug => 'Unplug';
+
+  @override
+  String get iconCare => 'Care';
 }

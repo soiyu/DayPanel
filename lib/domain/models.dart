@@ -124,6 +124,8 @@ class Habit {
     this.unit = '',
     this.weekdays = 127,
     this.icon = 0,
+    this.color = 'auto',
+    this.frame = 'auto',
     this.archived = false,
     this.context = HabitContext.anytime,
     this.groupId,
@@ -132,7 +134,7 @@ class Habit {
     this.intervalDays = 1,
     this.weeklyGoal = 3,
   });
-  final String id, title, unit;
+  final String id, title, unit, color, frame;
   final HabitKind kind;
   final Day startDay;
   final int target, weekdays, icon;
@@ -163,6 +165,8 @@ class Habit {
     'unit': unit,
     'weekdays': weekdays,
     'icon': icon,
+    'color': color,
+    'frame': frame,
     'archived': archived ? 1 : 0,
     'context': context.name,
     'group_id': groupId,
@@ -180,6 +184,8 @@ class Habit {
     unit: m['unit'] as String,
     weekdays: m['weekdays'] as int,
     icon: m['icon'] as int,
+    color: m['color'] as String? ?? 'auto',
+    frame: m['frame'] as String? ?? 'auto',
     archived: m['archived'] == 1,
     context: HabitContext.values.byName(m['context'] as String? ?? 'anytime'),
     groupId: m['group_id'] as String?,

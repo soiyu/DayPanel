@@ -2,7 +2,7 @@
 
 更新 2026-11-06。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
 
-当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索、FL14 成就卡/收藏/心得/反馈、FL15 打卡表/量化/年历/时间线和 FL16 Android 桌面组件。最新版本 SQLite v7，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志、成就卡与按日期归档履历；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
+当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索、FL14 成就卡/收藏/心得/反馈、FL15 打卡表/量化/年历/时间线、FL16 Android 桌面组件和 FL17 免费外观/字体/习惯装扮。最新版本 SQLite v8，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志、成就卡与按日期归档履历；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
 
 ## 已实现基座与 UI
 
@@ -478,3 +478,56 @@ FL16 实现及限定验收通过。尚未完成API35/36本批Launcher矩阵、�
 收尾切回主用户0、停止并删除临时用户12，系统只剩主用户。主用户进程关闭后归档post-widgets-db.tar，`python .local/widgets_retention.py`再次逐表比对通过，日志widgets-retention-final.log；原2习惯/1记录/2小事/1手记/原偏好及其余表完全保留，外键检查为空。主用户最终启动Status: ok。删除组件后的旧Activity入口显示内容/日期已变并可返回，截图widgets-final-deleted-action.png，没有写入。
 
 完成 `git diff --check` 与 `git diff --cached --check`，均通过。APK、数据库、截图、AVD恢复副本、工具链和日志均在ignored路径，未提交。最后正常重启后Android自动时区选择了America/New_York，结束前重新设为原GMT，保留auto_time/auto_time_zone原值1；主用户App语言/主题未改。电脑和可见模拟器保持运行。
+
+## 2026-11-06 FL17 免费主题、字体、图标、配色与边框
+
+用户“继续”承接FL16交接，执行FL17。先记录 [ADR0009](../adr/0009-personalization.md) 与 [PERSONALIZATION](../design/PERSONALIZATION.md)，沿用冷白/蓝/淡紫/暖橙。全部免费、本地离线，不新增账号/云/专注/广告/付费。旧Loop源码未修改或复制。
+
+### 功能与规则
+
+- 我的→外观变为真实预览页，提供系统/浅/深模式、晴空蓝/林间青/暮色紫、系统字体/书页体、柔和底/圆环/无边框默认图标样式。选择只改当前预览，固定保存一次事务应用，取消/返回不写入；恢复默认只先改变预览，需保存才生效。预览显示真实习惯与当天状态，无内容时明确标记排版样张，不添加假记录。保存错误可返回或重试，旧页面generation不匹配拒绝。
+- 习惯编辑提供24个具名图标（前六个索引和含义保留）、自动及蓝/紫/橙/青/玫瑰配色、跟随默认及三种边框；图标/颜色/边框和输入名称即时预览，原保存/取消保持。习惯列表、管理、提醒列表及数量颜色使用真实装扮；状态继续有文字/图形，不仅靠颜色。装扮保存不创建计划版本、不写完成、不重新发卡；目标/频率/单位仍明天生效。
+- 三主题共用颜色层次，主操作渐层白字最低4.5:1经测试，深色有独立映射，回顾紫与日期橙语义保持。系统文字缩放及减少动画未禁用。字体随App应用到正文/标题/按钮，不依赖运行时联网。
+- 书页体为未修改Noto Serif SC可变字体，来自google/fonts固定commit `8b0a1d0f5983c89bc2b93f1b5fb55f9e252744b5`，25,125,512 bytes，SHA-256 `050080d9255a86808f2945bffac582b31ef32bc36411ce29563b4961670c66f9`。源文件、来源、完整OFL1.1在assets/fonts，NOTICE补充说明，App许可证注册Noto Serif SC条目。APK实际检查确认FontManifest、字体和OFL都已打包。图标为Flutter已有Material Icons（Apache2），Android组件使用同一字体的24个glyph，无Loop/竞品资源。
+- SQLite8在habits新增color/frame，旧库默认auto，icon原值不变；settings增加palette/font/icon_frame。备份schema8严格校验枚举/图标0..23/字段，旧schema2–7补自动装扮，未知值拒绝。导出、导入、恢复前副本和回退全链路包含；旧设置缺失时沿用原默认。ReminderSnapshot同步3..8（拒绝9），WidgetSnapshot支持7..8（拒绝9），避免升级后提醒/组件失效。
+- 桌面主操作随App主题，较大尺寸显示习惯图标/装饰，窄小尺寸优先保留日期/状态/动作；组件字体遵循Android系统，外观页明确说明。App保存之后按既有流程刷新，冷进程仍读同一真实库。没有新增权限或Launcher图标切换。
+
+### 工程验证
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+```
+
+最终 `.local/reports/fl17-final.log`：60个Dart文件格式无变化、analyze无问题、**193项Flutter/Dart通过**（原171+新22），debug构建24.4秒成功，Kotlin JVM **12/12**。native-test成功，日志fl17-native-final.log（6秒）。已有Kotlin/Gradle弃用迁移提示仍存在，不称无警告。
+
+新增13项规则/SQLite/备份/颜色对比测试与9项UI测试：默认与未知设置回落、原子保存/旧世代、全部装扮有效范围/非法输入拒绝、v7→v8原字段保留、装扮编辑保持计划/记录/卡片、schema8严格校验及回退、schema2–7和旧恢复副本兼容、三主题×明暗主动作及正文对比、预览取消/返回/重置不写、保存刷新组件、恢复后旧外观页拒绝、真实图标选择保存、24具名语义、中英×明暗320dp/160%书页体布局。原事务中断恢复、提醒、常驻、日志、卡片、统计、组件测试继续通过。
+
+首次迁移回归失败原因是两项旧测试用当前库降version但没有删除本批新增列，已修复为真实旧结构；新UI测试曾因异步滚动等待/屏外位置失败，改用实际底部面板及可达定位后通过，没有删除失败用例或把中途运行记作成功。设备复核发现习惯名称预览没有随文本输入即时更新，修复后重新完整verify。
+
+最终APK `build/app/outputs/flutter-apk/app-debug.apk`，174784029 bytes，SHA-256 `db148c67f3092e0cad90fc0a06a5be32df2402040faf417d44c31315bab81467`，--no-streaming覆盖安装Success。包身份仍app.daypanel.next.debug，API/权限/组件导出边界无变动。APK不是商店release包。
+
+API28最终APK/测试包运行：
+
+```powershell
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument --user 10 -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+**OK (16 tests)**，4.636秒，fl17-native-api28-final.log。含原15项回归及新增v8装扮/主题/边框读取、24glyph绘制；提醒3..8可读/拒绝9、组件7/8/未知版本及实例隔离继续通过。原生fixture独立，不写用户业务库，生命周期测试只在临时用户运行。
+
+### 实际设备与限制
+
+API28可见emulator-5554，1080×1920/420dpi。先关闭主用户进程归档pre-appearance-db.tar，再覆盖安装。创建隔离用户DayPanelFL17QA（id10），空库实际预览林间青+书页体+圆环后取消；关闭进程归档fl17-cancel-db.tar读取settings为空，取消确实不落库。
+
+UI新建Read a page，选择阅读图标、玫瑰色、圆环后保存；列表显示对应装扮且未记录。外观保存林间青/书页体/默认圆环，全App应用，强停重开保留。实际Launcher添加习惯组件并配置，主按钮变青；拖动增大尺寸后显示玫瑰圆环阅读图标，字体仍是系统。切换暮色紫/深色/English后，App和组件同步；最终覆盖包再次保留选择，桌面完成动作成功更新为Completed today。
+
+设备截图 `.local/reports/fl17-*.png`：appearance-initial、serif-preview、habit-style、daily-teal-serif、widget-large、appearance-dark-en、final-widget-dark等。截图来自实际界面，样本均由UI创建，不向产品预置数据。首批截图与最终名称预览即时更新修复视觉等价；最终包的原生16项重新运行。中英四组合窄屏/大字号为自动化证据，设备主要中文浅色/英文深色。设备UI查询偶尔null，等待稳定后重读；一次误触联系人组件立即取消，未授权或修改联系人。
+
+尚未完成本批API35/36、厂商真机、真实TalkBack手工、完整横屏/极端长名、字体大规模列表性能和长期后台矩阵。桌面自定义字体不受支持且已说明；不宣称全设备无BUG。下一批 **FL18 旧数据导入与Android离线数据方案**，需要先核定可验证的旧格式与恢复边界，不擅自引入云或订阅。电脑和可见模拟器保持运行，不推送远端。
+收尾从App开源许可页实际打开Noto Serif SC，完整版权与OFL1.1可读，截图fl17-font-license.png。切回主用户0，关闭进程归档post-appearance-db.tar，`python .local/appearance_retention.py`逐表核对通过（fl17-retention-final.log）：全部14表原字段逐行一致，v7→v8仅habits增加auto颜色/边框，foreign_key_check为空；2习惯/1记录/2小事/1手记/原偏好与其他历史保持。此额外检查不混入193项。临时用户10已停止删除，系统仅主用户；主用户最终启动Status: ok，未更改其语言/主题或真实记录。
+
+`git diff --check`、`git diff --cached --check`通过。字体与许可属于正式资源提交；SDK/APK/数据库/截图/日志/个人路径均不提交。最终错误日志无AndroidRuntime/flutter错误，未推送，电脑及可见模拟器继续运行。

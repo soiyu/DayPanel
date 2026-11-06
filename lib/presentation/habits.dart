@@ -31,7 +31,7 @@ class HabitTile extends StatelessWidget {
     final plan = app.planAt(habit, day);
     final amount = app.value(habit, day);
     final done = app.achieved(habit, day);
-    final tone = habitTone(habit.icon);
+    final tone = habitTone(habit.icon, habit.color);
     final enabled =
         !app.busy &&
         !habit.archived &&
@@ -49,7 +49,12 @@ class HabitTile extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ToneIcon(habitIcons[habit.icon], tone: tone, size: 46),
+              ToneIcon(
+                habitIcons[habit.icon],
+                tone: tone,
+                size: 46,
+                frame: habit.frame,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: InkWell(
@@ -110,7 +115,7 @@ class HabitTile extends StatelessWidget {
                 RichText(
                   textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                       fontSize: 13,
                       color: scheme.onSurfaceVariant,
                     ),
@@ -300,9 +305,15 @@ class HabitLibrary extends StatelessWidget {
                       child: SoftPanel(
                         padding: const EdgeInsets.all(2),
                         child: SettingRow(
+                          leading: ToneIcon(
+                            habitIcons[h.icon],
+                            tone: habitTone(h.icon, h.color),
+                            frame: h.frame,
+                            size: 40,
+                          ),
                           icon: habitIcons[h.icon],
                           title: h.title,
-                          tone: habitTone(h.icon),
+                          tone: habitTone(h.icon, h.color),
                           subtitle: h.kind == HabitKind.quantity
                               ? '${quantityText(h.target)} ${h.unit}'
                               : s.checkHabit,
@@ -366,7 +377,7 @@ class _HabitDetailsState extends State<HabitDetails> {
       final epoch = app.generation;
       final s = AppLocalizations.of(context);
       final day = selected ?? app.today;
-      final tone = habitTone(h.icon);
+      final tone = habitTone(h.icon, h.color);
       return AppCanvas(
         child: Scaffold(
           backgroundColor: Colors.transparent,

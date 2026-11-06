@@ -400,6 +400,8 @@ void main() {
       () async {
         await store.setRecord('h', today.plus(-5), 1000, today: today);
         await store.db.execute('DROP TABLE habit_activity');
+        await store.db.execute('ALTER TABLE habits DROP COLUMN color');
+        await store.db.execute('ALTER TABLE habits DROP COLUMN frame');
         await store.db.setVersion(6);
         await store.close();
         store = await AppStore.open(
@@ -407,7 +409,7 @@ void main() {
           path: '${dir.path}/db',
           migrationDay: today,
         );
-        expect(await store.db.getVersion(), 7);
+        expect(await store.db.getVersion(), 8);
         expect((await store.activity()).single.day, today);
         final s = stats(
           (await store.habits()).single,
@@ -462,6 +464,10 @@ void main() {
           final e = jsonDecode(utf8.decode(snap.encode())) as Map;
           final p = jsonDecode(e['payload'] as String) as Map;
           p['schema'] = schema;
+          for (final h in p['tables']['habits'] as List) {
+            (h as Map).remove('color');
+            h.remove('frame');
+          }
           (p['tables'] as Map).remove('habit_activity');
           if (schema < 6) (p['tables'] as Map).remove('cards');
           if (schema < 4) (p['tables'] as Map).remove('task_entries');

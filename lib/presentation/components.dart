@@ -9,21 +9,38 @@ class ToneIcon extends StatelessWidget {
     super.key,
     this.tone = UiTone.blue,
     this.size = 46,
+    this.frame = 'soft',
   });
   final IconData icon;
   final UiTone tone;
   final double size;
+  final String frame;
   @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(
-      color: tone.wash(context),
-      borderRadius: BorderRadius.circular(size * .32),
-      border: Border.all(color: tone.ink(context).withValues(alpha: .07)),
-    ),
-    child: Icon(icon, size: size * .48, color: tone.ink(context)),
-  );
+  Widget build(BuildContext context) {
+    final style = frame == 'auto'
+        ? (Theme.of(context).extension<DayPanelStyle>()?.appearance.frame ??
+              'soft')
+        : frame;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: style == 'soft' ? tone.wash(context) : Colors.transparent,
+        borderRadius: BorderRadius.circular(
+          style == 'ring' ? size : size * .32,
+        ),
+        border: style == 'plain'
+            ? null
+            : Border.all(
+                color: tone
+                    .ink(context)
+                    .withValues(alpha: style == 'ring' ? .7 : .12),
+                width: style == 'ring' ? 1.6 : 1,
+              ),
+      ),
+      child: Icon(icon, size: size * .48, color: tone.ink(context)),
+    );
+  }
 }
 
 class AppAction extends StatelessWidget {
@@ -61,7 +78,9 @@ class AppAction extends StatelessWidget {
             boxShadow: [
               if (primary)
                 BoxShadow(
-                  color: const Color(0xFF1656DF).withValues(alpha: .18),
+                  color: DayPanelStyle.of(
+                    context,
+                  ).actionEnd.withValues(alpha: .18),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -74,8 +93,11 @@ class AppAction extends StatelessWidget {
             child: Ink(
               decoration: BoxDecoration(
                 gradient: primary
-                    ? const LinearGradient(
-                        colors: [Color(0xFF3974F1), Color(0xFF1252DC)],
+                    ? LinearGradient(
+                        colors: [
+                          DayPanelStyle.of(context).actionStart,
+                          DayPanelStyle.of(context).actionEnd,
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       )
@@ -158,7 +180,7 @@ class AppIconAction extends StatelessWidget {
       boxShadow: [
         if (primary)
           BoxShadow(
-            color: const Color(0xFF1656DF).withValues(alpha: .16),
+            color: DayPanelStyle.of(context).actionEnd.withValues(alpha: .16),
             blurRadius: 16,
             offset: const Offset(0, 5),
           ),
@@ -169,7 +191,9 @@ class AppIconAction extends StatelessWidget {
       onPressed: onTap,
       icon: Icon(icon, size: 22),
       style: IconButton.styleFrom(
-        backgroundColor: primary ? const Color(0xFF1656DF) : tone.wash(context),
+        backgroundColor: primary
+            ? DayPanelStyle.of(context).actionEnd
+            : tone.wash(context),
         foregroundColor: primary ? Colors.white : tone.ink(context),
         minimumSize: const Size(48, 48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -254,7 +278,9 @@ class SettingRow extends StatelessWidget {
     required this.onTap,
     this.tone = UiTone.blue,
     this.trailing,
+    this.leading,
   });
+  final Widget? leading;
   final IconData icon;
   final String title;
   final String? subtitle;
@@ -271,7 +297,7 @@ class SettingRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         child: Row(
           children: [
-            ToneIcon(icon, tone: tone, size: 40),
+            leading ?? ToneIcon(icon, tone: tone, size: 40),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

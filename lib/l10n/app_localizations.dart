@@ -2365,6 +2365,324 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Opening your record'**
   String get widgetOpening;
+
+  /// No description provided for @appearancePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance preview'**
+  String get appearancePreview;
+
+  /// No description provided for @appearanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try it here. Only Save applies your choices. All styles are free.'**
+  String get appearanceHint;
+
+  /// No description provided for @appearanceSample.
+  ///
+  /// In en, this message translates to:
+  /// **'Typography sample'**
+  String get appearanceSample;
+
+  /// No description provided for @appearanceSampleText.
+  ///
+  /// In en, this message translates to:
+  /// **'Make room for the little things you enjoy.'**
+  String get appearanceSampleText;
+
+  /// No description provided for @appearanceMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Display mode'**
+  String get appearanceMode;
+
+  /// No description provided for @appearancePalette.
+  ///
+  /// In en, this message translates to:
+  /// **'Color theme'**
+  String get appearancePalette;
+
+  /// No description provided for @paletteBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear blue'**
+  String get paletteBlue;
+
+  /// No description provided for @paletteTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Forest teal'**
+  String get paletteTeal;
+
+  /// No description provided for @paletteViolet.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening violet'**
+  String get paletteViolet;
+
+  /// No description provided for @appearanceFont.
+  ///
+  /// In en, this message translates to:
+  /// **'Font'**
+  String get appearanceFont;
+
+  /// No description provided for @fontSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System font'**
+  String get fontSystem;
+
+  /// No description provided for @fontSerif.
+  ///
+  /// In en, this message translates to:
+  /// **'Book serif'**
+  String get fontSerif;
+
+  /// No description provided for @fontHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Book serif uses bundled Noto Serif SC, with no download. Home widgets use the Android system font.'**
+  String get fontHint;
+
+  /// No description provided for @appearanceFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Default icon frame'**
+  String get appearanceFrame;
+
+  /// No description provided for @frameSoft.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft tile'**
+  String get frameSoft;
+
+  /// No description provided for @frameRing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ring'**
+  String get frameRing;
+
+  /// No description provided for @framePlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain'**
+  String get framePlain;
+
+  /// No description provided for @followDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use default'**
+  String get followDefault;
+
+  /// No description provided for @automaticColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get automaticColor;
+
+  /// No description provided for @appearanceReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview defaults'**
+  String get appearanceReset;
+
+  /// No description provided for @habitDecoration.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon and style'**
+  String get habitDecoration;
+
+  /// No description provided for @habitColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon color'**
+  String get habitColor;
+
+  /// No description provided for @habitFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon frame'**
+  String get habitFrame;
+
+  /// No description provided for @colorBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get colorBlue;
+
+  /// No description provided for @colorViolet.
+  ///
+  /// In en, this message translates to:
+  /// **'Violet'**
+  String get colorViolet;
+
+  /// No description provided for @colorPeach.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get colorPeach;
+
+  /// No description provided for @colorTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get colorTeal;
+
+  /// No description provided for @colorRose.
+  ///
+  /// In en, this message translates to:
+  /// **'Rose'**
+  String get colorRose;
+
+  /// No description provided for @decorationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Style changes keep your schedule, target and records.'**
+  String get decorationHint;
+
+  /// No description provided for @iconSun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get iconSun;
+
+  /// No description provided for @iconWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get iconWater;
+
+  /// No description provided for @iconBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading'**
+  String get iconBook;
+
+  /// No description provided for @iconWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Walking'**
+  String get iconWalk;
+
+  /// No description provided for @iconHeart.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart'**
+  String get iconHeart;
+
+  /// No description provided for @iconMoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Moon'**
+  String get iconMoon;
+
+  /// No description provided for @iconStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength'**
+  String get iconStrength;
+
+  /// No description provided for @iconMeditate.
+  ///
+  /// In en, this message translates to:
+  /// **'Stretching'**
+  String get iconMeditate;
+
+  /// No description provided for @iconRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get iconRun;
+
+  /// No description provided for @iconBike.
+  ///
+  /// In en, this message translates to:
+  /// **'Cycling'**
+  String get iconBike;
+
+  /// No description provided for @iconMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get iconMeal;
+
+  /// No description provided for @iconFlower.
+  ///
+  /// In en, this message translates to:
+  /// **'Flower'**
+  String get iconFlower;
+
+  /// No description provided for @iconMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get iconMusic;
+
+  /// No description provided for @iconArt.
+  ///
+  /// In en, this message translates to:
+  /// **'Art'**
+  String get iconArt;
+
+  /// No description provided for @iconWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing'**
+  String get iconWrite;
+
+  /// No description provided for @iconLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get iconLanguage;
+
+  /// No description provided for @iconSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get iconSavings;
+
+  /// No description provided for @iconClean.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidying'**
+  String get iconClean;
+
+  /// No description provided for @iconPet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet'**
+  String get iconPet;
+
+  /// No description provided for @iconCoffee.
+  ///
+  /// In en, this message translates to:
+  /// **'Coffee'**
+  String get iconCoffee;
+
+  /// No description provided for @iconMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get iconMedicine;
+
+  /// No description provided for @iconSleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get iconSleep;
+
+  /// No description provided for @iconUnplug.
+  ///
+  /// In en, this message translates to:
+  /// **'Unplug'**
+  String get iconUnplug;
+
+  /// No description provided for @iconCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Care'**
+  String get iconCare;
 }
 
 class _AppLocalizationsDelegate
