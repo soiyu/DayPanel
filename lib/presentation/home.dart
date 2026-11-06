@@ -1,4 +1,5 @@
 import 'tasks.dart';
+import 'journal.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -140,7 +141,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   child: switch (tab) {
                     0 => daily(context),
                     1 => TasksPage(app: app),
-                    2 => journal(context),
+                    2 => JournalPage(app: app),
                     _ => preferences(context),
                   },
                 ),
@@ -439,144 +440,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               child: HabitTile(app: app, habit: h, day: day),
             ),
         ],
-      ],
-    );
-  }
-
-  Widget journal(BuildContext context) {
-    final s = AppLocalizations.of(context);
-    return ListView(
-      key: const PageStorageKey('journal'),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      children: [
-        SoftPanel(
-          tinted: true,
-          tone: UiTone.violet,
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.journalHeading,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      s.emptyNotesBody,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              const ToneIcon(
-                Icons.edit_note_rounded,
-                tone: UiTone.violet,
-                size: 52,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 22),
-        if (app.notes.isEmpty)
-          EmptyState(
-            icon: Icons.auto_stories_outlined,
-            title: s.emptyNotes,
-            body: s.journalEmptyHint,
-            action: s.newNote,
-            onAction: () => openEditor(context, app, 'note'),
-            tone: UiTone.violet,
-          ),
-        for (final note in app.notes)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: SoftPanel(
-              padding: const EdgeInsets.fromLTRB(18, 12, 12, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: AppBadge(
-                            MaterialLocalizations.of(
-                              context,
-                            ).formatMediumDate(note.day.date),
-                            tone: UiTone.violet,
-                            icon: Icons.calendar_today_outlined,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: s.more,
-                        icon: const Icon(Icons.more_horiz_rounded),
-                        onPressed: app.busy
-                            ? null
-                            : () async {
-                                final action = await showEntryActions(
-                                  context,
-                                  s.note,
-                                );
-                                if (!context.mounted) return;
-                                if (action == 'edit') {
-                                  await openEditor(
-                                    context,
-                                    app,
-                                    'note',
-                                    note: note,
-                                  );
-                                }
-                                if (action == 'delete' &&
-                                    context.mounted &&
-                                    await confirmDelete(context)) {
-                                  await app.run(
-                                    () => app.store.remove('notes', note.id),
-                                  );
-                                }
-                              },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => openEditor(context, app, 'note', note: note),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        right: 8,
-                        top: 4,
-                        bottom: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
-                            color: UiTone.violet
-                                .ink(context)
-                                .withValues(alpha: .25),
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        note.body,
-                        maxLines: 8,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
       ],
     );
   }

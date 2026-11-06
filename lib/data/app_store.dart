@@ -18,7 +18,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 4,
+        version: 5,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           await db.execute(
@@ -39,11 +39,13 @@ class AppStore {
           await upgradeToV2(db);
           await upgradeToV3(db);
           await upgradeToV4(db);
+          await upgradeToV5(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
           if (oldVersion < 3) await upgradeToV3(db);
           if (oldVersion < 4) await upgradeToV4(db);
+          if (oldVersion < 5) await upgradeToV5(db);
         },
       ),
     );
@@ -423,21 +425,36 @@ class AppStore {
     });
   }
 
-  Future<void> saveNote(Note note, {bool create = false}) async {
+  Future<void> saveNote(Note note, {bool create = false, Day? today}) async {
     if (note.body.trim().isEmpty || note.body.length > 10000) {
       throw ArgumentError('Invalid note');
     }
-    if (create) {
-      await db.insert('notes', note.toMap());
-    } else if (await db.update(
-          'notes',
-          note.toMap(),
-          where: 'id = ?',
-          whereArgs: [note.id],
-        ) !=
-        1) {
-      throw StateError('Note missing');
+    Day.parse(note.day.key);
+    if (note.day.compareTo(today ?? Day(DateTime.now())) > 0) {
+      throw ArgumentError('Future note date');
     }
+    await db.transaction((txn) async {
+      if (note.habitId != null &&
+          (await txn.query(
+            'habits',
+            columns: ['id'],
+            where: 'id=?',
+            whereArgs: [note.habitId],
+          )).isEmpty) {
+        throw StateError('Habit missing');
+      }
+      if (create) {
+        await txn.insert('notes', note.toMap());
+      } else if (await txn.update(
+            'notes',
+            note.toMap(),
+            where: 'id = ?',
+            whereArgs: [note.id],
+          ) !=
+          1) {
+        throw StateError('Note missing');
+      }
+    });
   }
 
   Future<void> remove(String table, String id) async {

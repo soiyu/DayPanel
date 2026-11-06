@@ -2,7 +2,7 @@
 
 更新 2026-11-06。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
 
-当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒和 FL12 常驻小事/完成历史。最新版本 SQLite v4，支持文件备份/恢复、习惯安排历史、提醒配置与独立常驻日记录；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
+当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史及 FL13 关联日志/月浏览/搜索。最新版本 SQLite v5，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录与可选关联日志；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
 
 ## 已实现基座与 UI
 
@@ -241,3 +241,61 @@ API28中文可见模拟器，1080×1920/420dpi/字号1.0。覆盖安装前将关
 ### 交接
 
 FL12 实现与限定验收通过；仍需真机/TalkBack/长列表性能与更多系统版本验证。不宣称零缺陷。下一批 FL13：习惯关联日志、按月浏览与搜索；本批不增加这些未实施入口。提交代码、记录进度后保持可见模拟器和电脑运行，不关机、不推送远端。
+
+## 2026-11-06 FL13 习惯关联日志、按月浏览与搜索
+
+完成本批真实功能，继续 Android/Flutter、小日常非专注范围、全部免费。先记录 [ADR0005](../adr/0005-associated-journal.md) 再实现；交互说明见 [JOURNAL](../design/JOURNAL.md)。本轮不关机、不推送。
+
+### 实际实现
+
+- 手记可独立存在，或关联一个当前/归档习惯；用户可编辑记录日期（1900年至今天）、关联与正文，同日可多篇。日志不创建打卡，不要求同日完成或在习惯开始日之后。取消、系统返回、关闭面板不保存本次编辑，保存失败保留输入。
+- 习惯详情增加写日志、选定日的关联日志和全部日志页面；默认带入详情日期与习惯。所有编辑/删除接真实SQLite，跨恢复旧编辑、手记删除确认和习惯删除确认带generation保护。
+- 手记默认本月；前后月、全部月份、定位单日/查看整月、全部/独立/任一习惯（含归档）筛选。正文为不区分英文大小写的连续子串匹配，空白关键词不限制，百分号/下划线不是通配符；月份、单日、习惯、正文取交集。清除筛选保留月份范围；搜索范围可见。保存后定位记录月份、清除其他筛选；标签切换保留条件，重启重置为本月。
+- 归档保留关联与文字并允许继续写日志；永久删除习惯时ON DELETE SET NULL解除关联，文字/日期保留为独立手记，确认文案明确说明。删除手记只删这一篇。
+- SQLite v5新增notes.habit_id和日期/习惯索引，旧v1–v4笔记的ID/正文/日期原样保留。备份schema5严格校验新增字段与引用，schema2/3/4以及旧恢复副本补空关联；恢复/回退保留世代与事务规则。SnapshotReader同步支持3..5，未知版本拒绝读取。
+- 新界面复用components/theme的蓝色主操作、紫色日志表面、暖橙日期、纸签卡片和固定保存区。根据设备截图收紧搜索区，首屏可看到一篇正文；日期标签包含年份，跨年搜索也能明确分辨。中英文/明暗/窄屏大字号/键盘/无结果均已检查。
+
+### 工程证据
+
+项目根执行：
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+git diff --check
+git diff --cached --check
+```
+
+最终日志 `.local/reports/journal-final.log`：40个Dart文件格式无变化，analyze无问题，**97项Dart/Flutter测试通过**，Android debug APK构建成功（13.8秒）；Kotlin JVM规则**8/8**。新增23项 = 13项领域/真实SQLite/迁移/备份/世代 + 10项UI；原74项继续通过。覆盖v1–v4旧库、schema2/3/4旧备份及旧恢复副本、schema5关联恢复/回退、缺字段/非法引用/重复ID/非法日期拒绝、正文与组合筛选、归档可编辑/删除保文、删除取消、真实关闭重开、日期选择/取消/系统返回、旧世代拒绝以及中英×明暗320dp/160%字号+280dp键盘保存可达。
+
+初次新增UI测试对底部面板误用pageBack和重复“删除”文字定位，已改用系统pop与确认动作定位；最终无失败。截图复核后缩短页头和提示，补年份显示；所有收尾代码纳入最终verify。原有Flutter Kotlin Gradle插件未来迁移提示、Gradle弃用提示仍存在；未声称无构建警告。没有升级工具链或修改全局Java/SDK。
+
+`native-test`构建测试APK成功，日志journal-native.log。API28最终包上执行：
+
+```powershell
+& $adb -s emulator-5554 install -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument -w -e class app.daypanel.next.reminders.ReminderEngineTest app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+**OK (7 tests)**，日志journal-native-api28-final.log；前6项提醒投递/稍后/取消/世代/日期回归，新增1项明确验证读取器接受3、4、5并拒绝6，且不写完成。测试使用隔离数据库/偏好和专用通知ID，没有清空用户库。本轮未重跑API35，既往API35证据不替代本批设备验收。
+
+最终APK：`build/app/outputs/flutter-apk/app-debug.apk`，174616037 bytes；SHA-256 `a8af0ad74e10b2d6306efde9a9876cde26f23135c754ebdd0cde8316c5e8e4bb`。已覆盖安装到API28；包身份 `app.daypanel.next.debug` 与权限保持，未新增系统权限，非商店release包。
+
+### API28实际操作与数据保留
+
+实际设备为emulator-5554，API28、1080×1920/420dpi、字号1.0。覆盖安装前关闭进程并归档完整databases目录到ignored pre-journal-db.tar；安装Success、启动Status: ok。
+
+通过真实UI建立临时JournalQA，详情打开关联日志；手记编辑面板也实际选择该习惯，输入FL13 tea memory并保存。首次尝试过早强停未等保存返回，不计作持久化通过；随后确认保存回到列表后force-stop→重开，日志和关联均保留。通过日期选择器移到10月31日，保存后自动跳到10月；正文tea与该习惯筛选命中1篇，切回11月显示无结果。归档后全部日志显示“已归档”并保留文字；删除习惯确认明确保文，删除后以“全部月份＋独立手记＋tea”仍能找到原文与日期。删除手记先取消仍保留，再明确确认移除本轮临时文字。
+
+切换实际中英/明暗并截图后恢复原系统语言/主题。语言测试留下locale=system默认偏好，因升级前没有这行，仅清理这一条本轮生成的设置，其他原数据未改。最终用户库再归档到post-journal-db.tar；首次本地比较重用了解压目录中的旧WAL，改用新的独立解压目录后验证通过，未把该问题当作设备数据变化。
+
+额外执行 `./scripts/dev.ps1 test -Extra '.local/journal_retention.dart'`，**1项通过**（不混入97项）；journal-retention-final.log确认前库v4、后库v5，habits/plans/entries/tasks/task_entries/settings/habit_groups/reminders/runtime/recovery逐表一致，notes原ID/正文/日期一致、新habit_id全空，foreign_key_check为空。临时习惯与手记已经清理，既有内容保留；旧原生工程和旧包未触碰。AndroidRuntime/flutter错误日志为空。
+
+截图在ignored `.local/reports/journal-*.png`：最终阶段包含月浏览、搜索/筛选/无结果、编辑/改日期、归档日志、删除保文确认和解除关联，以及中英明暗。临时样本由真实UI录入，不进入安装包。日期年份显示的最后微调后另采delivery月页/编辑图；较早final-*截图保留对应测试时点，不宣称所有帧均来自最后一次构建。
+
+### 交接与限制
+
+FL13实现和限定验收通过。未验证厂商真机、实际TalkBack、全部横屏/屏幕阅读器组合、长列表/大文件性能以及API35/36本批完整矩阵；桌面SQLite备份/恢复覆盖不能替代所有Android文件提供器。本轮没有增加图片、附件、云、社交、AI或收费能力。下一批 **FL14 成就卡/收藏/卡背心得/反馈**，先定义解锁与取消/改计划边界、原创资源与声音开关。电脑和可见模拟器保持运行。

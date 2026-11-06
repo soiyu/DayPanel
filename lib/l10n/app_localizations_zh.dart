@@ -9,6 +9,78 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get noteDate => '记录日期';
+
+  @override
+  String get noteHabit => '关联习惯';
+
+  @override
+  String get independentNote => '独立手记';
+
+  @override
+  String get noteHabitMissing => '这个习惯已不存在';
+
+  @override
+  String get noteEditorHint => '选好日期和关联习惯再保存。取消或返回不会保存本次修改。';
+
+  @override
+  String get noteAssociationHint => '日志不等于打卡。归档习惯后，关联日志仍会保留。';
+
+  @override
+  String get habitJournal => '习惯日志';
+
+  @override
+  String get writeHabitNote => '写日志';
+
+  @override
+  String get viewHabitNotes => '查看全部日志';
+
+  @override
+  String get allNotes => '全部手记';
+
+  @override
+  String get filterNotes => '筛选手记';
+
+  @override
+  String get searchNotes => '搜索手记正文';
+
+  @override
+  String get clearSearch => '清除搜索';
+
+  @override
+  String get allMonths => '全部月份';
+
+  @override
+  String get thisMonth => '本月';
+
+  @override
+  String get previousMonth => '上个月';
+
+  @override
+  String get nextMonth => '下个月';
+
+  @override
+  String get locateDate => '定位日期';
+
+  @override
+  String get showWholeMonth => '查看整月';
+
+  @override
+  String get journalFilterHint => '月份、习惯与正文关键词同时筛选。';
+
+  @override
+  String get noNotesFound => '没有符合条件的手记';
+
+  @override
+  String get noNotesFoundHint => '换个关键词、月份或习惯试试，也可以清除筛选后浏览当前日期范围。';
+
+  @override
+  String get emptyNoteMonth => '这个日期范围还没有手记';
+
+  @override
+  String get emptyNoteMonthHint => '可以换个月、查看全部月份，或写下新的手记。新增默认今天，可修改日期。';
+
+  @override
   String get taskKind => '小事类型';
 
   @override
@@ -504,7 +576,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get title => '名称';
 
   @override
-  String get noteBody => '写下今天的想法';
+  String get noteBody => '手记正文';
 
   @override
   String get type => '记录方式';
@@ -657,7 +729,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deleteConfirm => '删除后无法恢复。要继续吗？';
 
   @override
-  String get deleteHabitConfirm => '将删除这个习惯及其全部记录。要继续吗？';
+  String get deleteHabitConfirm => '将删除这个习惯及其打卡记录。关联手记会解除关联，文字和日期仍保留。要继续吗？';
 
   @override
   String get storageError => '暂时无法读取或保存数据，请重试。';

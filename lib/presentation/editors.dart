@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../application/app_controller.dart';
 import '../domain/models.dart';
@@ -7,6 +8,76 @@ import 'components.dart';
 import 'theme.dart';
 import 'organization.dart';
 
+String noteHabitLabel(BuildContext context, AppController app, String? id) {
+  final s = AppLocalizations.of(context);
+  if (id == null) return s.independentNote;
+  final habit = app.habits.where((h) => h.id == id).firstOrNull;
+  if (habit == null) return s.noteHabitMissing;
+  return '${habit.title}${habit.archived ? ' (${s.archived})' : ''}';
+}
+
+class NoteHabitChoice {
+  const NoteHabitChoice({this.habitId, this.all = false});
+  final String? habitId;
+  final bool all;
+}
+
+/// null cancels; a choice without a habit explicitly selects independent notes.
+Future<NoteHabitChoice?> chooseNoteHabit(
+  BuildContext context,
+  AppController app, {
+  required String? selected,
+  bool filter = false,
+  bool all = false,
+}) {
+  final s = AppLocalizations.of(context);
+  final choices = <NoteHabitChoice, String>{
+    if (filter) const NoteHabitChoice(all: true): s.allNotes,
+    const NoteHabitChoice(): s.independentNote,
+    for (final h in app.habits)
+      NoteHabitChoice(habitId: h.id): noteHabitLabel(context, app, h.id),
+  };
+  return showModalBottomSheet<NoteHabitChoice>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (ctx) => SheetFrame(
+      title: filter ? s.filterNotes : s.noteHabit,
+      subtitle: s.noteAssociationHint,
+      icon: Icons.link_rounded,
+      tone: UiTone.violet,
+      body: Column(
+        children: [
+          for (final choice in choices.entries)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SoftPanel(
+                tinted: selected == choice.key.habitId && all == choice.key.all,
+                tone: UiTone.violet,
+                padding: EdgeInsets.zero,
+                child: SettingRow(
+                  icon: choice.key.habitId == null
+                      ? Icons.edit_note_rounded
+                      : Icons.spa_outlined,
+                  title: choice.value,
+                  tone: UiTone.violet,
+                  trailing: Icon(
+                    selected == choice.key.habitId && all == choice.key.all
+                        ? Icons.check_circle_rounded
+                        : Icons.circle_outlined,
+                    color: UiTone.violet.ink(ctx),
+                  ),
+                  onTap: () => Navigator.pop(ctx, choice.key),
+                ),
+              ),
+            ),
+        ],
+      ),
+      footer: AppAction(label: s.cancel, onTap: () => Navigator.pop(ctx)),
+    ),
+  );
+}
+
 Future<void> openEditor(
   BuildContext context,
   AppController app,
@@ -14,12 +85,23 @@ Future<void> openEditor(
   Habit? habit,
   SmallTask? task,
   Note? note,
+  String? noteHabitId,
+  Day? noteDay,
+  int? expectedGeneration,
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
-  builder: (_) =>
-      EntryEditor(app: app, type: type, habit: habit, task: task, note: note),
+  builder: (_) => EntryEditor(
+    app: app,
+    type: type,
+    habit: habit,
+    task: task,
+    note: note,
+    noteHabitId: noteHabitId,
+    noteDay: noteDay,
+    expectedGeneration: expectedGeneration,
+  ),
 );
 
 class EntryEditor extends StatefulWidget {
@@ -30,12 +112,18 @@ class EntryEditor extends StatefulWidget {
     this.habit,
     this.task,
     this.note,
+    this.noteHabitId,
+    this.noteDay,
+    this.expectedGeneration,
   });
   final AppController app;
   final String type;
   final Habit? habit;
   final SmallTask? task;
   final Note? note;
+  final String? noteHabitId;
+  final Day? noteDay;
+  final int? expectedGeneration;
   @override
   State<EntryEditor> createState() => _EntryEditorState();
 }
@@ -48,6 +136,8 @@ class _EntryEditorState extends State<EntryEditor> {
   late ScheduleKind schedule;
   late HabitContext habitContext;
   String? groupId;
+  String? noteHabitId;
+  late Day noteDay;
   late final TextEditingController scheduleNumber;
   late int epoch;
   Day? due;
@@ -79,7 +169,9 @@ class _EntryEditorState extends State<EntryEditor> {
       text:
           '${schedule == ScheduleKind.interval ? (widget.habit?.intervalDays ?? 2) : (widget.habit?.weeklyGoal ?? 3)}',
     );
-    epoch = widget.app.generation;
+    epoch = widget.expectedGeneration ?? widget.app.generation;
+    noteDay = widget.note?.day ?? widget.noteDay ?? widget.app.today;
+    noteHabitId = widget.note?.habitId ?? widget.noteHabitId;
   }
 
   @override
@@ -138,9 +230,11 @@ class _EntryEditorState extends State<EntryEditor> {
           Note(
             id: widget.note?.id ?? const Uuid().v4(),
             body: title.text.trim(),
-            day: widget.note?.day ?? app.today,
+            day: noteDay,
+            habitId: noteHabitId,
           ),
           create: widget.note == null,
+          today: app.today,
         );
       } else {
         await app.store.saveTask(
@@ -159,6 +253,9 @@ class _EntryEditorState extends State<EntryEditor> {
     }, expectedGeneration: epoch);
     if (!mounted) return;
     if (ok) {
+      if (isNote) {
+        app.revealNoteDay(noteDay);
+      }
       Navigator.pop(context);
     } else {
       setState(() {
@@ -208,7 +305,7 @@ class _EntryEditorState extends State<EntryEditor> {
       subtitle: isHabit
           ? s.habitEditorHint
           : isNote
-          ? s.journalEmptyHint
+          ? s.noteEditorHint
           : s.taskEditorHint,
       icon: isHabit
           ? habitIcons[icon]
@@ -222,6 +319,66 @@ class _EntryEditorState extends State<EntryEditor> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (isNote) ...[
+              fieldLabel(s.noteDate),
+              SoftPanel(
+                tone: UiTone.peach,
+                tinted: true,
+                padding: EdgeInsets.zero,
+                child: SettingRow(
+                  key: const Key('note-date'),
+                  icon: Icons.calendar_today_outlined,
+                  title: DateFormat.yMMMd(
+                    Localizations.localeOf(context).languageCode,
+                  ).format(noteDay.date),
+                  tone: UiTone.peach,
+                  onTap: saving
+                      ? null
+                      : () async {
+                          FocusScope.of(context).unfocus();
+                          final value = await showDatePicker(
+                            context: context,
+                            initialDate:
+                                noteDay.date.isAfter(widget.app.today.date)
+                                ? widget.app.today.date
+                                : noteDay.date,
+                            firstDate: DateTime(1900),
+                            lastDate: widget.app.today.date,
+                          );
+                          if (value != null && mounted) {
+                            setState(() => noteDay = Day(value));
+                          }
+                        },
+                ),
+              ),
+              const SizedBox(height: 16),
+              fieldLabel(s.noteHabit),
+              SoftPanel(
+                tone: UiTone.violet,
+                tinted: true,
+                padding: EdgeInsets.zero,
+                child: SettingRow(
+                  key: const Key('note-habit'),
+                  icon: Icons.link_rounded,
+                  title: noteHabitLabel(context, widget.app, noteHabitId),
+                  tone: UiTone.violet,
+                  onTap: saving
+                      ? null
+                      : () async {
+                          FocusScope.of(context).unfocus();
+                          final choice = await chooseNoteHabit(
+                            context,
+                            widget.app,
+                            selected: noteHabitId,
+                          );
+                          if (choice != null && mounted) {
+                            setState(() => noteHabitId = choice.habitId);
+                          }
+                        },
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
             fieldLabel(isNote ? s.noteBody : s.title),
             TextFormField(
               key: const Key('entry-title'),

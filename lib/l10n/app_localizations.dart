@@ -98,6 +98,150 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @noteDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Record date'**
+  String get noteDate;
+
+  /// No description provided for @noteHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked habit'**
+  String get noteHabit;
+
+  /// No description provided for @independentNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Independent notes'**
+  String get independentNote;
+
+  /// No description provided for @noteHabitMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This habit is no longer available'**
+  String get noteHabitMissing;
+
+  /// No description provided for @noteEditorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date and an optional habit. Save keeps your words; Cancel discards this edit.'**
+  String get noteEditorHint;
+
+  /// No description provided for @noteAssociationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes do not mark a habit complete. Archived habits keep their notes.'**
+  String get noteAssociationHint;
+
+  /// No description provided for @habitJournal.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit journal'**
+  String get habitJournal;
+
+  /// No description provided for @writeHabitNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a log'**
+  String get writeHabitNote;
+
+  /// No description provided for @viewHabitNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'All related notes'**
+  String get viewHabitNotes;
+
+  /// No description provided for @allNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'All notes'**
+  String get allNotes;
+
+  /// No description provided for @filterNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter notes'**
+  String get filterNotes;
+
+  /// No description provided for @searchNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Search note text'**
+  String get searchNotes;
+
+  /// No description provided for @clearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearch;
+
+  /// No description provided for @allMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'All months'**
+  String get allMonths;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get thisMonth;
+
+  /// No description provided for @previousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get previousMonth;
+
+  /// No description provided for @nextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get nextMonth;
+
+  /// No description provided for @locateDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a date'**
+  String get locateDate;
+
+  /// No description provided for @showWholeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Show whole month'**
+  String get showWholeMonth;
+
+  /// No description provided for @journalFilterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters combine. Search matches note text only.'**
+  String get journalFilterHint;
+
+  /// No description provided for @noNotesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching notes'**
+  String get noNotesFound;
+
+  /// No description provided for @noNotesFoundHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another word, month or habit. Clear filters to browse this date range.'**
+  String get noNotesFoundHint;
+
+  /// No description provided for @emptyNoteMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes in this date range'**
+  String get emptyNoteMonth;
+
+  /// No description provided for @emptyNoteMonthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another month, view all months, or write a note. New notes start with today\'s date.'**
+  String get emptyNoteMonthHint;
+
   /// No description provided for @taskKind.
   ///
   /// In en, this message translates to:
@@ -1397,7 +1541,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteHabitConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Delete this habit and all its records?'**
+  /// **'Delete this habit and its completion records? Linked note text and dates will be kept as independent notes.'**
   String get deleteHabitConfirm;
 
   /// No description provided for @storageError.

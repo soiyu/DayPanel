@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../data/app_store.dart';
 import '../domain/models.dart';
+import '../domain/journal.dart';
 import '../domain/reminder.dart';
 import '../data/reminder_platform.dart';
 
@@ -9,6 +10,7 @@ class AppController extends ChangeNotifier {
   AppController(this.store, {DateTime Function()? clock, this.reminderPlatform})
     : clock = clock ?? DateTime.now {
     selectedDay = today;
+    journalQuery = JournalQuery(month: today);
   }
   final AppStore store;
   final ReminderPlatform? reminderPlatform;
@@ -38,6 +40,17 @@ class AppController extends ChangeNotifier {
   List<SmallTask> tasks = [];
   List<TaskEntry> taskEntries = [];
   List<Note> notes = [];
+  late JournalQuery journalQuery;
+  List<Note> get visibleNotes => journalQuery.apply(notes);
+  void filterNotes(JournalQuery query) {
+    journalQuery = query;
+    notifyListeners();
+  }
+
+  void revealNoteDay(Day day) {
+    filterNotes(JournalQuery(month: day));
+  }
+
   Map<String, String> preferences = {};
   List<HabitPlan> plans = [];
   List<HabitGroup> groups = [];
@@ -69,6 +82,14 @@ class AppController extends ChangeNotifier {
     groups = g;
     generation = epoch;
     reminders = remindersSaved;
+    if (journalQuery.habitId != null &&
+        !h.any((h) => h.id == journalQuery.habitId)) {
+      journalQuery = JournalQuery(
+        month: journalQuery.month,
+        day: journalQuery.day,
+        text: journalQuery.text,
+      );
+    }
     if (groupFilter != null && !g.any((g) => g.id == groupFilter)) {
       groupFilter = null;
     }

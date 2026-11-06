@@ -7,6 +7,7 @@ import 'editors.dart';
 import 'theme.dart';
 import 'organization.dart';
 import 'reminders.dart';
+import 'journal.dart';
 
 class HabitTile extends StatelessWidget {
   const HabitTile({
@@ -354,6 +355,7 @@ class _HabitDetailsState extends State<HabitDetails> {
       final matches = app.habits.where((h) => h.id == widget.id);
       if (matches.isEmpty) return const Scaffold(body: SizedBox.shrink());
       final h = matches.first;
+      final epoch = app.generation;
       final s = AppLocalizations.of(context);
       final day = selected ?? app.today;
       final tone = habitTone(h.icon);
@@ -412,6 +414,66 @@ class _HabitDetailsState extends State<HabitDetails> {
               ),
               const SizedBox(height: 16),
               HabitTile(app: app, habit: h, day: day, openDetails: false),
+              const SizedBox(height: 16),
+              SoftPanel(
+                tinted: true,
+                tone: UiTone.violet,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SectionTitle(
+                      s.habitJournal,
+                      count: app.notes.where((n) => n.habitId == h.id).length,
+                      tone: UiTone.violet,
+                    ),
+                    Text(
+                      s.noteAssociationHint,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        AppAction(
+                          key: const Key('add-habit-note'),
+                          label: s.writeHabitNote,
+                          icon: Icons.edit_note_rounded,
+                          primary: true,
+                          onTap: app.busy
+                              ? null
+                              : () => openEditor(
+                                  context,
+                                  app,
+                                  'note',
+                                  noteHabitId: h.id,
+                                  noteDay: day,
+                                ),
+                        ),
+                        AppAction(
+                          label: s.viewHabitNotes,
+                          icon: Icons.auto_stories_outlined,
+                          tone: UiTone.violet,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  HabitJournalPage(app: app, habitId: h.id),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    for (final note in app.notes.where(
+                      (n) => n.habitId == h.id && n.day == day,
+                    ))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: NoteCard(app: app, note: note),
+                      ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 14),
               SoftPanel(
                 padding: const EdgeInsets.all(3),
@@ -515,6 +577,7 @@ class _HabitDetailsState extends State<HabitDetails> {
                     ? null
                     : () => app.run(
                         () => app.store.setArchived(h.id, !h.archived),
+                        expectedGeneration: epoch,
                       ),
               ),
               const SizedBox(height: 12),
@@ -528,6 +591,7 @@ class _HabitDetailsState extends State<HabitDetails> {
                         if (!await confirmDelete(context, habit: true)) return;
                         final ok = await app.run(
                           () => app.store.remove('habits', h.id),
+                          expectedGeneration: epoch,
                         );
                         if (ok && context.mounted) Navigator.pop(context);
                       },

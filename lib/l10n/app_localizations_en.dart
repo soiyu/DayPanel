@@ -9,6 +9,83 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get noteDate => 'Record date';
+
+  @override
+  String get noteHabit => 'Linked habit';
+
+  @override
+  String get independentNote => 'Independent notes';
+
+  @override
+  String get noteHabitMissing => 'This habit is no longer available';
+
+  @override
+  String get noteEditorHint =>
+      'Choose a date and an optional habit. Save keeps your words; Cancel discards this edit.';
+
+  @override
+  String get noteAssociationHint =>
+      'Notes do not mark a habit complete. Archived habits keep their notes.';
+
+  @override
+  String get habitJournal => 'Habit journal';
+
+  @override
+  String get writeHabitNote => 'Write a log';
+
+  @override
+  String get viewHabitNotes => 'All related notes';
+
+  @override
+  String get allNotes => 'All notes';
+
+  @override
+  String get filterNotes => 'Filter notes';
+
+  @override
+  String get searchNotes => 'Search note text';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get allMonths => 'All months';
+
+  @override
+  String get thisMonth => 'This month';
+
+  @override
+  String get previousMonth => 'Previous month';
+
+  @override
+  String get nextMonth => 'Next month';
+
+  @override
+  String get locateDate => 'Find a date';
+
+  @override
+  String get showWholeMonth => 'Show whole month';
+
+  @override
+  String get journalFilterHint =>
+      'Filters combine. Search matches note text only.';
+
+  @override
+  String get noNotesFound => 'No matching notes';
+
+  @override
+  String get noNotesFoundHint =>
+      'Try another word, month or habit. Clear filters to browse this date range.';
+
+  @override
+  String get emptyNoteMonth => 'No notes in this date range';
+
+  @override
+  String get emptyNoteMonthHint =>
+      'Choose another month, view all months, or write a note. New notes start with today\'s date.';
+
+  @override
   String get taskKind => 'Task type';
 
   @override
@@ -699,7 +776,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteConfirm => 'This cannot be undone. Continue?';
 
   @override
-  String get deleteHabitConfirm => 'Delete this habit and all its records?';
+  String get deleteHabitConfirm =>
+      'Delete this habit and its completion records? Linked note text and dates will be kept as independent notes.';
 
   @override
   String get storageError => 'Couldn\'t read or save your data. Please retry.';

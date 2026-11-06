@@ -1,5 +1,13 @@
 import 'package:sqflite/sqflite.dart';
 
+Future<void> upgradeToV5(DatabaseExecutor db) async {
+  await db.execute(
+    'ALTER TABLE notes ADD COLUMN habit_id TEXT REFERENCES habits(id) ON DELETE SET NULL',
+  );
+  await db.execute('CREATE INDEX notes_day_index ON notes(day)');
+  await db.execute('CREATE INDEX notes_habit_index ON notes(habit_id)');
+}
+
 Future<void> upgradeToV4(DatabaseExecutor db) async {
   await db.execute(
     'ALTER TABLE tasks ADD COLUMN resident INTEGER NOT NULL DEFAULT 0 CHECK(resident IN (0,1))',

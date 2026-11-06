@@ -27,7 +27,7 @@ class BackupSnapshot {
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 4,
+      'schema': 5,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -70,7 +70,9 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3, 4}.contains(content['schema'])) throw const BackupInvalid();
+      if (!{2, 3, 4, 5}.contains(content['schema'])) {
+        throw const BackupInvalid();
+      }
       final created = DateTime.parse(content['created_at'] as String);
       if (!created.isUtc || created.year < 1900 || created.year > 2200) {
         throw const BackupInvalid();
@@ -95,6 +97,12 @@ class BackupSnapshot {
           row['resident'] = 0;
           row['start_day'] = null;
           row['archived'] = 0;
+        }
+      }
+      if (schema < 5) {
+        for (final row in raw['notes'] as List) {
+          _keys(row as Map, {'id', 'body', 'day'});
+          row['habit_id'] = null;
         }
       }
       final tables = <String, List<Map<String, Object?>>>{};
@@ -285,10 +293,13 @@ class BackupSnapshot {
     }
     final noteIds = <String>{};
     for (final m in t['notes']!) {
-      _keys(m, {'id', 'body', 'day'});
+      _keys(m, {'id', 'body', 'day', 'habit_id'});
       if (!noteIds.add(_text(m, 'id', 128))) throw const BackupInvalid();
       _text(m, 'body', 10000);
       Day.parse(m['day'] as String);
+      if (m['habit_id'] != null && !habitIds.containsKey(m['habit_id'])) {
+        throw const BackupInvalid();
+      }
     }
     final settingKeys = <String>{};
     final reminderIds = <String>{};

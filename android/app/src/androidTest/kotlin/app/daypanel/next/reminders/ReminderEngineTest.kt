@@ -30,7 +30,7 @@ class ReminderEngineTest {
         }
         c.getDatabasePath("").delete()
         db=SQLiteDatabase.openOrCreateDatabase(c.getDatabasePath(""),null)
-        db.version=4
+        db.version=5
         db.execSQL("CREATE TABLE runtime (id INTEGER,generation INTEGER)")
         db.execSQL("INSERT INTO runtime VALUES(1,0)")
         db.execSQL("CREATE TABLE habits(id TEXT,title TEXT,kind TEXT,start_day TEXT,archived INTEGER)")
@@ -58,6 +58,19 @@ class ReminderEngineTest {
         val e=AlarmEvent.from(raw.getJSONObject(id)).copy(day=LocalDate.now(),at=System.currentTimeMillis()-100)
         raw.put(id,e.json());prefs.edit().putString("scheduled",raw.toString()).commit()
         return e
+    }
+    @Test fun schemaThreeThroughFiveRemainReadableWithoutUserDataWrites() {
+        for(version in 3..5) {
+            db.version=version
+            val snapshot=SnapshotReader.read(c)
+            assertNotNull(snapshot)
+            assertEquals(id,snapshot!!.habits.single().id)
+            assertEquals(version,db.version)
+        }
+        db.version=6
+        assertNull(SnapshotReader.read(c))
+        db.version=5
+        db.rawQuery("SELECT COUNT(*) FROM entries",null).use { it.moveToFirst();assertEquals(0,it.getInt(0)) }
     }
     @Test fun deliverDeduplicatesAndSnoozeDoesNotWriteUserData() {
         val e=event()

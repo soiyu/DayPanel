@@ -254,14 +254,26 @@ class TaskEntry {
 }
 
 class Note {
-  const Note({required this.id, required this.body, required this.day});
+  const Note({
+    required this.id,
+    required this.body,
+    required this.day,
+    this.habitId,
+  });
   final String id, body;
   final Day day;
-  Map<String, Object?> toMap() => {'id': id, 'body': body, 'day': day.key};
+  final String? habitId;
+  Map<String, Object?> toMap() => {
+    'id': id,
+    'body': body,
+    'day': day.key,
+    'habit_id': habitId,
+  };
   factory Note.fromMap(Map<String, Object?> m) => Note(
     id: m['id'] as String,
     body: m['body'] as String,
     day: Day.parse(m['day'] as String),
+    habitId: m['habit_id'] as String?,
   );
 }
 

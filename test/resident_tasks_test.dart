@@ -39,6 +39,10 @@ void main() {
         options: OpenDatabaseOptions(
           version: 3,
           onCreate: (db, version) async {
+            await db.execute('CREATE TABLE habits(id TEXT PRIMARY KEY)');
+            await db.execute(
+              'CREATE TABLE notes(id TEXT PRIMARY KEY,body TEXT,day TEXT)',
+            );
             await db.execute(
               'CREATE TABLE tasks(id TEXT PRIMARY KEY,title TEXT NOT NULL,due_day TEXT,completed_day TEXT)',
             );
@@ -56,7 +60,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: path,
       );
-      expect(await migrated.db.getVersion(), 4);
+      expect(await migrated.db.getVersion(), 5);
       final task = (await migrated.tasks()).single;
       expect(task.resident, isFalse);
       expect(task.startDay, isNull);
