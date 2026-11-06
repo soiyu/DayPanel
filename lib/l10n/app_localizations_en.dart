@@ -1614,4 +1614,126 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get uiTabTimeline => 'Timeline';
+
+  @override
+  String get restTitle => 'Rest days';
+
+  @override
+  String get restPaused => 'Paused';
+
+  @override
+  String get restVacation => 'On a break';
+
+  @override
+  String get restSkipped => 'Skipped this day';
+
+  @override
+  String get restPause => 'Pause from today';
+
+  @override
+  String get restPlanVacation => 'Plan a break';
+
+  @override
+  String get restSkip => 'Skip this day';
+
+  @override
+  String get restUnskip => 'Remove skip';
+
+  @override
+  String get restResume => 'Resume today';
+
+  @override
+  String get restCancelFuture => 'Cancel this break';
+
+  @override
+  String get restHint =>
+      'Rest days count as neither failure nor completion. History stays and reminders pause.';
+
+  @override
+  String get restRules =>
+      'Daily streaks pass over rest days. Weeks containing rest days are excluded from full-week assessments. No card is earned when all habits rest. Resuming keeps the original plan.';
+
+  @override
+  String get restConflict =>
+      'These dates overlap a break, or this day already has a record. Check and retry.';
+
+  @override
+  String get restEnded => 'Ended';
+
+  @override
+  String get restUntilResume => 'Until you resume';
+
+  @override
+  String get restRange => 'Choose start and end dates';
+
+  @override
+  String get restConfirmSkip =>
+      'Skipping affects only this day and keeps all other records.';
+
+  @override
+  String get restRecordBlocked =>
+      'This is a rest day. End or cancel the break before logging.';
+
+  @override
+  String get cardShare => 'Share card';
+
+  @override
+  String get cardSaveImage => 'Save image';
+
+  @override
+  String get cardShareAction => 'Share';
+
+  @override
+  String get cardShareNames => 'Include habit names';
+
+  @override
+  String get cardShareReflection => 'Include a reflection';
+
+  @override
+  String get cardShareExcerpt =>
+      'Share excerpt (keeps the original reflection)';
+
+  @override
+  String get cardShareHint =>
+      'This preview is the image you will save or share. Names and reflections are hidden by default.';
+
+  @override
+  String get cardImageSaved => 'Image saved';
+
+  @override
+  String get cardImageFailed =>
+      'Could not create or save the image. Try again.';
+
+  @override
+  String get cardShareStale => 'Card data changed. Reopen the share page.';
+
+  @override
+  String cardShareMore(int count) {
+    return 'And $count more';
+  }
+
+  @override
+  String cardShareCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count habits completed',
+      one: '1 habit completed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get restRangeLimit => 'Choose up to 365 days';
+
+  @override
+  String get restSchedule => 'Breaks and history';
+
+  @override
+  String get restStale =>
+      'This habit changed. Reopen its rest days to continue.';
+
+  @override
+  String get restConfirmUnskip =>
+      'This day will follow its original plan again. No completion record will be added.';
 }

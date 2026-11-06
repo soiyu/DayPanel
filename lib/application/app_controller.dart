@@ -5,6 +5,7 @@ import '../domain/models.dart';
 import '../domain/journal.dart';
 import '../domain/achievement.dart';
 import '../domain/activity.dart';
+import '../domain/habit_break.dart';
 import '../data/completion_feedback.dart';
 import '../domain/reminder.dart';
 import '../data/reminder_platform.dart';
@@ -67,7 +68,8 @@ class AppController extends ChangeNotifier {
   AchievementCard? cardFor(Day day) =>
       cards.where((c) => c.day == day).firstOrNull;
   bool get canClaimCard =>
-      completedCardEvidence(today, habits, plans, entries) != null;
+      completedCardEvidence(today, habits, plans, entries, breaks: rests) !=
+      null;
   Future<bool> recordHabit(
     Habit habit,
     Day day,
@@ -140,6 +142,8 @@ class AppController extends ChangeNotifier {
   Map<String, String> preferences = {};
   List<HabitPlan> plans = [];
   List<HabitActivity> activity = [];
+  List<HabitBreak> rests = [];
+  HabitBreak? restOn(Habit h, Day day) => breakOn(rests, h.id, day);
   List<HabitGroup> groups = [];
   int generation = 0;
   String? groupFilter;
@@ -175,6 +179,7 @@ class AppController extends ChangeNotifier {
     reminders = remindersSaved;
     cards = savedCards;
     activity = activityHistory;
+    rests = await store.breaks();
     if (journalQuery.habitId != null &&
         !h.any((h) => h.id == journalQuery.habitId)) {
       journalQuery = JournalQuery(
@@ -269,6 +274,7 @@ class AppController extends ChangeNotifier {
       .firstOrNull;
   bool scheduled(Habit h, Day day) =>
       !h.archived &&
+      restOn(h, day) == null &&
       day.compareTo(h.startDay) >= 0 &&
       planAt(h, day).scheduled(day);
   bool achieved(Habit h, Day day) =>
@@ -285,7 +291,8 @@ class AppController extends ChangeNotifier {
               e.habitId == h.id &&
               e.day.compareTo(start) >= 0 &&
               e.day.compareTo(end) <= 0 &&
-              e.value >= plan.target,
+              e.value >= plan.target &&
+              breakOn(rests, h.id, e.day) == null,
         )
         .length;
   }

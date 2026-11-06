@@ -7,12 +7,14 @@ data class Plan(val start: LocalDate, val target: Long, val schedule: String,
     val weekdays: Int, val interval: Int, val weeklyGoal: Int)
 data class ReminderHabit(val id: String, val title: String, val kind: String,
     val start: LocalDate, val archived: Boolean, val enabled: Boolean,
-    val minutes: List<Int>, val revision: Long, val plans: List<Plan>, val entries: Map<LocalDate, Long>)
+    val minutes: List<Int>, val revision: Long, val plans: List<Plan>, val entries: Map<LocalDate, Long>, val breaks: List<RestPeriod> = emptyList())
+data class RestPeriod(val start:LocalDate,val end:LocalDate?,val kind:String) { fun contains(day:LocalDate)=day>=start&&(end==null||day<=end) }
+
 data class DueTime(val day: LocalDate, val minute: Int, val instant: Instant)
 
 object ReminderRules {
     fun eligible(h: ReminderHabit, day: LocalDate): Boolean {
-        if (!h.enabled || h.archived || day < h.start) return false
+        if (!h.enabled || h.archived || day < h.start || h.breaks.any { it.contains(day) }) return false
         val p = h.plans.lastOrNull { it.start <= day } ?: return false
         val scheduled = when (p.schedule) {
             "weekdays" -> p.weekdays and (1 shl (day.dayOfWeek.value - 1)) != 0
@@ -24,7 +26,7 @@ object ReminderRules {
         if (p.schedule == "weekly") {
             val monday = day.minusDays((day.dayOfWeek.value - 1).toLong())
             val from = maxOf(monday, p.start)
-            val achieved = h.entries.count { (date, value) -> date >= from && date <= day && value >= p.target }
+            val achieved = h.entries.count { (date, value) -> date >= from && date <= day && value >= p.target && h.breaks.none { it.contains(date) } }
             if (achieved >= p.weeklyGoal) return false
         }
         return true

@@ -5,6 +5,7 @@ import 'models.dart';
 import 'reminder.dart';
 import 'achievement.dart';
 import 'activity.dart';
+import 'habit_break.dart';
 import 'appearance.dart';
 
 class BackupInvalid implements Exception {
@@ -26,13 +27,14 @@ class BackupSnapshot {
     'reminders',
     'cards',
     'habit_activity',
+    'habit_breaks',
   ];
   final DateTime createdAt;
   final Map<String, List<Map<String, Object?>>> tables;
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 8,
+      'schema': 9,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -75,7 +77,7 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3, 4, 5, 6, 7, 8}.contains(content['schema'])) {
+      if (!{2, 3, 4, 5, 6, 7, 8, 9}.contains(content['schema'])) {
         throw const BackupInvalid();
       }
       final created = DateTime.parse(content['created_at'] as String);
@@ -92,10 +94,12 @@ class BackupSnapshot {
                   (schema >= 3 || n != 'reminders') &&
                   (schema >= 4 || n != 'task_entries') &&
                   (schema >= 6 || n != 'cards') &&
-                  (schema >= 7 || n != 'habit_activity'),
+                  (schema >= 7 || n != 'habit_activity') &&
+                  (schema >= 9 || n != 'habit_breaks'),
             )
             .toSet(),
       );
+      if (schema < 9) raw['habit_breaks'] = <Object>[];
       if (schema < 8) {
         for (final row in raw['habits'] as List) {
           if ((row as Map).containsKey('color') || row.containsKey('frame')) {
@@ -363,6 +367,26 @@ class BackupSnapshot {
     }
     for (final h in habitIds.values) {
       if (latestActivity[h.id]?.archived != h.archived) {
+        throw const BackupInvalid();
+      }
+    }
+    final breakIds = <String>{};
+    final rests = <String, List<HabitBreak>>{};
+    for (final m in t['habit_breaks']!) {
+      _keys(m, {'id', 'habit_id', 'start_day', 'end_day', 'kind'});
+      final b = HabitBreak.fromMap(m);
+      final h = habitIds[b.habitId];
+      if (!b.valid ||
+          h == null ||
+          b.start.compareTo(h.startDay) < 0 ||
+          !breakIds.add(b.id)) {
+        throw const BackupInvalid();
+      }
+      final prior = rests.putIfAbsent(b.habitId, () => []);
+      if (prior.any(b.overlaps)) throw const BackupInvalid();
+      prior.add(b);
+      if (b.kind == BreakKind.skip &&
+          entryKeys.contains('${b.habitId}/${b.start.key}')) {
         throw const BackupInvalid();
       }
     }

@@ -14,7 +14,7 @@ object SnapshotReader {
         // No schema creation, user-data mutations or completion writes here.
         // A transaction gives all queries one SQLite snapshot, including WAL.
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
-            if (db.version !in 3..8) return null // Dart owns schema upgrades; these versions share reminder tables.
+            if (db.version !in 3..9) return null // Dart owns schema upgrades; these versions share reminder tables.
             db.beginTransactionNonExclusive()
             try {
                 val generation = db.rawQuery("SELECT generation FROM runtime WHERE id=1", null).use { c ->
@@ -32,6 +32,10 @@ object SnapshotReader {
                 db.rawQuery("SELECT habit_id,day,value FROM entries WHERE day>=?", arrayOf(LocalDate.now().minusDays(7).toString())).use { c ->
                     while (c.moveToNext()) entries.getOrPut(c.getString(0)) { mutableMapOf() }[LocalDate.parse(c.getString(1))] = c.getLong(2)
                 }
+                val rests=mutableMapOf<String,MutableList<RestPeriod>>()
+                if(db.version>=9)db.rawQuery("SELECT habit_id,start_day,end_day,kind FROM habit_breaks",null).use { c ->
+                    while(c.moveToNext())rests.getOrPut(c.getString(0)){mutableListOf()}.add(RestPeriod(LocalDate.parse(c.getString(1)),if(c.isNull(2))null else LocalDate.parse(c.getString(2)),c.getString(3)))
+                }
                 val habits = mutableListOf<ReminderHabit>()
                 db.rawQuery("SELECT h.id,h.title,h.kind,h.start_day,h.archived,r.enabled,r.minutes,r.revision FROM habits h JOIN reminders r ON r.habit_id=h.id", null).use { c ->
                     while (c.moveToNext()) {
@@ -40,7 +44,7 @@ object SnapshotReader {
                         val minutes = (0 until times.length()).map { times.getInt(it) }
                         if (minutes.isEmpty() || minutes.size > 5 || minutes.any { it !in 0..1439 }) continue
                         habits.add(ReminderHabit(id,c.getString(1),c.getString(2),LocalDate.parse(c.getString(3)),c.getInt(4)==1,
-                            c.getInt(5)==1,minutes,c.getLong(7),plans[id].orEmpty(),entries[id].orEmpty()))
+                            c.getInt(5)==1,minutes,c.getLong(7),plans[id].orEmpty(),entries[id].orEmpty(),rests[id].orEmpty()))
                     }
                 }
                 db.setTransactionSuccessful()

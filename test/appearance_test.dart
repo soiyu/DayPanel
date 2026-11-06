@@ -153,13 +153,14 @@ void main() {
       await store.setRecord('h', day, 1000, today: day);
       await store.db.execute('ALTER TABLE habits DROP COLUMN color');
       await store.db.execute('ALTER TABLE habits DROP COLUMN frame');
+      await store.db.execute('DROP TABLE habit_breaks');
       await store.db.setVersion(7);
       await store.close();
       store = await AppStore.open(
         factory: databaseFactoryFfi,
         path: '${dir.path}/data.db',
       );
-      expect(await store.db.getVersion(), 8);
+      expect(await store.db.getVersion(), 9);
       expect((await store.habits()).single.toMap(), h.toMap());
       expect((await store.entries()).single.value, 1000);
       expect((await store.cards()).length, 1);
@@ -185,7 +186,7 @@ void main() {
       final payload = jsonDecode(
         jsonDecode(utf8.decode(snap.encode()))['payload'],
       );
-      expect(payload['schema'], 8);
+      expect(payload['schema'], 9);
       await store.saveAppearance(const Appearance());
       await store.saveHabit(h);
       await store.restoreSnapshot(snap);
@@ -219,6 +220,7 @@ void main() {
         final snap = await store.exportSnapshot();
         final bytes = change(snap, (p) {
           p['schema'] = version;
+          (p['tables'] as Map).remove('habit_breaks');
           for (final row in p['tables']['habits']) {
             (row as Map).remove('color');
             row.remove('frame');

@@ -650,3 +650,61 @@ UI02实现和上述限定工程/设备范围通过，用户尚未重新确认视
 API36改用1024MiB、swiftshader并禁用Vulkan后，系统启动完成；当前用户10等待System UI弹窗恢复后，主Activity启动Status: ok，实际进入外观、选择Dark/Evening violet，截图fl19-api36-appearance-dark.png可读且无溢出。随后保存/提醒页检查时辅助模拟器再次退出，提醒权限拒绝/授权全流程和Launcher手工未验收，不把这些失败命令当通过。原生20项已经独立通过，软件模拟环境稳定性仍是本机限制。
 
 最终清理日志fl19-cleanup.log确认API36与API35均切回主用户、停止并删除本轮用户10，然后关闭辅助模拟器；API35清理前再次安装最终APK/测试包并跑全20项通过。只保留API28可见模拟器运行，当前用户0，错误日志ui02-final-errors.log无AndroidRuntime/flutter错误。`git diff --check`和`git diff --cached --check`通过，未推送、未关机。
+
+## 2026-11-07 UX01 休息安排与成就卡图片
+
+用户同意提升体验，本批范围为暂停/休假/单日跳过及卡片图片保存/系统分享；FL19仍开放，不进入发布。先记录ADR0011及REST-AND-SHARE，沿用UI02组件和冷白/蓝/淡紫/暖橙。无收费、云、账号或发送消息操作，不修改旧原生工程。
+
+### 规则与实现
+
+- 习惯详情/日常休息状态提供真实入口：从今天暂停直到手动恢复、当天/未来开始的休假最多365日、无记录的今天或过去日期单日跳过。取消确认不写；明确恢复/取消不切换，历史范围保留，过去跳过可取消。重叠/创建日前/未来跳过/归档新增/时钟回退拒绝；旧页面generation保护，结束检查原id/起止/kind。
+- SQLite9新增habit_breaks，迁移只加空表/索引；schema9严格校验字段、日期、引用、枚举、重叠、重复与跳过已有记录，兼容schema2–8补空表。恢复前副本、事务恢复/回退和旧习惯追加均包含新表；删除习惯级联休息，归档保留。ReminderSnapshot支持3..9、WidgetSnapshot7..9，拒绝未知版本10。
+- 休息日期拒绝新打卡/数量写入，旧组件动作同样经事务检查；实际原记录/计划/卡片不擦除。每日分母排除休息，连续性中性跳过；受影响周不考核完整周目标，不修改周目标，归档/未知历史/部分范围仍不当合格周。数量趋势/时间线保留实际事实。提醒休息期间取消/到期恢复，组件显示明确状态并进入详情。
+- 休息设置本身不发卡，至少一个非休息义务实际达标才能按原规则解锁；全部休息不发卡，历史补记不发卡。已获卡在恢复计划/撤销后保持。
+- 成就卡详情可预览PNG、保存图片或打开Android系统分享。名称/心得默认关闭；最多6项名称加剩余计数，心得摘录最多280字、仅改输出，不改原文。海报包含实际获得日期、原创卡面、标题与完成习惯数，无App按钮/系统栏。窄屏标题换行，输出随尺寸降低倍率保持4096×16000边界；页面/存储generation在输出前检查。
+- 图片保存走SAF、取消不提示成功；分享仅打开目标选择、不声称已发送。私有缓存下shared-cards使用不导出的FileProvider、临时只读URI授权，校验PNG/大小/尺寸、过期清理；缓存不进备份，无存储权限。合并Manifest核对provider authority为app.daypanel.next.debug.card-images、exported=false，原debug网络/提醒权限不变。
+- 当前休息以“休息安排与记录”呈现，恢复主动作独立。修复AppAction缺少独立语义容器导致Android把卡片说明与按钮合并的问题；恢复按钮现在有独立名称/点击区。沿用主题/组件，英文计数正确处理单复数，不宣称UI完美。
+
+### 工程与设备验证
+
+准确工程命令：
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 test -Extra '--concurrency=2','test/rest_share_ui_test.dart','test/rest_days_test.dart'
+./scripts/dev.ps1 assemble
+./scripts/dev.ps1 analyze
+git diff --check
+git diff --cached --check
+```
+
+完整verify日志ux01-verified.log：75个Dart文件格式无变化、analyze无问题、**249 Flutter/Dart通过**，debug构建通过，Kotlin JVM **13/13**（ReminderRules9、WidgetDisplay3、Feedback1）。本批新增22项：规则/真实SQLite11、UI11，覆盖暂停/休假边界/跳过、历史统计与归档交集、卡片、旧组件/世代、备份严格校验/回退/迁移、确认取消、输出隐私/摘录不改原文、独立按钮语义及中英×明暗320dp/160%/键盘布局。既有恢复中断/提醒/小事/日志/组件/导入全套通过。
+
+最终可达性小修及中文用词后，针对本批22项再次通过，ux01-focused-final.log。最后英文单复数生成、format、assemble成功24.2秒，ux01-build-final.log；最终analyze见ux01-analyze-final.log。native-test构建成功7秒，ux01-native-verified.log。既有Kotlin/Gradle/Impeller迁移提示仍存在。中途四项大字号溢出失败已修成Wrap后通过；一项新测试缺少SemanticsAction导入导致analyze失败，修复后全249通过，不把失败运行计为验收。
+
+最终APK：build/app/outputs/flutter-apk/app-debug.apk，**174898583 bytes**，SHA-256 **7b04e89c9763626bbcd01606637a27a043845f11196089e5fd908b4822255b0b**，已--no-streaming覆盖安装。非release包。
+
+API28 emulator-5554实际执行：
+
+```powershell
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument --user 14 -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest,app.daypanel.next.CardImageDeviceTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+最终 **OK(24 tests)**，15.396秒，ux01-api28-final.log。含暂停取消/恢复提醒、v9休息与到期组件快照、PNG字节/私有URI只读授权/拒绝非图片；原提醒/组件实例生命周期/旧库读取回归继续通过。
+
+设备真实操作全部在临时Android用户14 DayPanelUX01QA进行，界面创建Read a page与Evening walk（安装包无演示数据）。完成暂停取消/保存/恢复、实际日期范围休假保存/提前结束、单日跳过与取消。跳过第二项后日常应做变为1项，完成第一项正常得1张卡；后来恢复第二项仍保留卡。覆盖安装冷启动后跳过状态/记录/卡片保留。
+
+分享页实际默认隐藏名称/心得，SAF取消后无成功提示，随后保存PNG成功；选择名称/输入摘录后再次导出，回卡背仍无原心得。系统分享面板实际出现短信/蓝牙目标，取消退出，没有发送。英文深色/160%字号预览与SAF导出成功；最终中文修词后再次保存并显示“图片已保存”。实际PNG已拉回检查：ux01-card-export.png 1115×1131、ux01-card-personal.png 1115×1416（早期中文“件小事”随后改为“个习惯”）；最终ux01-card-final.png与ux01-share-final.png对应最终中文，ux01-card-dark-large.png/ux01-share-dark-large-final.png是英文计数单复数修词前的布局证据。ux01-rest-final.png显示独立恢复按钮与最终标题，汇总ux01-overview.png。所有图片/日志在ignored .local/reports，不提交。
+
+uiautomator个别次空root重试后正常；一次黑屏为休眠，唤醒后恢复。ADB普通shell无法读取次用户外部目录，使用模拟器root只读拉取/data/media/14文件，无App新增权限；此限制不当图片保存失败。未在主用户创建测试记录。ux01-device-errors.log无AndroidRuntime/flutter错误。
+
+### 数据保留与交接
+
+安装前关闭主用户进程归档pre-ux01-db.tar，最终主用户启动迁移v8→v9后关闭进程归档post-ux01-db.tar。`python .local/ux01_retention.py`逐表比较通过：原14表逐行完全一致（2习惯/1记录/2小事/1手记/原设置/计划/归档履历），新增habit_breaks空，foreign_key_check为空；ux01-retention-final.log。最终切回0、停止并删除14，系统只剩主用户；主Activity启动Status: ok。没有清库/覆盖主用户记录，原语言和主题保持。
+
+本批实现及上述范围验收完成；FL19仍需厂商真机、真正TalkBack手工、本批API35/36分享和休息矩阵、第三方接收App/文件提供器、长时间Doze、Launcher休息到期全矩阵和手机大数据性能，不称全设备无BUG。下一步继续FL19系统回归及发现问题修复；应用锁/手记附件等仍未承诺，不自行扩范围。电脑及可见API28模拟器保持运行，不推送远端。

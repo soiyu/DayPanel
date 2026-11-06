@@ -26,6 +26,7 @@ open class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         app.daypanel.next.widgets.WidgetBridge(this, flutterEngine)
+        CardImageBridge.register(this,flutterEngine)
         completionFeedback = try { CompletionFeedback(this) } catch (_: Exception) { null }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.daypanel.next/feedback").setMethodCallHandler { call, reply ->
             if (call.method != "complete") reply.notImplemented()
@@ -84,7 +85,7 @@ open class MainActivity : FlutterActivity() {
                         try {
                             val intent = if (call.method == "save") {
                                 Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                                    type = "application/json"
+                                    type = if(call.argument<String>("mime")=="image/png") "image/png" else "application/json"
                                     addCategory(Intent.CATEGORY_OPENABLE)
                                     putExtra(Intent.EXTRA_TITLE, call.argument<String>("name") ?: "DayPanel.json")
                                 }

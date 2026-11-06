@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import 'card_art.dart';
 import 'components.dart';
 import 'theme.dart';
+import 'card_share.dart';
 
 String cardTitle(AppLocalizations s, int art) => [
   s.cardDawn,
@@ -373,6 +374,21 @@ class _CardDetailsState extends State<CardDetails> {
                                         ),
                                         expectedGeneration: epoch,
                                       ),
+                              ),
+                              AppAction(
+                                key: const Key('open-card-share'),
+                                label: s.cardShare,
+                                icon: Icons.ios_share_rounded,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => CardSharePage(
+                                      app: app,
+                                      day: card.day,
+                                      title: cardTitle(s, card.artwork),
+                                    ),
+                                  ),
+                                ),
                               ),
                               AppAction(
                                 key: const Key('edit-reflection'),

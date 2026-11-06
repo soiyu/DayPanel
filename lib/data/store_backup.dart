@@ -53,6 +53,7 @@ extension StoreBackup on AppStore {
         'snapshot': utf8.decode(previous.encode()),
       }, conflictAlgorithm: ConflictAlgorithm.replace);
       for (final table in [
+        'habit_breaks',
         'habit_activity',
         'cards',
         'task_entries',

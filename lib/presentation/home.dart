@@ -393,7 +393,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           const SizedBox(height: 20),
         ],
         if (planned.isNotEmpty) SectionTitle(s.planned, count: planned.length),
-        if (planned.isEmpty && weekly.isEmpty)
+        if (planned.isEmpty &&
+            weekly.isEmpty &&
+            !app.habits.any(
+              (h) =>
+                  !h.archived &&
+                  app.restOn(h, day) != null &&
+                  app.matchesFilter(h),
+            ))
           EmptyState(
             icon: Icons.spa_outlined,
             title: app.contextFilter != null || app.groupFilter != null
@@ -426,8 +433,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         ],
         if (app.habits.any(
           (h) =>
+              !h.archived && app.restOn(h, day) != null && app.matchesFilter(h),
+        )) ...[
+          SectionTitle(s.restTitle, tone: UiTone.violet),
+          for (final h in app.habits.where(
+            (h) =>
+                !h.archived &&
+                app.restOn(h, day) != null &&
+                app.matchesFilter(h),
+          ))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: HabitTile(app: app, habit: h, day: day),
+            ),
+        ],
+        if (app.habits.any(
+          (h) =>
               !h.archived &&
               !app.scheduled(h, day) &&
+              app.restOn(h, day) == null &&
               app.matchesFilter(h) &&
               app.value(h, day) != null,
         )) ...[
@@ -436,6 +460,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             (h) =>
                 !h.archived &&
                 !app.scheduled(h, day) &&
+                app.restOn(h, day) == null &&
                 app.matchesFilter(h) &&
                 app.value(h, day) != null,
           ))

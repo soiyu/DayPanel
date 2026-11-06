@@ -1520,4 +1520,111 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get uiTabTimeline => '时间线';
+
+  @override
+  String get restTitle => '休息安排';
+
+  @override
+  String get restPaused => '已暂停';
+
+  @override
+  String get restVacation => '休假中';
+
+  @override
+  String get restSkipped => '这天已跳过';
+
+  @override
+  String get restPause => '从今天暂停';
+
+  @override
+  String get restPlanVacation => '安排一段休假';
+
+  @override
+  String get restSkip => '跳过这天';
+
+  @override
+  String get restUnskip => '取消跳过';
+
+  @override
+  String get restResume => '从今天恢复';
+
+  @override
+  String get restCancelFuture => '取消这次安排';
+
+  @override
+  String get restHint => '休息不算失败，也不算完成。历史记录保留，期间不提醒。';
+
+  @override
+  String get restRules =>
+      '每日连续性跨过休息日；包含休息日的周不参与完整周考核。全部习惯都休息的日子不发成就卡。恢复后继续原计划。';
+
+  @override
+  String get restConflict => '这段日期已有休息安排，或这天已有记录。请检查后再试。';
+
+  @override
+  String get restEnded => '已结束';
+
+  @override
+  String get restUntilResume => '直到手动恢复';
+
+  @override
+  String get restRange => '选择开始与结束日期';
+
+  @override
+  String get restConfirmSkip => '跳过只影响这一天，不删除其他记录。';
+
+  @override
+  String get restRecordBlocked => '这天正在休息。先结束或取消休息，再记录。';
+
+  @override
+  String get cardShare => '分享卡片';
+
+  @override
+  String get cardSaveImage => '保存图片';
+
+  @override
+  String get cardShareAction => '分享';
+
+  @override
+  String get cardShareNames => '包含习惯名称';
+
+  @override
+  String get cardShareReflection => '包含心得摘录';
+
+  @override
+  String get cardShareExcerpt => '分享摘录（不修改原心得）';
+
+  @override
+  String get cardShareHint => '预览就是将保存或分享的图片。名称和心得默认隐藏。';
+
+  @override
+  String get cardImageSaved => '图片已保存';
+
+  @override
+  String get cardImageFailed => '图片生成或保存失败，请重试。';
+
+  @override
+  String get cardShareStale => '卡片数据已改变，请重新打开分享页。';
+
+  @override
+  String cardShareMore(int count) {
+    return '另有 $count 项';
+  }
+
+  @override
+  String cardShareCount(int count) {
+    return '完成了 $count 个习惯';
+  }
+
+  @override
+  String get restRangeLimit => '选择休假日期，最多 365 天';
+
+  @override
+  String get restSchedule => '休息安排与记录';
+
+  @override
+  String get restStale => '习惯内容已变化，请重新打开休息安排。';
+
+  @override
+  String get restConfirmUnskip => '这天将重新按原计划统计，不会添加完成记录。';
 }

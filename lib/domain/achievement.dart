@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'models.dart';
+import 'habit_break.dart';
 
 class CardHabit {
   const CardHabit({
@@ -98,11 +99,16 @@ List<CardHabit>? completedCardEvidence(
   Day day,
   List<Habit> habits,
   List<HabitPlan> plans,
-  List<HabitEntry> entries,
-) {
+  List<HabitEntry> entries, {
+  List<HabitBreak> breaks = const [],
+}) {
   final result = <CardHabit>[];
   for (final h in habits) {
-    if (h.archived || day.compareTo(h.startDay) < 0) continue;
+    if (breakOn(breaks, h.id, day) != null ||
+        h.archived ||
+        day.compareTo(h.startDay) < 0) {
+      continue;
+    }
     final versions =
         plans
             .where(

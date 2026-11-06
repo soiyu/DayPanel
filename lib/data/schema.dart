@@ -1,6 +1,15 @@
 import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
 
+Future<void> upgradeToV9(DatabaseExecutor db) async {
+  await db.execute(
+    'CREATE TABLE habit_breaks(id TEXT PRIMARY KEY,habit_id TEXT NOT NULL REFERENCES habits(id) ON DELETE CASCADE,start_day TEXT NOT NULL,end_day TEXT,kind TEXT NOT NULL)',
+  );
+  await db.execute(
+    'CREATE INDEX habit_breaks_habit ON habit_breaks(habit_id,start_day)',
+  );
+}
+
 Future<void> upgradeToV8(DatabaseExecutor db) async {
   await db.execute(
     "ALTER TABLE habits ADD COLUMN color TEXT NOT NULL DEFAULT 'auto'",

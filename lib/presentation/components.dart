@@ -68,6 +68,7 @@ class AppAction extends StatelessWidget {
         ? s.error
         : tone.ink(context);
     return Semantics(
+      container: true,
       button: true,
       enabled: onTap != null,
       child: Opacity(

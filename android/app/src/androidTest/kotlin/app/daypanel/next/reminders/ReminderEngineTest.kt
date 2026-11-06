@@ -34,6 +34,7 @@ class ReminderEngineTest {
         c.getDatabasePath("").delete()
         db=SQLiteDatabase.openOrCreateDatabase(c.getDatabasePath(""),null)
         db.version=7
+        db.execSQL("CREATE TABLE habit_breaks(id TEXT,habit_id TEXT,start_day TEXT,end_day TEXT,kind TEXT)")
         db.execSQL("CREATE TABLE runtime (id INTEGER,generation INTEGER)")
         db.execSQL("INSERT INTO runtime VALUES(1,0)")
         db.execSQL("CREATE TABLE habits(id TEXT,title TEXT,kind TEXT,start_day TEXT,archived INTEGER)")
@@ -72,15 +73,15 @@ class ReminderEngineTest {
         raw.put(id,e.json());prefs.edit().putString("scheduled",raw.toString()).commit()
         return e
     }
-    @Test fun schemaThreeThroughEightRemainReadableWithoutUserDataWrites() {
-        for(version in 3..8) {
+    @Test fun schemaThreeThroughNineRemainReadableWithoutUserDataWrites() {
+        for(version in 3..9) {
             db.version=version
             val snapshot=SnapshotReader.read(c)
             assertNotNull(snapshot)
             assertEquals(id,snapshot!!.habits.single().id)
             assertEquals(version,db.version)
         }
-        db.version=9
+        db.version=10
         assertNull(SnapshotReader.read(c))
         db.version=7
         db.rawQuery("SELECT COUNT(*) FROM entries",null).use { it.moveToFirst();assertEquals(0,it.getInt(0)) }
@@ -147,4 +148,15 @@ class ReminderEngineTest {
         awaitNotice(false)
         assertNull(ReminderEngine.openRequest(c,old.json().toString()))
     }
+    @Test fun pauseCancelsNoticeAndResumeReschedulesFromDatabase() {
+        db.version=9
+        val e=event();ReminderEngine.receive(c,ReminderEngine.FIRE,e.json().toString());awaitNotice(true)
+        db.execSQL("INSERT INTO habit_breaks VALUES('pause',?,?,NULL,'pause')",arrayOf(id,LocalDate.now().toString()))
+        ReminderEngine.sync(c);awaitNotice(false)
+        assertEquals(0,ReminderEngine.status(c)["pending"])
+        assertNull(ReminderEngine.openRequest(c,e.json().toString()))
+        db.execSQL("DELETE FROM habit_breaks");ReminderEngine.sync(c)
+        assertEquals(1,ReminderEngine.status(c)["pending"])
+    }
+
 }

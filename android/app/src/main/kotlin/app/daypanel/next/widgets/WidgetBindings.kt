@@ -55,8 +55,8 @@ object WidgetBindings {
         val item = snapshot.items["${binding.kind}:${binding.id}"] ?: return false
         return when(request["mode"]) {
             "view" -> true
-            "complete" -> !item.archived && !item.quantity
-            "quantity" -> !item.archived && item.quantity
+            "complete" -> !item.archived && item.rest == null && !item.quantity
+            "quantity" -> !item.archived && item.rest == null && item.quantity
             else -> false
         }
     }

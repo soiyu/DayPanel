@@ -11,8 +11,14 @@ import 'tasks.dart';
 import 'theme.dart';
 import 'refined_components.dart';
 
-HabitStatistics statsFor(AppController app, Habit h) =>
-    HabitStatistics(h, app.plans, app.activity, app.entries, app.today);
+HabitStatistics statsFor(AppController app, Habit h) => HabitStatistics(
+  h,
+  app.plans,
+  app.activity,
+  app.entries,
+  app.today,
+  breaks: app.rests,
+);
 String dateLabel(BuildContext context, Day day) => DateFormat.yMMMd(
   Localizations.localeOf(context).languageCode,
 ).format(day.date);
@@ -22,6 +28,8 @@ String stateLabel(AppLocalizations s, DayPlanState state) => switch (state) {
   DayPlanState.unknown => s.historyUnknown,
   DayPlanState.archived => s.archived,
   DayPlanState.rest => s.notScheduled,
+  DayPlanState.paused => s.restPaused,
+  DayPlanState.skipped => s.restSkipped,
   DayPlanState.daily => s.planned,
   DayPlanState.weekly => s.weeklyAvailable,
 };
@@ -38,6 +46,7 @@ Future<void> correctRecord(
   final current = stats.values[day];
   final canWrite =
       !h.archived &&
+      app.restOn(h, day) == null &&
       day.compareTo(h.startDay) >= 0 &&
       day.compareTo(app.today) <= 0;
   if (canWrite && h.kind == HabitKind.quantity) {
@@ -73,7 +82,11 @@ Future<void> correctRecord(
                   style: Theme.of(ctx).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 12),
-                Text(s.correctionHint),
+                Text(
+                  app.restOn(h, day) != null
+                      ? s.restRecordBlocked
+                      : s.correctionHint,
+                ),
                 if (h.archived) Text(s.restoreToCorrect),
                 if (app.error != null)
                   Text(
@@ -530,6 +543,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
                         DayPlanState.daily => '○',
                         DayPlanState.weekly => '~',
                         DayPlanState.unknown => '?',
+                        DayPlanState.paused => 'Ⅱ',
+                        DayPlanState.skipped => '↷',
                         _ => '—',
                       };
                 final canOpen =

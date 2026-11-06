@@ -40,7 +40,16 @@ extension StoreCards on AppStore {
               ),
             )
             .toList();
-    final evidence = completedCardEvidence(day, habits, plans, entries);
+    final rests = (await txn.query(
+      'habit_breaks',
+    )).map(HabitBreak.fromMap).toList();
+    final evidence = completedCardEvidence(
+      day,
+      habits,
+      plans,
+      entries,
+      breaks: rests,
+    );
     if (evidence == null) return null;
     final card = AchievementCard(
       day: day,

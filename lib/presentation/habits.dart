@@ -10,6 +10,8 @@ import 'reminders.dart';
 import 'journal.dart';
 import 'card_art.dart';
 import 'statistics.dart';
+import 'rest_days.dart';
+import '../domain/habit_break.dart';
 
 class HabitTile extends StatelessWidget {
   const HabitTile({
@@ -31,10 +33,12 @@ class HabitTile extends StatelessWidget {
     final plan = app.planAt(habit, day);
     final amount = app.value(habit, day);
     final done = app.achieved(habit, day);
+    final rest = app.restOn(habit, day);
     final tone = habitTone(habit.icon, habit.color);
     final enabled =
         !app.busy &&
         !habit.archived &&
+        rest == null &&
         day.compareTo(app.today) <= 0 &&
         day.compareTo(habit.startDay) >= 0;
     final scheme = Theme.of(context).colorScheme;
@@ -152,8 +156,12 @@ class HabitTile extends StatelessWidget {
                     icon: done ? Icons.done_rounded : Icons.circle_outlined,
                   ),
                 ),
+              if (rest != null)
+                AppBadge(restName(s, rest), tone: UiTone.violet),
               AppAction(
-                label: isQuantity
+                label: rest != null
+                    ? s.restTitle
+                    : isQuantity
                     ? s.record
                     : done
                     ? s.reopen
@@ -164,7 +172,14 @@ class HabitTile extends StatelessWidget {
                     ? Icons.undo_rounded
                     : Icons.check_rounded,
                 tone: tone,
-                onTap: enabled
+                onTap: rest != null
+                    ? () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => RestDaysPage(app: app, id: habit.id),
+                        ),
+                      )
+                    : enabled
                     ? () {
                         if (isQuantity) {
                           openQuantity(context, app, habit, day);
@@ -433,6 +448,8 @@ class _HabitDetailsState extends State<HabitDetails> {
               ),
               const SizedBox(height: 16),
               HabitTile(app: app, habit: h, day: day, openDetails: false),
+              const SizedBox(height: 12),
+              ActionTileRest(app: app, habit: h, day: day),
               const SizedBox(height: 16),
               SoftPanel(
                 tinted: true,
@@ -638,4 +655,50 @@ class _HabitDetailsState extends State<HabitDetails> {
       );
     },
   );
+}
+
+class ActionTileRest extends StatelessWidget {
+  const ActionTileRest({
+    super.key,
+    required this.app,
+    required this.habit,
+    required this.day,
+  });
+  final AppController app;
+  final Habit habit;
+  final Day day;
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
+    final rest = app.restOn(habit, day);
+    return SoftPanel(
+      padding: const EdgeInsets.all(6),
+      child: Column(
+        children: [
+          SettingRow(
+            icon: Icons.free_breakfast_outlined,
+            title: s.restTitle,
+            subtitle: rest == null ? s.restHint : restName(s, rest),
+            tone: UiTone.violet,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => RestDaysPage(app: app, id: habit.id),
+              ),
+            ),
+          ),
+          if (!habit.archived &&
+              day.compareTo(habit.startDay) >= 0 &&
+              day.compareTo(app.today) <= 0 &&
+              ((rest == null && app.value(habit, day) == null) ||
+                  rest?.kind == BreakKind.skip))
+            SettingRow(
+              icon: Icons.skip_next_outlined,
+              title: rest == null ? s.restSkip : s.restUnskip,
+              onTap: app.busy ? null : () => skipDay(context, app, habit, day),
+            ),
+        ],
+      ),
+    );
+  }
 }

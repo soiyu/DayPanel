@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.content.res.Configuration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import app.daypanel.next.reminders.RestPeriod
 
 /** Display-only snapshot. Dart owns all writes and plan/achievement decisions. */
 data class WidgetItem(
@@ -13,7 +14,7 @@ data class WidgetItem(
     val unit: String = "", val schedule: String = "weekdays", val scheduled: Boolean = true,
     val weekCount: Int = 0, val weekGoal: Int = 0, val resident: Boolean = false,
     val doneDay: String? = null, val dueDay: String? = null,
-    val icon: Int = 0, val color: String = "auto", val frame: String = "auto",
+    val rest: String? = null, val icon: Int = 0, val color: String = "auto", val frame: String = "auto",
 ) { val done: Boolean get() = if (kind == "habit") (value ?: -1) >= target else doneDay != null }
 data class WidgetSnapshot(val generation: Long, val day: LocalDate, val chinese: Boolean,
     val dark: Boolean, val items: Map<String, WidgetItem>, val palette: String = "blue", val frame: String = "soft")
@@ -23,7 +24,7 @@ object WidgetSnapshotReader {
         val file = context.getDatabasePath("daypanel_flutter.db")
         if (!file.exists()) return null
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
-            if (db.version !in 7..8) return null
+            if (db.version !in 7..9) return null
             db.beginTransactionNonExclusive()
             try {
                 val generation = db.rawQuery("SELECT generation FROM runtime WHERE id=1", null).use { c ->
@@ -38,6 +39,11 @@ object WidgetSnapshotReader {
                     (settings["locale"] !in listOf("zh", "en") && context.resources.configuration.locales[0].language == "zh")
                 val dark = settings["theme"] == "dark" || (settings["theme"] !in listOf("dark", "light") &&
                     context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES)
+                val allRests=mutableMapOf<String,MutableList<RestPeriod>>()
+                if(db.version>=9)db.rawQuery("SELECT habit_id,start_day,end_day,kind FROM habit_breaks",null).use { c ->
+                    while(c.moveToNext())allRests.getOrPut(c.getString(0)){mutableListOf()}.add(RestPeriod(LocalDate.parse(c.getString(1)),if(c.isNull(2))null else LocalDate.parse(c.getString(2)),c.getString(3)))
+                }
+                val rests=allRests.mapValues { (_,rows)->rows.firstOrNull { it.contains(day) }?.kind }
                 val items = mutableMapOf<String, WidgetItem>()
                 val decoration = if(db.version >= 8) "h.icon,h.color,h.frame" else "0,'auto','auto'"
                 db.rawQuery("""SELECT h.id,h.title,h.kind,h.archived,h.start_day,p.effective_day,p.target,p.unit,p.schedule,p.weekdays,p.interval_days,p.weekly_goal,$decoration
@@ -56,11 +62,11 @@ object WidgetSnapshotReader {
                         db.rawQuery("SELECT day,value FROM entries WHERE habit_id=? AND day>=? AND day<=?", arrayOf(id, from.toString(), day.toString())).use { e ->
                             while (e.moveToNext()) {
                                 if (e.getString(0) == day.toString()) value = e.getLong(1)
-                                if (e.getLong(1) >= target) weekCount++
+                                if (e.getLong(1) >= target && allRests[id].orEmpty().none { it.contains(LocalDate.parse(e.getString(0))) }) weekCount++
                             }
                         }
                         items["habit:$id"] = WidgetItem(id, "habit", c.getString(1), c.getInt(3) == 1 || day < start,
-                            c.getString(2) == "quantity", value, target, c.getString(7), schedule, scheduled, weekCount, c.getInt(11), icon=c.getInt(12), color=c.getString(13), frame=c.getString(14))
+                            c.getString(2) == "quantity", value, target, c.getString(7), schedule, scheduled, weekCount, c.getInt(11), rest=rests[id], icon=c.getInt(12), color=c.getString(13), frame=c.getString(14))
                     }
                 }
                 db.rawQuery("SELECT id,title,resident,archived,completed_day,due_day,start_day FROM tasks", null).use { c ->

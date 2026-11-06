@@ -9,9 +9,11 @@ import '../domain/reminder.dart';
 import '../domain/achievement.dart';
 import '../domain/activity.dart';
 import '../domain/appearance.dart';
+import '../domain/habit_break.dart';
 import '../domain/legacy_import.dart';
 part 'store_backup.dart';
 part 'store_cards.dart';
+part 'store_breaks.dart';
 
 class AppStore {
   AppStore._(this.db);
@@ -28,7 +30,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 8,
+        version: 9,
         singleInstance: false,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
@@ -54,6 +56,7 @@ class AppStore {
           await upgradeToV6(db);
           await upgradeToV7(db, migrationDay ?? Day(DateTime.now()));
           await upgradeToV8(db);
+          await upgradeToV9(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
@@ -65,6 +68,7 @@ class AppStore {
             await upgradeToV7(db, migrationDay ?? Day(DateTime.now()));
           }
           if (oldVersion < 8) await upgradeToV8(db);
+          if (oldVersion < 9) await upgradeToV9(db);
         },
       ),
     );
@@ -363,7 +367,14 @@ class AppStore {
       final rows = await txn.query('habits', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) throw StateError('Habit missing');
       final h = Habit.fromMap(rows.single);
-      if (h.archived ||
+      final resting = (await txn.query(
+        'habit_breaks',
+        where:
+            'habit_id=? AND start_day<=? AND (end_day IS NULL OR end_day>=?)',
+        whereArgs: [id, day.key, day.key],
+      )).isNotEmpty;
+      if (resting ||
+          h.archived ||
           day.compareTo(h.startDay) < 0 ||
           day.compareTo(today) > 0 ||
           (value != null &&

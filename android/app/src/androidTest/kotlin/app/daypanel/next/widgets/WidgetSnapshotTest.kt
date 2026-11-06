@@ -62,7 +62,7 @@ class WidgetSnapshotTest {
         val snap=WidgetSnapshotReader.read(c,day)!!
         assertEquals(3L,snap.generation);assertTrue(snap.chinese);assertTrue(snap.dark);assertTrue(snap.items["habit:h"]!!.archived)
         db.execSQL("DELETE FROM habits");assertNull(WidgetSnapshotReader.read(c,day)!!.items["habit:h"])
-        db.version=9;assertNull(WidgetSnapshotReader.read(c,day));assertEquals(9,db.version)
+        db.version=10;assertNull(WidgetSnapshotReader.read(c,day));assertEquals(10,db.version)
     }
     @Test fun pendingIntentsSeparateInstancesConfigurationDayAndAction() {
         val a=WidgetBinding(101,"habit","h",0,"a")
@@ -91,6 +91,19 @@ class WidgetSnapshotTest {
             assertTrue(bitmap.width>0);bitmap.recycle()
         }
         assertEquals(8,db.version)
+    }
+
+    @Test fun versionNineRestDatesAreReadAndExpireWithoutChangingFacts() {
+        db.execSQL("ALTER TABLE habits ADD COLUMN icon INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE habits ADD COLUMN color TEXT NOT NULL DEFAULT 'auto'")
+        db.execSQL("ALTER TABLE habits ADD COLUMN frame TEXT NOT NULL DEFAULT 'auto'")
+        db.execSQL("CREATE TABLE habit_breaks(id TEXT,habit_id TEXT,start_day TEXT,end_day TEXT,kind TEXT)")
+        db.execSQL("INSERT INTO habit_breaks VALUES('v','h','2026-11-06','2026-11-07','vacation')")
+        db.version=9
+        assertEquals("vacation",WidgetSnapshotReader.read(c,day)!!.items["habit:h"]!!.rest)
+        assertEquals("vacation",WidgetSnapshotReader.read(c,day.plusDays(1))!!.items["habit:h"]!!.rest)
+        assertNull(WidgetSnapshotReader.read(c,day.plusDays(2))!!.items["habit:h"]!!.rest)
+        assertEquals(250001L,WidgetSnapshotReader.read(c,day)!!.items["habit:h"]!!.value)
     }
 
 }

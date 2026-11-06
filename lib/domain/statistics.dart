@@ -1,8 +1,19 @@
 import 'activity.dart';
 import 'achievement.dart';
 import 'models.dart';
+import 'habit_break.dart';
 
-enum DayPlanState { future, notStarted, unknown, archived, rest, daily, weekly }
+enum DayPlanState {
+  future,
+  notStarted,
+  unknown,
+  archived,
+  rest,
+  paused,
+  skipped,
+  daily,
+  weekly,
+}
 
 class WeekResult {
   const WeekResult(
@@ -10,11 +21,12 @@ class WeekResult {
     this.achieved,
     this.goal,
     this.eligible,
-    this.pending,
-  );
+    this.pending, {
+    this.resting = false,
+  });
   final Day start;
   final int achieved, goal;
-  final bool eligible, pending;
+  final bool eligible, pending, resting;
   bool get complete => achieved >= goal;
 }
 
@@ -26,6 +38,10 @@ class WeeklySummary {
         due++;
         if (w.complete) done++;
       }
+      if (w.resting) {
+        previous = w.start;
+        continue;
+      }
       if (!w.eligible || !w.complete) {
         current = 0;
       } else {
@@ -36,7 +52,9 @@ class WeeklySummary {
       previous = w.start;
     }
     // A later change out of weekly tracking cannot leave a stale current run.
-    if (stats.state(end) != DayPlanState.weekly ||
+    if ((stats.state(end) != DayPlanState.weekly &&
+            stats.state(end) != DayPlanState.paused &&
+            stats.state(end) != DayPlanState.skipped) ||
         (previous != null && end.monday.daysSince(previous) > 7)) {
       current = 0;
     }
@@ -50,15 +68,17 @@ class HabitStatistics {
     List<HabitPlan> plans,
     List<HabitActivity> activity,
     List<HabitEntry> entries,
-    this.today,
-  ) : plans = plans.where((p) => p.habitId == habit.id).toList()
-        ..sort((a, b) => a.effectiveDay.compareTo(b.effectiveDay)),
-      activity = activity.where((a) => a.habitId == habit.id).toList()
-        ..sort((a, b) => a.day.compareTo(b.day)),
-      values = {
-        for (final e in entries.where((e) => e.habitId == habit.id))
-          e.day: e.value,
-      };
+    this.today, {
+    this.breaks = const [],
+  }) : plans = plans.where((p) => p.habitId == habit.id).toList()
+         ..sort((a, b) => a.effectiveDay.compareTo(b.effectiveDay)),
+       activity = activity.where((a) => a.habitId == habit.id).toList()
+         ..sort((a, b) => a.day.compareTo(b.day)),
+       values = {
+         for (final e in entries.where((e) => e.habitId == habit.id))
+           e.day: e.value,
+       };
+  final List<HabitBreak> breaks;
   final Habit habit;
   final Day today;
   final List<HabitPlan> plans;
@@ -72,8 +92,14 @@ class HabitStatistics {
     if (day.compareTo(today) > 0) return DayPlanState.future;
     if (day.compareTo(habit.startDay) < 0) return DayPlanState.notStarted;
     final a = activity.where((a) => a.day.compareTo(day) <= 0).lastOrNull;
+    if (a?.archived == true) return DayPlanState.archived;
+    final rest = breakOn(breaks, habit.id, day);
+    if (rest != null) {
+      return rest.kind == BreakKind.skip
+          ? DayPlanState.skipped
+          : DayPlanState.paused;
+    }
     if (a == null) return DayPlanState.unknown;
-    if (a.archived) return DayPlanState.archived;
     final p = plan(day);
     if (p.schedule == ScheduleKind.weekly) return DayPlanState.weekly;
     return p.scheduled(day) ? DayPlanState.daily : DayPlanState.rest;
@@ -92,7 +118,10 @@ class HabitStatistics {
     var due = 0, done = 0, current = 0, best = 0;
     for (final d in days(start, end)) {
       final status = state(d);
-      if (status == DayPlanState.rest || status == DayPlanState.notStarted) {
+      if (status == DayPlanState.rest ||
+          status == DayPlanState.notStarted ||
+          status == DayPlanState.paused ||
+          status == DayPlanState.skipped) {
         continue;
       }
       if (status != DayPlanState.daily) {
@@ -156,6 +185,19 @@ class HabitStatistics {
           p.weeklyGoal,
           eligible,
           monday.plus(6).compareTo(today) >= 0,
+          resting:
+              daysInWeek.any((d) => breakOn(breaks, habit.id, d) != null) &&
+              monday.compareTo(start) >= 0 &&
+              monday.plus(6).compareTo(end) <= 0 &&
+              daysInWeek.every(
+                (d) =>
+                    plan(d).effectiveDay == p.effectiveDay &&
+                    [
+                      DayPlanState.weekly,
+                      DayPlanState.paused,
+                      DayPlanState.skipped,
+                    ].contains(state(d)),
+              ),
         ),
       );
     }

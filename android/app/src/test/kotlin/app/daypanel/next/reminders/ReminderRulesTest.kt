@@ -67,4 +67,16 @@ class ReminderRulesTest {
             assertEquals(9,ReminderRules.next(h,now,emptySet(),0)!!.instant.atZone(now.zone).hour)
         }
     }
+    @Test fun pauseAndVacationSuppressUntilInclusiveEndAndSkipOnlyOneDay() {
+        val day=LocalDate.parse("2026-11-07")
+        val paused=habit().copy(breaks=listOf(RestPeriod(day,null,"pause")))
+        assertFalse(ReminderRules.eligible(paused,day))
+        assertNull(ReminderRules.next(paused,day.atStartOfDay(ZoneId.of("Asia/Shanghai")),emptySet(),0))
+        val vacation=habit().copy(breaks=listOf(RestPeriod(day,day.plusDays(2),"vacation")))
+        assertFalse(ReminderRules.eligible(vacation,day.plusDays(2)))
+        assertEquals(day.plusDays(3),ReminderRules.next(vacation,day.atStartOfDay(ZoneId.of("Asia/Shanghai")),emptySet(),0)!!.day)
+        val skip=habit().copy(breaks=listOf(RestPeriod(day,day,"skip")))
+        assertTrue(ReminderRules.eligible(skip,day.plusDays(1)))
+    }
+
 }

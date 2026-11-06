@@ -3097,6 +3097,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Timeline'**
   String get uiTabTimeline;
+
+  /// No description provided for @restTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest days'**
+  String get restTitle;
+
+  /// No description provided for @restPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get restPaused;
+
+  /// No description provided for @restVacation.
+  ///
+  /// In en, this message translates to:
+  /// **'On a break'**
+  String get restVacation;
+
+  /// No description provided for @restSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped this day'**
+  String get restSkipped;
+
+  /// No description provided for @restPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause from today'**
+  String get restPause;
+
+  /// No description provided for @restPlanVacation.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan a break'**
+  String get restPlanVacation;
+
+  /// No description provided for @restSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this day'**
+  String get restSkip;
+
+  /// No description provided for @restUnskip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove skip'**
+  String get restUnskip;
+
+  /// No description provided for @restResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume today'**
+  String get restResume;
+
+  /// No description provided for @restCancelFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this break'**
+  String get restCancelFuture;
+
+  /// No description provided for @restHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest days count as neither failure nor completion. History stays and reminders pause.'**
+  String get restHint;
+
+  /// No description provided for @restRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily streaks pass over rest days. Weeks containing rest days are excluded from full-week assessments. No card is earned when all habits rest. Resuming keeps the original plan.'**
+  String get restRules;
+
+  /// No description provided for @restConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'These dates overlap a break, or this day already has a record. Check and retry.'**
+  String get restConflict;
+
+  /// No description provided for @restEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get restEnded;
+
+  /// No description provided for @restUntilResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Until you resume'**
+  String get restUntilResume;
+
+  /// No description provided for @restRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose start and end dates'**
+  String get restRange;
+
+  /// No description provided for @restConfirmSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipping affects only this day and keeps all other records.'**
+  String get restConfirmSkip;
+
+  /// No description provided for @restRecordBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a rest day. End or cancel the break before logging.'**
+  String get restRecordBlocked;
+
+  /// No description provided for @cardShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share card'**
+  String get cardShare;
+
+  /// No description provided for @cardSaveImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save image'**
+  String get cardSaveImage;
+
+  /// No description provided for @cardShareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get cardShareAction;
+
+  /// No description provided for @cardShareNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Include habit names'**
+  String get cardShareNames;
+
+  /// No description provided for @cardShareReflection.
+  ///
+  /// In en, this message translates to:
+  /// **'Include a reflection'**
+  String get cardShareReflection;
+
+  /// No description provided for @cardShareExcerpt.
+  ///
+  /// In en, this message translates to:
+  /// **'Share excerpt (keeps the original reflection)'**
+  String get cardShareExcerpt;
+
+  /// No description provided for @cardShareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This preview is the image you will save or share. Names and reflections are hidden by default.'**
+  String get cardShareHint;
+
+  /// No description provided for @cardImageSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Image saved'**
+  String get cardImageSaved;
+
+  /// No description provided for @cardImageFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create or save the image. Try again.'**
+  String get cardImageFailed;
+
+  /// No description provided for @cardShareStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Card data changed. Reopen the share page.'**
+  String get cardShareStale;
+
+  /// No description provided for @cardShareMore.
+  ///
+  /// In en, this message translates to:
+  /// **'And {count} more'**
+  String cardShareMore(int count);
+
+  /// No description provided for @cardShareCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 habit completed} other{{count} habits completed}}'**
+  String cardShareCount(int count);
+
+  /// No description provided for @restRangeLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose up to 365 days'**
+  String get restRangeLimit;
+
+  /// No description provided for @restSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Breaks and history'**
+  String get restSchedule;
+
+  /// No description provided for @restStale.
+  ///
+  /// In en, this message translates to:
+  /// **'This habit changed. Reopen its rest days to continue.'**
+  String get restStale;
+
+  /// No description provided for @restConfirmUnskip.
+  ///
+  /// In en, this message translates to:
+  /// **'This day will follow its original plan again. No completion record will be added.'**
+  String get restConfirmUnskip;
 }
 
 class _AppLocalizationsDelegate

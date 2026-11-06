@@ -513,5 +513,53 @@
   "uiTabTable": "Table",
   "uiTabHabits": "Habits",
   "uiTabYear": "Year",
-  "uiTabTimeline": "Timeline"
+  "uiTabTimeline": "Timeline",
+  "restTitle": "Rest days",
+  "restPaused": "Paused",
+  "restVacation": "On a break",
+  "restSkipped": "Skipped this day",
+  "restPause": "Pause from today",
+  "restPlanVacation": "Plan a break",
+  "restSkip": "Skip this day",
+  "restUnskip": "Remove skip",
+  "restResume": "Resume today",
+  "restCancelFuture": "Cancel this break",
+  "restHint": "Rest days count as neither failure nor completion. History stays and reminders pause.",
+  "restRules": "Daily streaks pass over rest days. Weeks containing rest days are excluded from full-week assessments. No card is earned when all habits rest. Resuming keeps the original plan.",
+  "restConflict": "These dates overlap a break, or this day already has a record. Check and retry.",
+  "restEnded": "Ended",
+  "restUntilResume": "Until you resume",
+  "restRange": "Choose start and end dates",
+  "restConfirmSkip": "Skipping affects only this day and keeps all other records.",
+  "restRecordBlocked": "This is a rest day. End or cancel the break before logging.",
+  "cardShare": "Share card",
+  "cardSaveImage": "Save image",
+  "cardShareAction": "Share",
+  "cardShareNames": "Include habit names",
+  "cardShareReflection": "Include a reflection",
+  "cardShareExcerpt": "Share excerpt (keeps the original reflection)",
+  "cardShareHint": "This preview is the image you will save or share. Names and reflections are hidden by default.",
+  "cardImageSaved": "Image saved",
+  "cardImageFailed": "Could not create or save the image. Try again.",
+  "cardShareStale": "Card data changed. Reopen the share page.",
+  "cardShareMore": "And {count} more",
+  "cardShareCount": "{count, plural, =1{1 habit completed} other{{count} habits completed}}",
+  "@cardShareMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@cardShareCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restRangeLimit": "Choose up to 365 days",
+  "restSchedule": "Breaks and history",
+  "restStale": "This habit changed. Reopen its rest days to continue.",
+  "restConfirmUnskip": "This day will follow its original plan again. No completion record will be added."
 }

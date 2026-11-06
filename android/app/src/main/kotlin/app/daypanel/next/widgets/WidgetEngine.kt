@@ -108,6 +108,7 @@ object WidgetEngine {
                 else -> t("今天的安排", "Scheduled today")
             }
             state = when {
+                item.rest != null -> when(item.rest) { "skip" -> t("这天已跳过", "Skipped this day"); "vacation" -> t("休假中", "On a break"); else -> t("已暂停", "Paused") }
                 item.archived -> t("已归档 · 查看记录", "Archived · view records")
                 item.quantity -> "${item.value?.let { WidgetDisplayRules.quantity(it) } ?: "—"} / ${WidgetDisplayRules.quantity(item.target)} ${item.unit}"
                 item.kind == "habit" && item.done -> t("今天已完成", "Completed today")
@@ -120,6 +121,7 @@ object WidgetEngine {
                 else -> t("一次性 · 未设日期", "One-time · no planned date")
             }
             mode = when {
+                item.rest != null -> "view"
                 item.archived -> "view"
                 item.quantity -> "quantity"
                 item.done || (item.kind == "habit" && !item.scheduled) -> "view"

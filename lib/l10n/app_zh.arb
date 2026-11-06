@@ -513,5 +513,53 @@
   "uiTabTable": "打卡表",
   "uiTabHabits": "习惯",
   "uiTabYear": "年历",
-  "uiTabTimeline": "时间线"
+  "uiTabTimeline": "时间线",
+  "restTitle": "休息安排",
+  "restPaused": "已暂停",
+  "restVacation": "休假中",
+  "restSkipped": "这天已跳过",
+  "restPause": "从今天暂停",
+  "restPlanVacation": "安排一段休假",
+  "restSkip": "跳过这天",
+  "restUnskip": "取消跳过",
+  "restResume": "从今天恢复",
+  "restCancelFuture": "取消这次安排",
+  "restHint": "休息不算失败，也不算完成。历史记录保留，期间不提醒。",
+  "restRules": "每日连续性跨过休息日；包含休息日的周不参与完整周考核。全部习惯都休息的日子不发成就卡。恢复后继续原计划。",
+  "restConflict": "这段日期已有休息安排，或这天已有记录。请检查后再试。",
+  "restEnded": "已结束",
+  "restUntilResume": "直到手动恢复",
+  "restRange": "选择开始与结束日期",
+  "restConfirmSkip": "跳过只影响这一天，不删除其他记录。",
+  "restRecordBlocked": "这天正在休息。先结束或取消休息，再记录。",
+  "cardShare": "分享卡片",
+  "cardSaveImage": "保存图片",
+  "cardShareAction": "分享",
+  "cardShareNames": "包含习惯名称",
+  "cardShareReflection": "包含心得摘录",
+  "cardShareExcerpt": "分享摘录（不修改原心得）",
+  "cardShareHint": "预览就是将保存或分享的图片。名称和心得默认隐藏。",
+  "cardImageSaved": "图片已保存",
+  "cardImageFailed": "图片生成或保存失败，请重试。",
+  "cardShareStale": "卡片数据已改变，请重新打开分享页。",
+  "cardShareMore": "另有 {count} 项",
+  "cardShareCount": "完成了 {count} 个习惯",
+  "@cardShareMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@cardShareCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restRangeLimit": "选择休假日期，最多 365 天",
+  "restSchedule": "休息安排与记录",
+  "restStale": "习惯内容已变化，请重新打开休息安排。",
+  "restConfirmUnskip": "这天将重新按原计划统计，不会添加完成记录。"
 }
