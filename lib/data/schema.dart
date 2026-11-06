@@ -1,4 +1,15 @@
 import 'package:sqflite/sqflite.dart';
+import '../domain/models.dart';
+
+Future<void> upgradeToV7(DatabaseExecutor db, Day today) async {
+  await db.execute(
+    'CREATE TABLE habit_activity(habit_id TEXT NOT NULL REFERENCES habits(id) ON DELETE CASCADE, day TEXT NOT NULL, archived INTEGER NOT NULL CHECK(archived IN (0,1)), PRIMARY KEY(habit_id,day))',
+  );
+  await db.rawInsert(
+    'INSERT INTO habit_activity SELECT id,MAX(start_day,?),archived FROM habits',
+    [today.key],
+  );
+}
 
 Future<void> upgradeToV6(DatabaseExecutor db) async {
   await db.execute(

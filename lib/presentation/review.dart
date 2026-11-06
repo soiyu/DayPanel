@@ -4,6 +4,7 @@ import '../application/app_controller.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
+import 'statistics.dart';
 
 class ReviewPage extends StatelessWidget {
   const ReviewPage({super.key, required this.app});
@@ -131,6 +132,18 @@ class ReviewPage extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Text(s.reviewBody, style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 16),
+              AppAction(
+                label: s.statisticsTitle,
+                icon: Icons.insights_outlined,
+                tone: UiTone.violet,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => StatisticsPage(app: app),
+                  ),
+                ),
+              ),
               const SizedBox(height: 18),
               SectionTitle(s.history, tone: UiTone.violet),
               SoftPanel(

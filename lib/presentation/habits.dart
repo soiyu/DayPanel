@@ -9,6 +9,7 @@ import 'organization.dart';
 import 'reminders.dart';
 import 'journal.dart';
 import 'card_art.dart';
+import 'statistics.dart';
 
 class HabitTile extends StatelessWidget {
   const HabitTile({
@@ -539,6 +540,19 @@ class _HabitDetailsState extends State<HabitDetails> {
               ),
               const SizedBox(height: 24),
               SectionTitle(s.planHistory, tone: UiTone.violet),
+              AppAction(
+                label: s.habitStatistics,
+                icon: Icons.insights_outlined,
+                tone: UiTone.violet,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        StatisticsPage(app: app, habitId: h.id, initialTab: 1),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               for (final p
                   in app.plans
                       .where((p) => p.habitId == h.id)
@@ -583,7 +597,11 @@ class _HabitDetailsState extends State<HabitDetails> {
                 onTap: app.busy
                     ? null
                     : () => app.run(
-                        () => app.store.setArchived(h.id, !h.archived),
+                        () => app.store.setArchived(
+                          h.id,
+                          !h.archived,
+                          today: app.today,
+                        ),
                         expectedGeneration: epoch,
                       ),
               ),

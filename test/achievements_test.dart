@@ -241,13 +241,14 @@ void main() {
         today: today,
       );
       await store.db.execute('DROP TABLE cards');
+      await store.db.execute('DROP TABLE habit_activity');
       await store.db.setVersion(5);
       await store.close();
       store = await AppStore.open(
         factory: databaseFactoryFfi,
         path: '${dir.path}/data.db',
       );
-      expect(await store.db.getVersion(), 6);
+      expect(await store.db.getVersion(), 7);
       expect(await store.cards(), isEmpty);
       expect((await store.entries()).single.value, 1000);
       expect((await store.notes()).single.habitId, 'a');
@@ -315,6 +316,7 @@ void main() {
         final old = alter(snapshot, (p) {
           p['schema'] = schema;
           (p['tables'] as Map).remove('cards');
+          (p['tables'] as Map).remove('habit_activity');
           if (schema < 5) {
             for (final note in p['tables']['notes'] as List) {
               (note as Map).remove('habit_id');

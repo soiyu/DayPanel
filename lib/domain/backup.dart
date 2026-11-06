@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'models.dart';
 import 'reminder.dart';
 import 'achievement.dart';
+import 'activity.dart';
 
 class BackupInvalid implements Exception {
   const BackupInvalid();
@@ -23,13 +24,14 @@ class BackupSnapshot {
     'settings',
     'reminders',
     'cards',
+    'habit_activity',
   ];
   final DateTime createdAt;
   final Map<String, List<Map<String, Object?>>> tables;
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 6,
+      'schema': 7,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -72,7 +74,7 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3, 4, 5, 6}.contains(content['schema'])) {
+      if (!{2, 3, 4, 5, 6, 7}.contains(content['schema'])) {
         throw const BackupInvalid();
       }
       final created = DateTime.parse(content['created_at'] as String);
@@ -88,12 +90,26 @@ class BackupSnapshot {
               (n) =>
                   (schema >= 3 || n != 'reminders') &&
                   (schema >= 4 || n != 'task_entries') &&
-                  (schema >= 6 || n != 'cards'),
+                  (schema >= 6 || n != 'cards') &&
+                  (schema >= 7 || n != 'habit_activity'),
             )
             .toSet(),
       );
       if (schema < 3) raw['reminders'] = <Object>[];
       if (schema < 6) raw['cards'] = <Object>[];
+      if (schema < 7) {
+        final date = Day(created.toLocal());
+        raw['habit_activity'] = [
+          for (final h in raw['habits'] as List)
+            {
+              'habit_id': h['id'],
+              'day': (h['start_day'] as String).compareTo(date.key) > 0
+                  ? h['start_day']
+                  : date.key,
+              'archived': h['archived'],
+            },
+        ];
+      }
       if (schema < 4) {
         raw['task_entries'] = <Object>[];
         for (final row in raw['tasks'] as List) {
@@ -302,6 +318,28 @@ class BackupSnapshot {
       _text(m, 'body', 10000);
       Day.parse(m['day'] as String);
       if (m['habit_id'] != null && !habitIds.containsKey(m['habit_id'])) {
+        throw const BackupInvalid();
+      }
+    }
+    final activityKeys = <String>{};
+    final latestActivity = <String, HabitActivity>{};
+    for (final m in t['habit_activity']!) {
+      _keys(m, {'habit_id', 'day', 'archived'});
+      _int(m, 'archived', 0, 1);
+      final a = HabitActivity.fromMap(m);
+      final h = habitIds[a.habitId];
+      if (h == null ||
+          a.day.compareTo(h.startDay) < 0 ||
+          !activityKeys.add('${a.habitId}/${a.day.key}')) {
+        throw const BackupInvalid();
+      }
+      if (latestActivity[a.habitId] == null ||
+          a.day.compareTo(latestActivity[a.habitId]!.day) > 0) {
+        latestActivity[a.habitId] = a;
+      }
+    }
+    for (final h in habitIds.values) {
+      if (latestActivity[h.id]?.archived != h.archived) {
         throw const BackupInvalid();
       }
     }

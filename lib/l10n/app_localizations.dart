@@ -98,6 +98,270 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @statisticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics & history'**
+  String get statisticsTitle;
+
+  /// No description provided for @checkinTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in table'**
+  String get checkinTable;
+
+  /// No description provided for @habitStatistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit statistics'**
+  String get habitStatistics;
+
+  /// No description provided for @yearCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Year calendar'**
+  String get yearCalendar;
+
+  /// No description provided for @timelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get timelineTitle;
+
+  /// No description provided for @historyUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'History not known'**
+  String get historyUnknown;
+
+  /// No description provided for @notScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Not scheduled'**
+  String get notScheduled;
+
+  /// No description provided for @correctionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only an explicit save changes this date. Opening or cancelling does not write a record.'**
+  String get correctionHint;
+
+  /// No description provided for @restoreToCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive this habit before correcting records.'**
+  String get restoreToCorrect;
+
+  /// No description provided for @previousPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous period'**
+  String get previousPeriod;
+
+  /// No description provided for @nextPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Next period'**
+  String get nextPeriod;
+
+  /// No description provided for @tableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe across the week. ✓ achieved · • recorded below target · ○ unlogged · ~ flexible weekly · ? unknown history · — not scheduled. Tap a date to view or correct it.'**
+  String get tableHint;
+
+  /// No description provided for @statisticsKnownHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive history is tracked from this upgrade onward. Earlier unknown days are excluded from rates and streaks. Older plan changes cannot be reconstructed.'**
+  String get statisticsKnownHint;
+
+  /// No description provided for @chooseStatisticsHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one habit'**
+  String get chooseStatisticsHabit;
+
+  /// No description provided for @singleHabitStatistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the habit filter above to inspect its plans, completion and quantities without mixing units.'**
+  String get singleHabitStatistics;
+
+  /// No description provided for @daysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get daysLabel;
+
+  /// No description provided for @dailyCompletionRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily plan completion'**
+  String get dailyCompletionRate;
+
+  /// No description provided for @noDenominator.
+  ///
+  /// In en, this message translates to:
+  /// **'No completed planned days'**
+  String get noDenominator;
+
+  /// No description provided for @dailyRateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Achieved / planned days through yesterday. Today, flexible weekly goals, archived and unknown dates are excluded.'**
+  String get dailyRateHint;
+
+  /// No description provided for @currentRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Current planned-day run'**
+  String get currentRun;
+
+  /// No description provided for @bestRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Best planned-day run'**
+  String get bestRun;
+
+  /// No description provided for @streakRangeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Within this date range only. Rest days are skipped; today\'s unfinished plan does not break a run.'**
+  String get streakRangeHint;
+
+  /// No description provided for @weeklyStatistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly goals'**
+  String get weeklyStatistics;
+
+  /// No description provided for @noFullWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'No complete weeks to evaluate'**
+  String get noFullWeeks;
+
+  /// No description provided for @completedWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'weeks achieved'**
+  String get completedWeeks;
+
+  /// No description provided for @weeklyStatsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only full Monday–Sunday weeks with one plan and known active history count. Partial weeks are excluded; this week is still in progress.'**
+  String get weeklyStatsHint;
+
+  /// No description provided for @currentWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Current week run'**
+  String get currentWeeks;
+
+  /// No description provided for @bestWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Best week run'**
+  String get bestWeeks;
+
+  /// No description provided for @inProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get inProgress;
+
+  /// No description provided for @partialPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial / unknown'**
+  String get partialPeriod;
+
+  /// No description provided for @quantityStatistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded quantities'**
+  String get quantityStatistics;
+
+  /// No description provided for @quantityStatsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Each historical unit has its own totals and daily bars. Zero is a record; missing days are excluded from the average.'**
+  String get quantityStatsHint;
+
+  /// No description provided for @noRecordedValues.
+  ///
+  /// In en, this message translates to:
+  /// **'No quantities recorded in this range'**
+  String get noRecordedValues;
+
+  /// No description provided for @noUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'No unit'**
+  String get noUnit;
+
+  /// No description provided for @quantitySum.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get quantitySum;
+
+  /// No description provided for @recordedAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average per recorded day'**
+  String get recordedAverage;
+
+  /// No description provided for @recordedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded days'**
+  String get recordedDays;
+
+  /// No description provided for @trendScrollHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe through recorded dates; tap a bar to correct that day.'**
+  String get trendScrollHint;
+
+  /// No description provided for @yearCalendarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Color shows the number of actual habit records, including zero values, not a completion rate. Tap a day for details; swipe within a month if needed.'**
+  String get yearCalendarHint;
+
+  /// No description provided for @allEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'All types'**
+  String get allEvents;
+
+  /// No description provided for @timelineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Current saved facts by calendar day. Habit logs, task completion dates, notes and earned cards; no invented times or deleted events.'**
+  String get timelineHint;
+
+  /// No description provided for @noTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'No records for this selection'**
+  String get noTimeline;
+
+  /// No description provided for @noTimelineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another month, date or type.'**
+  String get noTimelineHint;
+
+  /// No description provided for @noRecordHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits without a record'**
+  String get noRecordHabits;
+
   /// No description provided for @cardDawn.
   ///
   /// In en, this message translates to:

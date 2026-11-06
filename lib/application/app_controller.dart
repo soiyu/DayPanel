@@ -4,6 +4,7 @@ import '../data/app_store.dart';
 import '../domain/models.dart';
 import '../domain/journal.dart';
 import '../domain/achievement.dart';
+import '../domain/activity.dart';
 import '../data/completion_feedback.dart';
 import '../domain/reminder.dart';
 import '../data/reminder_platform.dart';
@@ -91,6 +92,7 @@ class AppController extends ChangeNotifier {
 
   Map<String, String> preferences = {};
   List<HabitPlan> plans = [];
+  List<HabitActivity> activity = [];
   List<HabitGroup> groups = [];
   int generation = 0;
   String? groupFilter;
@@ -111,6 +113,7 @@ class AppController extends ChangeNotifier {
     final epoch = await store.generation();
     final remindersSaved = await store.reminders();
     final savedCards = await store.cards();
+    final activityHistory = await store.activity();
     habits = h;
     entries = e;
     tasks = t;
@@ -122,6 +125,7 @@ class AppController extends ChangeNotifier {
     generation = epoch;
     reminders = remindersSaved;
     cards = savedCards;
+    activity = activityHistory;
     if (journalQuery.habitId != null &&
         !h.any((h) => h.id == journalQuery.habitId)) {
       journalQuery = JournalQuery(

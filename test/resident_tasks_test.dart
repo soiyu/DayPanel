@@ -39,7 +39,9 @@ void main() {
         options: OpenDatabaseOptions(
           version: 3,
           onCreate: (db, version) async {
-            await db.execute('CREATE TABLE habits(id TEXT PRIMARY KEY)');
+            await db.execute(
+              'CREATE TABLE habits(id TEXT PRIMARY KEY,start_day TEXT,archived INTEGER)',
+            );
             await db.execute(
               'CREATE TABLE notes(id TEXT PRIMARY KEY,body TEXT,day TEXT)',
             );
@@ -60,7 +62,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: path,
       );
-      expect(await migrated.db.getVersion(), 6);
+      expect(await migrated.db.getVersion(), 7);
       final task = (await migrated.tasks()).single;
       expect(task.resident, isFalse);
       expect(task.startDay, isNull);
@@ -318,6 +320,7 @@ void main() {
         final p = jsonDecode(e['payload'] as String) as Map;
         p['schema'] = schema;
         (p['tables'] as Map).remove('cards');
+        (p['tables'] as Map).remove('habit_activity');
         (p['tables'] as Map).remove('task_entries');
         if (schema == 2) (p['tables'] as Map).remove('reminders');
         for (final row in p['tables']['tasks'] as List) {

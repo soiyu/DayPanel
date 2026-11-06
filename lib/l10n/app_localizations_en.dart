@@ -9,6 +9,150 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get statisticsTitle => 'Statistics & history';
+
+  @override
+  String get checkinTable => 'Check-in table';
+
+  @override
+  String get habitStatistics => 'Habit statistics';
+
+  @override
+  String get yearCalendar => 'Year calendar';
+
+  @override
+  String get timelineTitle => 'Timeline';
+
+  @override
+  String get historyUnknown => 'History not known';
+
+  @override
+  String get notScheduled => 'Not scheduled';
+
+  @override
+  String get correctionHint =>
+      'Only an explicit save changes this date. Opening or cancelling does not write a record.';
+
+  @override
+  String get restoreToCorrect =>
+      'Unarchive this habit before correcting records.';
+
+  @override
+  String get previousPeriod => 'Previous period';
+
+  @override
+  String get nextPeriod => 'Next period';
+
+  @override
+  String get tableHint =>
+      'Swipe across the week. ✓ achieved · • recorded below target · ○ unlogged · ~ flexible weekly · ? unknown history · — not scheduled. Tap a date to view or correct it.';
+
+  @override
+  String get statisticsKnownHint =>
+      'Archive history is tracked from this upgrade onward. Earlier unknown days are excluded from rates and streaks. Older plan changes cannot be reconstructed.';
+
+  @override
+  String get chooseStatisticsHabit => 'Choose one habit';
+
+  @override
+  String get singleHabitStatistics =>
+      'Use the habit filter above to inspect its plans, completion and quantities without mixing units.';
+
+  @override
+  String get daysLabel => 'days';
+
+  @override
+  String get dailyCompletionRate => 'Daily plan completion';
+
+  @override
+  String get noDenominator => 'No completed planned days';
+
+  @override
+  String get dailyRateHint =>
+      'Achieved / planned days through yesterday. Today, flexible weekly goals, archived and unknown dates are excluded.';
+
+  @override
+  String get currentRun => 'Current planned-day run';
+
+  @override
+  String get bestRun => 'Best planned-day run';
+
+  @override
+  String get streakRangeHint =>
+      'Within this date range only. Rest days are skipped; today\'s unfinished plan does not break a run.';
+
+  @override
+  String get weeklyStatistics => 'Weekly goals';
+
+  @override
+  String get noFullWeeks => 'No complete weeks to evaluate';
+
+  @override
+  String get completedWeeks => 'weeks achieved';
+
+  @override
+  String get weeklyStatsHint =>
+      'Only full Monday–Sunday weeks with one plan and known active history count. Partial weeks are excluded; this week is still in progress.';
+
+  @override
+  String get currentWeeks => 'Current week run';
+
+  @override
+  String get bestWeeks => 'Best week run';
+
+  @override
+  String get inProgress => 'In progress';
+
+  @override
+  String get partialPeriod => 'Partial / unknown';
+
+  @override
+  String get quantityStatistics => 'Recorded quantities';
+
+  @override
+  String get quantityStatsHint =>
+      'Each historical unit has its own totals and daily bars. Zero is a record; missing days are excluded from the average.';
+
+  @override
+  String get noRecordedValues => 'No quantities recorded in this range';
+
+  @override
+  String get noUnit => 'No unit';
+
+  @override
+  String get quantitySum => 'Total';
+
+  @override
+  String get recordedAverage => 'Average per recorded day';
+
+  @override
+  String get recordedDays => 'Recorded days';
+
+  @override
+  String get trendScrollHint =>
+      'Swipe through recorded dates; tap a bar to correct that day.';
+
+  @override
+  String get yearCalendarHint =>
+      'Color shows the number of actual habit records, including zero values, not a completion rate. Tap a day for details; swipe within a month if needed.';
+
+  @override
+  String get allEvents => 'All types';
+
+  @override
+  String get timelineHint =>
+      'Current saved facts by calendar day. Habit logs, task completion dates, notes and earned cards; no invented times or deleted events.';
+
+  @override
+  String get noTimeline => 'No records for this selection';
+
+  @override
+  String get noTimelineHint => 'Choose another month, date or type.';
+
+  @override
+  String get noRecordHabits => 'Habits without a record';
+
+  @override
   String get cardDawn => 'A little dawn';
 
   @override

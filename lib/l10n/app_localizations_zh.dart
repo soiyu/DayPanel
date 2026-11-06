@@ -9,6 +9,140 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get statisticsTitle => '统计与历史';
+
+  @override
+  String get checkinTable => '打卡表';
+
+  @override
+  String get habitStatistics => '习惯统计';
+
+  @override
+  String get yearCalendar => '年度日历';
+
+  @override
+  String get timelineTitle => '时间线';
+
+  @override
+  String get historyUnknown => '履历未知';
+
+  @override
+  String get notScheduled => '未安排';
+
+  @override
+  String get correctionHint => '确认保存后才修改这一天，打开或取消不会写入记录。';
+
+  @override
+  String get restoreToCorrect => '当前习惯已归档，取消归档后可纠正记录。';
+
+  @override
+  String get previousPeriod => '上一时段';
+
+  @override
+  String get nextPeriod => '下一时段';
+
+  @override
+  String get tableHint =>
+      '横向查看整周。✓ 达标 · • 已记录未达标 · ○ 未记录 · ~ 弹性周目标 · ? 履历未知 · — 未安排。点开日期查看或纠正。';
+
+  @override
+  String get statisticsKnownHint =>
+      '归档履历从本次升级开始保存。更早的未知日期不计完成率或连续性；未保存的旧计划改动无法还原。';
+
+  @override
+  String get chooseStatisticsHabit => '选择一个习惯';
+
+  @override
+  String get singleHabitStatistics => '通过上方筛选查看单个习惯的计划、完成情况与数量，不混合不同单位。';
+
+  @override
+  String get daysLabel => '天';
+
+  @override
+  String get dailyCompletionRate => '按日计划完成率';
+
+  @override
+  String get noDenominator => '没有可统计的已结束计划日';
+
+  @override
+  String get dailyRateHint => '达标日 / 应做日，统计至昨天。今天、弹性周目标、归档期与未知履历不计入。';
+
+  @override
+  String get currentRun => '当前连续计划日';
+
+  @override
+  String get bestRun => '最长连续计划日';
+
+  @override
+  String get streakRangeHint => '仅在所选范围内计算。未安排日跳过，今天未完成暂不打断连续性。';
+
+  @override
+  String get weeklyStatistics => '周目标统计';
+
+  @override
+  String get noFullWeeks => '暂无可统计的完整周';
+
+  @override
+  String get completedWeeks => '周达标';
+
+  @override
+  String get weeklyStatsHint => '仅计算周一至周日完整、同一计划且履历已知活跃的周。部分周不进分母，本周仍在进行。';
+
+  @override
+  String get currentWeeks => '当前连续周';
+
+  @override
+  String get bestWeeks => '最长连续周';
+
+  @override
+  String get inProgress => '进行中';
+
+  @override
+  String get partialPeriod => '部分周 / 履历未知';
+
+  @override
+  String get quantityStatistics => '实际记录数量';
+
+  @override
+  String get quantityStatsHint => '按历史单位分开汇总和绘制逐日趋势。零值算记录，未记录日期不填零，也不计入均值。';
+
+  @override
+  String get noRecordedValues => '此范围没有数量记录';
+
+  @override
+  String get noUnit => '未设单位';
+
+  @override
+  String get quantitySum => '合计';
+
+  @override
+  String get recordedAverage => '每个记录日均值';
+
+  @override
+  String get recordedDays => '记录日数';
+
+  @override
+  String get trendScrollHint => '横向查看记录日期，点柱形可纠正当天数值。';
+
+  @override
+  String get yearCalendarHint => '颜色表示实际习惯记录数，含零值，不代表完成率。点日期查看明细；窄屏可在月份内横向滑动。';
+
+  @override
+  String get allEvents => '全部类型';
+
+  @override
+  String get timelineHint => '按当地日期展示当前保存的事实，包括习惯、小事完成、手记和已获卡片；不虚构具体时间或已删除事件。';
+
+  @override
+  String get noTimeline => '当前筛选没有记录';
+
+  @override
+  String get noTimelineHint => '可以切换月份、日期或记录类型。';
+
+  @override
+  String get noRecordHabits => '未记录的习惯';
+
+  @override
   String get cardDawn => '一点晨光';
 
   @override

@@ -1,6 +1,7 @@
 import 'tasks.dart';
 import 'journal.dart';
 import 'achievements.dart';
+import 'statistics.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -505,6 +506,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   context,
                   MaterialPageRoute<void>(
                     builder: (_) => CardCollection(app: app),
+                  ),
+                ),
+              ),
+              SettingRow(
+                icon: Icons.insights_outlined,
+                title: s.statisticsTitle,
+                tone: UiTone.violet,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => StatisticsPage(app: app),
                   ),
                 ),
               ),

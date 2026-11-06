@@ -6,6 +6,7 @@ import 'schema.dart';
 import '../domain/backup.dart';
 import '../domain/reminder.dart';
 import '../domain/achievement.dart';
+import '../domain/activity.dart';
 part 'store_backup.dart';
 part 'store_cards.dart';
 
@@ -13,14 +14,18 @@ class AppStore {
   AppStore._(this.db);
   final Database db;
 
-  static Future<AppStore> open({DatabaseFactory? factory, String? path}) async {
+  static Future<AppStore> open({
+    DatabaseFactory? factory,
+    String? path,
+    Day? migrationDay,
+  }) async {
     final f = factory ?? databaseFactory;
     final dbPath =
         path ?? p.join(await f.getDatabasesPath(), 'daypanel_flutter.db');
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 6,
+        version: 7,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           await db.execute(
@@ -43,6 +48,7 @@ class AppStore {
           await upgradeToV4(db);
           await upgradeToV5(db);
           await upgradeToV6(db);
+          await upgradeToV7(db, migrationDay ?? Day(DateTime.now()));
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
@@ -50,6 +56,9 @@ class AppStore {
           if (oldVersion < 4) await upgradeToV4(db);
           if (oldVersion < 5) await upgradeToV5(db);
           if (oldVersion < 6) await upgradeToV6(db);
+          if (oldVersion < 7) {
+            await upgradeToV7(db, migrationDay ?? Day(DateTime.now()));
+          }
         },
       ),
     );
@@ -57,6 +66,10 @@ class AppStore {
   }
 
   Future<void> close() => db.close();
+  Future<List<HabitActivity>> activity() async => (await db.query(
+    'habit_activity',
+    orderBy: 'day',
+  )).map(HabitActivity.fromMap).toList();
   Future<List<TaskEntry>> taskEntries() async => (await db.query(
     'task_entries',
     orderBy: 'day DESC,task_id',
@@ -154,6 +167,14 @@ class AppStore {
         await txn.insert(
           'plans',
           HabitPlan.fromHabit(habit, habit.startDay).toMap(),
+        );
+        await txn.insert(
+          'habit_activity',
+          HabitActivity(
+            habitId: habit.id,
+            day: habit.startDay,
+            archived: habit.archived,
+          ).toMap(),
         );
       } else {
         final old = await txn.query(
@@ -269,16 +290,34 @@ class AppStore {
     });
   }
 
-  Future<void> setArchived(String id, bool archived) async {
-    if (await db.update(
-          'habits',
-          {'archived': archived ? 1 : 0},
-          where: 'id = ?',
-          whereArgs: [id],
-        ) !=
-        1) {
-      throw StateError('Habit missing');
-    }
+  Future<void> setArchived(String id, bool archived, {Day? today}) async {
+    final day = today ?? Day(DateTime.now());
+    await db.transaction((txn) async {
+      final rows = await txn.query('habits', where: 'id=?', whereArgs: [id]);
+      if (rows.isEmpty) throw StateError('Habit missing');
+      if ((rows.single['archived'] == 1) == archived) return;
+      final history = await txn.query(
+        'habit_activity',
+        where: 'habit_id=?',
+        whereArgs: [id],
+        orderBy: 'day DESC',
+        limit: 1,
+      );
+      if (day.compareTo(Day.parse(history.single['day'] as String)) < 0) {
+        throw StateError('Clock precedes activity history');
+      }
+      await txn.insert(
+        'habit_activity',
+        HabitActivity(habitId: id, day: day, archived: archived).toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      await txn.update(
+        'habits',
+        {'archived': archived ? 1 : 0},
+        where: 'id=?',
+        whereArgs: [id],
+      );
+    });
   }
 
   Future<bool> setRecord(

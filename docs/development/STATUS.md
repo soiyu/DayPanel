@@ -2,7 +2,7 @@
 
 更新 2026-11-06。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
 
-当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索和 FL14 成就卡/收藏/心得/反馈。最新版本 SQLite v6，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志与成就卡；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
+当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索、FL14 成就卡/收藏/心得/反馈和 FL15 打卡表/量化/年历/时间线。最新版本 SQLite v7，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志、成就卡与按日期归档履历；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
 
 ## 已实现基座与 UI
 
@@ -355,3 +355,59 @@ API28 emulator-5554、1080×1920/420dpi、字号1.0。安装前停进程归档�
 ### 交接与限制
 
 FL14实现及限定验收通过。未完成厂商真机声学/触感体验、真实TalkBack手工、全部横屏/长列表性能、系统声音/勿扰全矩阵和API35/36本批回归；自动化/模拟器不能代表这些范围。原生初始化不可用与后台状态会安全跳过反馈，记录照常保存。下一批 **FL15 打卡表、量化统计、年度日历与时间线**，需要明确历史分母、连续性和单位聚合规则。电脑与可见模拟器保持运行，不关机、不推送远端。
+
+## 2026-11-06 FL15 打卡表、量化统计、年度日历与时间线
+
+用户要求继续，执行FL15。先记录 [ADR0007](../adr/0007-history-statistics.md)，再实现领域、存储及界面；设计见 [STATISTICS](../design/STATISTICS.md)。继续全部免费、Android-first、不引入专注。保持开机、不推送。
+
+### 本批功能与规则
+
+- 我的和七日回顾增加统计与历史入口，习惯详情可直达单习惯统计。打卡表按周显示习惯×日期，支持切周/日期定位/单习惯筛选（含归档），名称列固定、日期横向滑动；符号和读屏文字区分达标/未达标/未记录/未安排/弹性周目标/未知/未来。点格先打开明确日期的确认或数量面板，只有显式保存/清除写入；归档可读，未来与开始日前禁写，旧页面受generation保护。
+- 单习惯7/30/365天统计：按日完成率为截至昨天已知活跃的计划达标日/应做日，今天未结束不进分母；当前/最长连续计划日限所选范围，休息日跳过，未知/归档/周目标打断。周目标另按完整周一至周日、同一计划与已知活跃履历统计完成率和连续周，部分周/进行中周不当失败，不混每日分母。
+- 量化合计、记录日均值/日数和逐日柱形按历史单位分组；零值是真实记录，缺值不补零，不跨习惯/单位相加。均值以整数千分位四舍五入；日期明细保留对应版本目标与单位。柱形/记录可打开实际纠正入口。
+- 年度日历显示全年真实习惯记录总数、12个月份记录数与所选月份日期分布，含零值；颜色表示记录数量而非完成率。支持年切换/日期定位/单习惯筛选，日期明细包含真实事件及未记录习惯，未来只读、闰日正确。
+- 时间线按月份/单日及类型展示习惯记录、一次性实际完成日、常驻日记录、手记、成就卡，点开进入实际编辑/详情。不编造时分/操作审计，不继续显示已清除事实；独立成就卡仍保留。七日回顾原有计数规则保持。
+- SQLite7增加habit_activity日期版本，归档/恢复写同一事务，同日最终状态覆盖、跨日保留，时钟回退到已存版本之前拒绝改变状态。旧v1–v6从升级当天建立已知基线，之前真实记录保留但履历未知、不推定失败；新习惯从开始日已知。备份schema7严格校验履历字段/日期/重复/引用/最终状态，兼容schema2–6和旧恢复副本；旧备份基线为备份时间的本地日期且不早于开始日。提醒读取器同步支持3..7、拒绝8。
+
+### 最终工程验证
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+git diff --check
+git diff --cached --check
+```
+
+最终 `.local/reports/statistics-final.log`：52个Dart文件格式无变化，analyze无问题，**153项Flutter/Dart测试通过**，Android debug构建成功（72.8秒），Kotlin JVM **9/9**。本批新增28项 = 18项领域/SQLite/迁移/备份 + 10项UI，原125项继续通过。native-test成功，日志statistics-native-final.log；既有Flutter Kotlin插件迁移与Gradle弃用提示仍在，不称无警告。
+
+规则测试覆盖截至昨天分母、今日不打断、休息日跳过、未知/归档/恢复界限、间隔锚点、历史目标、整周/周中改版/范围边缘、单位隔离与零值、闰年/年界、时间线类型与实际日期、归档履历持久化/同日幂等/时钟回退、v6迁移、schema2–6兼容/回退与畸形履历拒绝、恢复后旧写入拒绝。已有v1–v5迁移和恢复中断测试继续运行。UI验证布尔/数量显式纠正、取消、未来禁用、归档只读、旧数量面板、年历明细/闰日、时间线手记编辑和筛选空态，以及中英×明暗320dp/160%文字+280dp键盘。
+
+初次解析/静态检查发现括号、字段推断与代码块问题，修复后进入测试；没有把失败运行记作通过。设备视觉复核发现横向滚动名称丢失，已固定名称列；收尾为打卡格和年历日期格补齐无障碍激活动作，重新verify全部通过。
+
+API28最终APK和测试包上运行：
+
+```powershell
+& $adb -s emulator-5554 install -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+**OK (9 tests)**，statistics-native-api28-final.log；含提醒兼容3..7/拒绝8、通知与反馈回归。测试fixture独立，不清空用户库。没有重跑API35/36，既往结果不当本轮设备证据。
+
+最终APK `build/app/outputs/flutter-apk/app-debug.apk`，174731527 bytes；SHA-256 `38e6d91ec5abf54f0ed3fcac1dc986b7a66e63905e0aa463262f898e23e9939c`。已覆盖安装主用户，包身份/权限不变，非商店release包。
+
+### 实际设备及原数据保护
+
+可见API28 emulator-5554，1080×1920/420dpi/字号1.0。先关闭主进程、归档databases到pre-statistics-db.tar，覆盖安装启动成功。创建临时Android用户DayPanelFL15QA（id11），独立空库通过真实UI新建Read a page，从打卡表确认完成；年历记录数为1，点11月6日可见实际打卡和获得卡片。从日期明细清除打卡后，该事实移除、卡片仍在，未记录习惯可继续纠正。
+
+新建Water，目标2000 ml，真实输入250.001保存；打卡表显示已记录未达标，单习惯趋势显示合计250.001、记录日均值250.001、日数1，历史明细目标2000 ml。新建仅今天的习惯完成率显示没有已结束计划日，不把今天算失败。force-stop→重开后时间线仍显示250.001 ml与原卡片，布尔清除仍保留。截图复核并保存最终名称固定的打卡表、年历、日期明细、数量趋势和时间线，`.local/reports/statistics-final-{table,calendar,timeline}.png`、statistics-quantity-trend.png、statistics-day-history.png、statistics-cleared-day.png。样本由UI输入，安装包无预置用户数据。截图采于最终无障碍激活动作收尾前的同一视觉版本；收尾包重新通过完整verify、覆盖安装与API28原生9项检查。
+
+模拟器期间多次自动锁屏，部分启动等待很久、界面dump短暂null；已解锁并重新读取界面后操作。早期命中旧坐标造成一次未保存的数量创建取消，不计作成功；后续逐步确认保存和实际250.001值。被锁屏覆盖的早期截图不作为交付证据。设备本轮主要为中文浅色，另外语言/明暗/窄屏组合由自动化检查，不能声称设备全矩阵完成。
+
+结束时切回用户0，停止并删除临时用户11，系统仅剩主用户；主用户原记录/设置从未用于测试凑数。归档post-statistics-db.tar并用新目录校验，运行 `./scripts/dev.ps1 test -Extra '.local/statistics_retention.dart'`，额外**1项通过**（不计入153项）。statistics-retention.log确认前v6后v7，habits/plans/entries/tasks/task_entries/notes/settings/habit_groups/reminders/runtime/recovery/cards逐行一致；habit_activity只有每习惯一条2026-11-06基线、归档状态与原值一致，foreign_key_check为空。AndroidRuntime/flutter错误日志为空，主用户最终启动成功。旧原生项目/包未触碰。
+
+### 交接
+
+FL15实现与限定验收通过。未完成真机、真实TalkBack、全部横屏/长列表/大规模数据性能、API35/36本批矩阵；统计只依据当前保留的数据，已删除事实和升级前缺失的归档/计划历史无法重建。下一批 **FL16 习惯/待办桌面组件**，需明确冷启动、跨日、显式写入、数量直输与尺寸适配。电脑和可见模拟器保持运行，不推送、不关机。
