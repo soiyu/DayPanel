@@ -1199,7 +1199,7 @@ abstract class AppLocalizations {
   /// No description provided for @rollbackBody.
   ///
   /// In en, this message translates to:
-  /// **'Replace current content with the copy from before the last restore. Newer additions and changes will also be replaced.'**
+  /// **'Replace current content with the copy from before the last restore or legacy import. Later additions and changes will also be replaced.'**
   String get rollbackBody;
 
   /// No description provided for @rollbackDone.
@@ -2683,6 +2683,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Care'**
   String get iconCare;
+
+  /// No description provided for @legacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import old habits'**
+  String get legacyTitle;
+
+  /// No description provided for @legacyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Append habits and actual records from a Loop database backup. Keep existing content. Review before importing.'**
+  String get legacyIntro;
+
+  /// No description provided for @legacyPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Loop backup .db'**
+  String get legacyPick;
+
+  /// No description provided for @legacySupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Supports Loop database versions 21–25, up to 8 MiB. ZIP, CSV and other app backups are not supported. Export a complete database from the old app.'**
+  String get legacySupported;
+
+  /// No description provided for @legacyDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Only actual records transfer. Automatic coverage is not completion. Skips and notes become journal entries. Past schedules, target changes and archive history cannot be reconstructed; earlier days are not counted as failures. Reminders, scores, colors and old tasks/scenes are not imported. Quantities use the unit saved in the file. The start date is the earliest record, or the import day when empty; it is not the original creation date. In files without UUIDs, renaming may create a new identity, so avoid repeated imports.'**
+  String get legacyDifference;
+
+  /// No description provided for @legacyReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review import'**
+  String get legacyReview;
+
+  /// No description provided for @legacyExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Already here; keep current content'**
+  String get legacyExisting;
+
+  /// No description provided for @legacyUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This item cannot be imported'**
+  String get legacyUnsupported;
+
+  /// No description provided for @legacyAtMost.
+  ///
+  /// In en, this message translates to:
+  /// **'At-most targets are not supported; their meaning will not be reversed.'**
+  String get legacyAtMost;
+
+  /// No description provided for @legacyTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Targets must be positive with at most three decimal places.'**
+  String get legacyTarget;
+
+  /// No description provided for @legacyLength.
+  ///
+  /// In en, this message translates to:
+  /// **'The name or unit is too long. Adjust it in the old app first.'**
+  String get legacyLength;
+
+  /// No description provided for @legacySourceFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Source frequency (times/days)'**
+  String get legacySourceFrequency;
+
+  /// No description provided for @legacyRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual records'**
+  String get legacyRecords;
+
+  /// No description provided for @legacyIgnored.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic/unknown (not completion)'**
+  String get legacyIgnored;
+
+  /// No description provided for @legacySkips.
+  ///
+  /// In en, this message translates to:
+  /// **'Skips (saved as journal)'**
+  String get legacySkips;
+
+  /// No description provided for @legacyNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal entries (including source note)'**
+  String get legacyNotes;
+
+  /// No description provided for @legacyChooseSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the schedule after import'**
+  String get legacyChooseSchedule;
+
+  /// No description provided for @legacyScheduleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Rolling frequency differs from fixed intervals and calendar weeks. Choose your future schedule. Unknown earlier days will not be counted as failures. Intervals start on the import day.'**
+  String get legacyScheduleHint;
+
+  /// No description provided for @legacyDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get legacyDaily;
+
+  /// No description provided for @legacyWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Days per calendar week'**
+  String get legacyWeekly;
+
+  /// No description provided for @legacyInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Every N days'**
+  String get legacyInterval;
+
+  /// No description provided for @legacyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of days'**
+  String get legacyCount;
+
+  /// No description provided for @legacyAcknowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand the differences and confirm the selected schedules'**
+  String get legacyAcknowledge;
+
+  /// No description provided for @legacyConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Append selected habits'**
+  String get legacyConfirm;
+
+  /// No description provided for @legacyDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Import complete. Existing content is preserved. Data & backup can restore the copy from before import.'**
+  String get legacyDone;
+
+  /// No description provided for @legacyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is damaged, unsupported or contains invalid records. Your data is unchanged.'**
+  String get legacyInvalid;
+
+  /// No description provided for @legacyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import could not finish. The content or date may have changed. Select the file again.'**
+  String get legacyFailed;
+
+  /// No description provided for @legacyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No habits to append. Existing habits are never overwritten or merged.'**
+  String get legacyEmpty;
+
+  /// No description provided for @legacyRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'The latest full copy from before import is kept. Rollback also replaces later changes. Export a file first if you need a lasting copy.'**
+  String get legacyRecovery;
+
+  /// No description provided for @offlineTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move devices offline'**
+  String get offlineTransferTitle;
+
+  /// No description provided for @offlineTransferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Export a full DayPanel JSON backup on the old device.\n2. Transfer the file yourself using USB or file transfer.\n3. Choose Restore from file on the new device and review before confirming.\n4. Set notification permissions and widgets again.\n\nThere is no cloud sync or automatic backup. Files are not encrypted; keep them private. Uninstalling deletes app data and the rollback copy. Keep exported files outside the app.'**
+  String get offlineTransferBody;
 }
 
 class _AppLocalizationsDelegate

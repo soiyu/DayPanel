@@ -24,7 +24,9 @@ class WidgetLifecycleTest {
         allocated.forEach { WidgetBindings.remove(target,it);host.deleteAppWidgetId(it) }
         val user=android.os.Process.myUid()/100000
         if(user!=0) InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(
-            "appwidget revokebind --package ${target.packageName} --user $user").close()
+            "appwidget revokebind --package ${target.packageName} --user $user").use { p ->
+                java.io.FileInputStream(p.fileDescriptor).readBytes()
+            }
     }
     @Test fun identitiesCannotCrossInstancesAndDeletionRemovesBinding() {
         val manager=AppWidgetManager.getInstance(target)

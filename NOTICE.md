@@ -12,3 +12,5 @@ FL14 artwork: the six scenes in `lib/presentation/card_art.dart` are original co
 FL17 font asset: `assets/fonts/NotoSerifSC.ttf` is Noto Serif SC from google/fonts, distributed under SIL Open Font License 1.1. See `assets/fonts/OFL-NotoSerifSC.txt` and `SOURCE.md`.
 
 Habit icons use the Material Icons font already distributed with Flutter (Apache 2.0). Android widgets render the same 24 referenced glyphs from the bundled Flutter font; no Loop or competitor icon assets are used.
+
+FL18 Loop file compatibility: the SQLite field/version declarations and numeric encodings of Loop v2.3.2 were inspected only to document an interoperable file format. The parser, conversion rules, transaction integration and synthetic tests are independently authored here; no Loop import, scoring, frequency, or migration implementation is copied or translated. See docs/development/LEGACY-FORMAT.md. Final distribution licensing remains a separate review.

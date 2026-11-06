@@ -1,6 +1,23 @@
 part of 'app_store.dart';
 
 extension StoreBackup on AppStore {
+  Future<void> importLegacy(
+    LegacyImport source,
+    Map<String, LegacySchedule> selected, {
+    required Day today,
+    required bool chinese,
+    Future<void> Function(String)? fault,
+  }) => _transaction((txn) async {
+    final current = await _snapshot(txn, DateTime.now());
+    final merged = source.appendTo(
+      current,
+      selected,
+      today: today,
+      chinese: chinese,
+    );
+    await restoreSnapshot(merged, fault: fault);
+  });
+
   Future<BackupSnapshot> exportSnapshot({DateTime? now}) =>
       _transaction((txn) => _snapshot(txn, now ?? DateTime.now()));
   Future<BackupSnapshot> _snapshot(

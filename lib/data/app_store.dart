@@ -9,6 +9,7 @@ import '../domain/reminder.dart';
 import '../domain/achievement.dart';
 import '../domain/activity.dart';
 import '../domain/appearance.dart';
+import '../domain/legacy_import.dart';
 part 'store_backup.dart';
 part 'store_cards.dart';
 

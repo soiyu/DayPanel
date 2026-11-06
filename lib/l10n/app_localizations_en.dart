@@ -614,7 +614,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rollbackBody =>
-      'Replace current content with the copy from before the last restore. Newer additions and changes will also be replaced.';
+      'Replace current content with the copy from before the last restore or legacy import. Later additions and changes will also be replaced.';
 
   @override
   String get rollbackDone => 'Previous data restored';
@@ -1381,4 +1381,111 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get iconCare => 'Care';
+
+  @override
+  String get legacyTitle => 'Import old habits';
+
+  @override
+  String get legacyIntro =>
+      'Append habits and actual records from a Loop database backup. Keep existing content. Review before importing.';
+
+  @override
+  String get legacyPick => 'Choose Loop backup .db';
+
+  @override
+  String get legacySupported =>
+      'Supports Loop database versions 21–25, up to 8 MiB. ZIP, CSV and other app backups are not supported. Export a complete database from the old app.';
+
+  @override
+  String get legacyDifference =>
+      'Only actual records transfer. Automatic coverage is not completion. Skips and notes become journal entries. Past schedules, target changes and archive history cannot be reconstructed; earlier days are not counted as failures. Reminders, scores, colors and old tasks/scenes are not imported. Quantities use the unit saved in the file. The start date is the earliest record, or the import day when empty; it is not the original creation date. In files without UUIDs, renaming may create a new identity, so avoid repeated imports.';
+
+  @override
+  String get legacyReview => 'Review import';
+
+  @override
+  String get legacyExisting => 'Already here; keep current content';
+
+  @override
+  String get legacyUnsupported => 'This item cannot be imported';
+
+  @override
+  String get legacyAtMost =>
+      'At-most targets are not supported; their meaning will not be reversed.';
+
+  @override
+  String get legacyTarget =>
+      'Targets must be positive with at most three decimal places.';
+
+  @override
+  String get legacyLength =>
+      'The name or unit is too long. Adjust it in the old app first.';
+
+  @override
+  String get legacySourceFrequency => 'Source frequency (times/days)';
+
+  @override
+  String get legacyRecords => 'Actual records';
+
+  @override
+  String get legacyIgnored => 'Automatic/unknown (not completion)';
+
+  @override
+  String get legacySkips => 'Skips (saved as journal)';
+
+  @override
+  String get legacyNotes => 'Journal entries (including source note)';
+
+  @override
+  String get legacyChooseSchedule => 'Choose the schedule after import';
+
+  @override
+  String get legacyScheduleHint =>
+      'Rolling frequency differs from fixed intervals and calendar weeks. Choose your future schedule. Unknown earlier days will not be counted as failures. Intervals start on the import day.';
+
+  @override
+  String get legacyDaily => 'Every day';
+
+  @override
+  String get legacyWeekly => 'Days per calendar week';
+
+  @override
+  String get legacyInterval => 'Every N days';
+
+  @override
+  String get legacyCount => 'Number of days';
+
+  @override
+  String get legacyAcknowledge =>
+      'I understand the differences and confirm the selected schedules';
+
+  @override
+  String get legacyConfirm => 'Append selected habits';
+
+  @override
+  String get legacyDone =>
+      'Import complete. Existing content is preserved. Data & backup can restore the copy from before import.';
+
+  @override
+  String get legacyInvalid =>
+      'The file is damaged, unsupported or contains invalid records. Your data is unchanged.';
+
+  @override
+  String get legacyFailed =>
+      'Import could not finish. The content or date may have changed. Select the file again.';
+
+  @override
+  String get legacyEmpty =>
+      'No habits to append. Existing habits are never overwritten or merged.';
+
+  @override
+  String get legacyRecovery =>
+      'The latest full copy from before import is kept. Rollback also replaces later changes. Export a file first if you need a lasting copy.';
+
+  @override
+  String get offlineTransferTitle => 'Move devices offline';
+
+  @override
+  String get offlineTransferBody =>
+      '1. Export a full DayPanel JSON backup on the old device.\n2. Transfer the file yourself using USB or file transfer.\n3. Choose Restore from file on the new device and review before confirming.\n4. Set notification permissions and widgets again.\n\nThere is no cloud sync or automatic backup. Files are not encrypted; keep them private. Uninstalling deletes app data and the rollback copy. Keep exported files outside the app.';
 }

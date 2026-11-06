@@ -6,6 +6,7 @@ import '../domain/backup.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
+import 'legacy_import.dart';
 
 class BackupPage extends StatefulWidget {
   const BackupPage({super.key, required this.app, this.files});
@@ -20,6 +21,7 @@ class _BackupPageState extends State<BackupPage> {
   String? message;
   bool failed = false;
   BackupSnapshot? recovery;
+  int recoveryEpoch = 0;
   DocumentFiles get files => widget.files ?? AndroidDocumentFiles();
   @override
   void initState() {
@@ -29,8 +31,18 @@ class _BackupPageState extends State<BackupPage> {
 
   Future<void> loadRecovery() async {
     try {
-      final r = await widget.app.store.recoverySnapshot();
-      if (mounted) setState(() => recovery = r);
+      final result = await widget.app.store.readConsistent(
+        () async => (
+          await widget.app.store.recoverySnapshot(),
+          await widget.app.store.generation(),
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          recovery = result.$1;
+          recoveryEpoch = result.$2;
+        });
+      }
     } catch (_) {}
   }
 
@@ -242,6 +254,39 @@ class _BackupPageState extends State<BackupPage> {
               ),
               const SizedBox(height: 10),
               Text(s.restoreHint, style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 22),
+              SoftPanel(
+                tinted: true,
+                tone: UiTone.violet,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(s.legacyIntro),
+                    const SizedBox(height: 14),
+                    AppAction(
+                      key: const Key('legacy-import'),
+                      label: s.legacyTitle,
+                      icon: Icons.move_to_inbox_outlined,
+                      tone: UiTone.violet,
+                      onTap: working
+                          ? null
+                          : () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (_) =>
+                                      LegacyImportPage(app: widget.app),
+                                ),
+                              );
+                              await loadRecovery();
+                            },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+              SectionTitle(s.offlineTransferTitle),
+              SoftPanel(child: Text(s.offlineTransferBody)),
               if (message != null) ...[
                 const SizedBox(height: 18),
                 SoftPanel(
@@ -274,7 +319,7 @@ class _BackupPageState extends State<BackupPage> {
                             : () => operate(
                                 () => confirm(
                                   recovery!,
-                                  epoch: widget.app.generation,
+                                  epoch: recoveryEpoch,
                                   rollback: true,
                                 ),
                               ),

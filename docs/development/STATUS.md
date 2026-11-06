@@ -2,7 +2,7 @@
 
 更新 2026-11-06。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
 
-当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索、FL14 成就卡/收藏/心得/反馈、FL15 打卡表/量化/年历/时间线、FL16 Android 桌面组件和 FL17 免费外观/字体/习惯装扮。最新版本 SQLite v8，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志、成就卡与按日期归档履历；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
+当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索、FL14 成就卡/收藏/心得/反馈、FL15 打卡表/量化/年历/时间线、FL16 Android 桌面组件、FL17 免费外观/字体/习惯装扮和 FL18 旧习惯导入/离线换机。最新版本 SQLite v8，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志、成就卡与按日期归档履历；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
 
 ## 已实现基座与 UI
 
@@ -531,3 +531,61 @@ UI新建Read a page，选择阅读图标、玫瑰色、圆环后保存；列表�
 收尾从App开源许可页实际打开Noto Serif SC，完整版权与OFL1.1可读，截图fl17-font-license.png。切回主用户0，关闭进程归档post-appearance-db.tar，`python .local/appearance_retention.py`逐表核对通过（fl17-retention-final.log）：全部14表原字段逐行一致，v7→v8仅habits增加auto颜色/边框，foreign_key_check为空；2习惯/1记录/2小事/1手记/原偏好与其他历史保持。此额外检查不混入193项。临时用户10已停止删除，系统仅主用户；主用户最终启动Status: ok，未更改其语言/主题或真实记录。
 
 `git diff --check`、`git diff --cached --check`通过。字体与许可属于正式资源提交；SDK/APK/数据库/截图/日志/个人路径均不提交。最终错误日志无AndroidRuntime/flutter错误，未推送，电脑及可见模拟器继续运行。
+
+## 2026-11-06 FL18 旧习惯导入与Android离线换机
+
+用户“继续”承接FL17，执行FL18。先写 [ADR0010](../adr/0010-legacy-import.md)、[LEGACY-IMPORT](../design/LEGACY-IMPORT.md) 与 [格式边界](LEGACY-FORMAT.md)。仅修改Flutter项目；旧原生工程只读核对字段/枚举/导出结构，无GPL实现/测试文件复制或翻译。全部免费，无云/账号/专注/收费。
+
+### 实现与明确边界
+
+- 数据与备份增加独立Loop旧习惯导入入口，支持已核定SQLite user_version21–25的Habits/Repetitions（含23 question、24 uuid、25 notes）。SAF读入上限8MiB，唯一私有暂存目录只读打开，检查头/版本/quick_check/表列/数据类型/1000习惯和50000记录限制/文本/日期/唯一键/引用；视图、触发器、虚拟表、损坏/未知版拒绝。源文件不升级、不写入，临时副本结束清理，进程中断遗留副本过期再清理。不是任意SQLite/CSV/ZIP导入器。
+- 只取原始Repetitions：布尔2手动完成→1000、0明确未完成→0；1自动覆盖/-1未知不生成完成；3跳过保留为关联手记。数值0、1、2、3是实际0/0.001/0.002/0.003，整数千分位保留；目标按Double精度读取后BigDecimal表示并在Dart严格转千分位，不四舍五入超精度值。至多目标、超长名称/单位或不支持的目标逐项标原因不可选，合法子集可追加。
+- UTC午夜编码按UTC年月日取日期键，不按设备时区移日；非午夜/未来/范围外/重复/失联/非法记录整文件拒绝。起始日使用最早原始记录，无记录取导入日，明确不代表原创建日。保留原名称/归档/顺序/原值，描述/问题/频率目标说明和逐日备注写已有notes，旧跳过事实保文。旧提醒/派生得分/配色/旧扩展小事场景不迁移。
+- 每天频率保留；其他滚动n/d必须逐项明确选择每天/自然周N达标日/间隔N日，不能自动将Loop滚动频率当自然周。间隔锚点从导入当天开始。旧计划/目标变化/归档历史未知，只从导入日建立habit_activity基线，之前记录可看但不计失败/连续；旧数值使用导出时单位，界面说明限制。
+- 预览支持选中/取消、已存在、不支持、原频率/目标/记录/跳过/备注计数，差异确认勾选，滚动频率无默认猜测。固定取消/追加，全部重复时无写入动作。UUID哈希命名空间化，无UUID旧文件用id/名称/类型哈希并说明改名去重限制。事务再次检查身份；已有项跳过不覆盖不合并，重新导入不会重写本机修改，删除后可重导且保留旧解除关联手记。
+- 追加从提交时一致快照合成，保留已有所有用户表、设置和卡片；沿用SQLite事务恢复协议保存完整导入前副本、写入追加结果、增加generation。失败/进程终止全回滚；导入不发卡/不播反馈，不自动开启旧提醒。成功后刷新App/提醒/组件，旧页面/组件失效。最近副本回退明确替换后续改动；回退页也缓存副本的generation，不能拿过期副本覆盖更新后的数据。
+- SQLite8/备份schema8保持，无新表。来源说明/备注使用已有notes并进入完整导出/恢复副本。Android数据方案为手动导出完整JSON→USB/文件传输→新设备预览恢复→重新设置权限/组件；不提供自动备份或云同步，不承诺其他平台能力。
+
+### 最终工程验证
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+```
+
+`.local/reports/fl18-final.log`：66个Dart文件格式无变化、analyze无问题、**223项Flutter/Dart通过**（原193+新增30），debug构建24.3秒成功，Kotlin JVM **12/12**。native-test成功，fl18-native-final.log（5秒）。新增17项纯规则/SQLite、9项UI、3项导入进程终止和1项旧回退页世代回归；原193项继续通过。既有Kotlin/Gradle迁移弃用提示仍在。
+
+测试覆盖编码差异/精确目标/UTC日/合法版本/非法引用与重复/未来/非午夜/超界、归档顺序/身份隔离、选择子集、保留已有小事手记设置、来源与备注、未知历史不进失败分母、间隔锚点/周目标、去重/重导/旧手记ID避冲突、旧世代与跨日、事务三阶段异常回滚、缓存回退副本过期、中英×明暗320dp/160%动作可达。实际子进程在清空阶段、插入后、提交后被终止，重开数据库分别保持完整旧/新数据和恢复副本，不只模拟throw。
+
+中途失败如实记录：界面测试因惰性列表的向上/向下定位及屏外点击失败，改为实际滚动并核对可点击后通过。API28发现Cursor.getString读取REAL目标会丢失小数（2000.001读成2000），改为getDouble→BigDecimal，保留原生回归。既有组件生命周期测试的异步revokebind未等待完成，可能覆盖下一个用例的授权，修复为读完命令结果后再继续；产品授权逻辑未改。修复后完整测试重新通过。
+
+最终APK `build/app/outputs/flutter-apk/app-debug.apk`，174825158 bytes，SHA-256 `b35ce0d866284bb7a06017f0848bb7e33512029eb0954196183bf06f1ccfca22`，最终--no-streaming覆盖安装Success。身份/权限/Manifest无变更，仍app.daypanel.next.debug，非商店release包。
+
+API28最终包验证：
+
+```powershell
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument --user 11 -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+**OK (20 tests)**，13.357秒，fl18-native-api28-final.log。原16项加4项旧库读取测试，覆盖21–25版本、2000.001目标、250001记录、源文件不改、暂存清理、坏头/截断/未知版/上限/超长文本/视图/触发器/错误字段类型拒绝。全部fixture独立，未用主用户库做写入测试。
+
+### 实际设备与数据保护
+
+API28可见emulator-5554，1080×1920/420dpi。主进程关闭后归档pre-import-db.tar，覆盖安装；临时Android用户DayPanelFL18QA（id11）新建Keep this task。合成Loop-demo.db/Invalid.db仅放测试用户Download，通过真实SAF选择。坏文件显示拒绝；有效文件预览3项，取消先不导入。再次选入，Old reading原2/3选择每自然周2日，Old water目标2000 ml、含250.001和显式0，Old limit至多目标不可选，勾选差异后追加成功。
+
+实际App小事仍显示Keep this task，手记显示来源说明及关联；关闭测试进程归档fl18-imported-db.tar，`python .local/fl18_import_check.py`通过：2习惯/3真实记录/5手记/1原小事/0卡片，数量250001与0准确，恢复副本包含原小事且无导入习惯。UI回退预览显示0习惯/1小事，确认后归档fl18-rollback-db.tar，`python .local/fl18_rollback_check.py`通过，导入事实全移除、原小事保留、generation=2。两项检查单列，不混入223项。
+
+合成源数据库导入前后逐字节一致，SHA-256 `25291317f18623d4aea7e9950340d6ad40684a077990512b7d5f812a3831002e`。真实用户数据、旧原生App库均未用于导入试验；上游旧库只读查看格式，测试数据库为本项目自行生成，安装包没有演示数据。
+
+截图 `.local/reports/fl18-*.png` 包含坏文件、中文预览/安排/不支持项、导入成功、来源手记、回退预览、英文深色预览。界面查询偶有null，等待后重读，未把失败查询算成功。设备中文浅色/英文深色，另外组合和320dp/160%由自动化验证，不称完整设备矩阵。
+
+### 交接
+
+FL18限定范围实现及验收通过。只支持已核定Loop21–25数据库，不支持CSV/双库ZIP/旧扩展小事场景/至多目标；旧历史与导出缺失信息无法重建。API35/36本批、厂商真机/真实TalkBack/长时间中断与电源故障/最大数据性能/其他SAF提供器仍待验收。下一批 **FL19 系统回归**，按实际设备补API、Launcher、提醒、无障碍和数据矩阵，不把这些缺口自动标完成。电脑和可见模拟器保持运行，不推送、不关机。
+收尾切回用户0，停止并删除临时用户11，清理本轮/data/local/tmp合成文件，系统仅主用户。关闭主进程归档post-import-db.tar，`python .local/import_retention.py`逐表比对通过（fl18-retention-final.log）：SQLite8及全部14表原字段逐行一致，foreign_key_check为空，原2习惯/1记录/2小事/1手记/偏好完全保留。主用户最终启动Status: ok。检查单列，不混入223项。
+
+`git diff --check`与`git diff --cached --check`通过。SDK/APK/数据库/截图/本机路径及日志均不提交；仅提交代码、文档、合成测试。电脑和可见模拟器继续运行，未推送远端。

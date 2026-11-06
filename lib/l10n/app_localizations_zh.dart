@@ -561,7 +561,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rollbackTitle => '回到恢复前';
 
   @override
-  String get rollbackBody => '用最近一次恢复前的数据替换当前内容。恢复后新增或修改的内容也会被替换。';
+  String get rollbackBody => '用最近一次恢复或旧习惯导入前的副本替换当前内容；之后的新增和改动也会被替换。';
 
   @override
   String get rollbackDone => '已回到恢复前的数据';
@@ -1305,4 +1305,101 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get iconCare => '关怀';
+
+  @override
+  String get legacyTitle => '导入旧习惯';
+
+  @override
+  String get legacyIntro => '从 Loop 数据库备份追加习惯和真实记录，现有内容保留。先检查和预览，确认后才写入。';
+
+  @override
+  String get legacyPick => '选择 Loop 备份 .db';
+
+  @override
+  String get legacySupported =>
+      '支持 Loop 21–25 版数据库，最大8 MiB。不支持旧双库ZIP、CSV或其他应用备份。请从旧App导出完整数据库文件。';
+
+  @override
+  String get legacyDifference =>
+      '只迁移原始记录，自动覆盖不算完成。跳过和备注保留为手记；历史安排、目标变动和归档履历无法还原，导入前日期不计失败。旧提醒、得分、配色及旧版小事/场景不导入。数量按文件中的单位解释。 起始日取最早记录，无记录时取导入日，不代表原创建日。没有UUID的旧文件在改名后可能被识别为新习惯，请勿反复导入。';
+
+  @override
+  String get legacyReview => '检查导入内容';
+
+  @override
+  String get legacyExisting => '本机已有，保留现有内容';
+
+  @override
+  String get legacyUnsupported => '此项不支持导入';
+
+  @override
+  String get legacyAtMost => '暂不支持“至多”目标，不会反向解释。';
+
+  @override
+  String get legacyTarget => '目标必须是正数，且最多三位小数。';
+
+  @override
+  String get legacyLength => '名称或单位超出当前长度限制，请先在旧App调整。';
+
+  @override
+  String get legacySourceFrequency => '原频率（次数/天数）';
+
+  @override
+  String get legacyRecords => '真实记录';
+
+  @override
+  String get legacyIgnored => '自动覆盖/未知（不计完成）';
+
+  @override
+  String get legacySkips => '跳过（保存为手记）';
+
+  @override
+  String get legacyNotes => '手记（含来源说明）';
+
+  @override
+  String get legacyChooseSchedule => '选择导入后的安排';
+
+  @override
+  String get legacyScheduleHint =>
+      '原滚动频率不等同严格间隔或自然周。请选择今后的安排，过去未知日期不会按新安排算失败。间隔从导入当天起计。';
+
+  @override
+  String get legacyDaily => '每天';
+
+  @override
+  String get legacyWeekly => '每自然周达标日';
+
+  @override
+  String get legacyInterval => '每隔几天';
+
+  @override
+  String get legacyCount => '天数';
+
+  @override
+  String get legacyAcknowledge => '我已了解差异，并确认所选安排';
+
+  @override
+  String get legacyConfirm => '追加所选习惯';
+
+  @override
+  String get legacyDone => '导入完成，已有内容保留。可在数据与备份回到导入前副本。';
+
+  @override
+  String get legacyInvalid => '文件损坏、格式不支持或含无法解释的记录。没有修改数据。';
+
+  @override
+  String get legacyFailed => '未能导入。内容或日期可能已改变，请重新选择文件。';
+
+  @override
+  String get legacyEmpty => '没有可追加的习惯。已存在的习惯不会覆盖或合并。';
+
+  @override
+  String get legacyRecovery => '导入前保留最近一次完整副本。回退会替换导入后的新改动；需要长期保留时请先导出文件。';
+
+  @override
+  String get offlineTransferTitle => '离线换机与数据保留';
+
+  @override
+  String get offlineTransferBody =>
+      '1. 在旧设备导出完整 DayPanel JSON 文件。\n2. 自行通过USB或文件传输保存到新设备。\n3. 在新设备选择“从文件恢复”，核对预览后确认。\n4. 重新设置通知权限和桌面组件。\n\n不提供云同步或自动备份。备份未加密，请保存在安全位置；卸载会删除App内数据和恢复副本，务必保留App之外的导出文件。';
 }

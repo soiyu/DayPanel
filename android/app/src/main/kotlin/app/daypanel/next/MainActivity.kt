@@ -61,7 +61,16 @@ open class MainActivity : FlutterActivity() {
         }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.daypanel.next/documents")
             .setMethodCallHandler { call, result ->
-                if (call.method != "save" && call.method != "pick") {
+                if (call.method == "readLegacy") {
+                    val bytes = call.argument<ByteArray>("bytes")
+                    if(bytes == null || bytes.size > limit) result.error("legacy", "Unsupported or damaged legacy file", null)
+                    else worker.execute {
+                        try {
+                            val decoded=app.daypanel.next.importing.LegacyDatabaseReader.read(this,bytes)
+                            runOnUiThread { result.success(decoded) }
+                        } catch (_: Exception) { runOnUiThread { result.error("legacy", "Unsupported or damaged legacy file", null) } }
+                    }
+                } else if (call.method != "save" && call.method != "pick") {
                     result.notImplemented()
                 } else if (pending != null) {
                     result.error("busy", "A document request is already active", null)

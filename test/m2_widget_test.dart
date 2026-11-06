@@ -92,6 +92,40 @@ void main() {
     },
   );
   testWidgets(
+    'cached recovery cannot replace a newer generation after another restore',
+    (tester) async {
+      await store.saveTask(
+        const SmallTask(id: 't', title: 'Original'),
+        create: true,
+      );
+      final a = await store.exportSnapshot();
+      await store.saveTask(
+        const SmallTask(id: 't', title: 'Before first restore'),
+      );
+      await app.load();
+      await app.run(() => store.restoreSnapshot(a));
+      await tester.pumpWidget(
+        shell(BackupPage(app: app, files: MemoryDocuments())),
+      );
+      await tester.pumpAndSettle();
+      await store.saveTask(const SmallTask(id: 't', title: 'New current'));
+      final newer = await store.exportSnapshot();
+      await app.run(() => store.restoreSnapshot(newer));
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('rollback-backup')),
+        200,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('rollback-backup')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Return to previous data').last);
+      await tester.pumpAndSettle();
+      expect((await store.tasks()).single.title, 'New current');
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
     'cancelled and invalid file selection preserve current content; export is complete',
     (tester) async {
       await store.saveNote(
