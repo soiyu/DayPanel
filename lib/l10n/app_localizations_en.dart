@@ -1488,4 +1488,130 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get offlineTransferBody =>
       '1. Export a full DayPanel JSON backup on the old device.\n2. Transfer the file yourself using USB or file transfer.\n3. Choose Restore from file on the new device and review before confirming.\n4. Set notification permissions and widgets again.\n\nThere is no cloud sync or automatic backup. Files are not encrypted; keep them private. Uninstalling deletes app data and the rollback copy. Keep exported files outside the app.';
+
+  @override
+  String get uiAppearanceHint =>
+      'Choose the colors and type that feel like you.';
+
+  @override
+  String get uiPreviewLive => 'Live preview';
+
+  @override
+  String get uiPreviewHint => 'Applies to every page when saved';
+
+  @override
+  String get uiFontSample => 'A little progress, every day';
+
+  @override
+  String get uiMoreDetails => 'Details';
+
+  @override
+  String get uiBackupHint => 'Keep your days in your own hands.';
+
+  @override
+  String get uiExportHint =>
+      'Save a complete copy for safekeeping or a new device.';
+
+  @override
+  String get uiRestoreHint => 'Review a backup before replacing current data.';
+
+  @override
+  String get uiLegacyHint =>
+      'Bring habits from Loop while keeping current content.';
+
+  @override
+  String get uiRecoveryHint =>
+      'A complete copy from before your last import or restore';
+
+  @override
+  String get uiFileScope => 'Supported files';
+
+  @override
+  String get uiChooseFile => 'Choose a backup file';
+
+  @override
+  String get uiChooseItems => 'Choose items';
+
+  @override
+  String get uiReviewImport => 'Review import';
+
+  @override
+  String get uiContinue => 'Continue';
+
+  @override
+  String get uiBack => 'Back';
+
+  @override
+  String get uiChangeFile => 'Choose another file';
+
+  @override
+  String get uiImportSelectHint =>
+      'Choose the habits to bring over and their future schedules.';
+
+  @override
+  String get uiImportReviewHint =>
+      'Your current content stays. Only selected items are added.';
+
+  @override
+  String get uiImportRules => 'What changes after import';
+
+  @override
+  String get uiImportNoSelection => 'Choose at least one supported habit';
+
+  @override
+  String get uiImportNeedsSchedule =>
+      'Choose a schedule for each selected habit';
+
+  @override
+  String uiSelectedCount(int count) {
+    return '$count habits selected';
+  }
+
+  @override
+  String uiRecordCount(int count) {
+    return '$count records';
+  }
+
+  @override
+  String get uiNeedsSchedule => 'Schedule needed';
+
+  @override
+  String get uiSchedule => 'New schedule';
+
+  @override
+  String get uiImportedDone => 'Your habits are here';
+
+  @override
+  String get uiReturnData => 'Back to data & backup';
+
+  @override
+  String get uiWidgetChooseHint =>
+      'Keep a habit or task within reach on your home screen.';
+
+  @override
+  String get uiNoWidgetChoice => 'Choose an item to show';
+
+  @override
+  String get uiReminderIntro => 'A gentle reminder at the right time.';
+
+  @override
+  String get uiReminderRules => 'How reminders work';
+
+  @override
+  String get uiStatisticsHelp => 'How these numbers are calculated';
+
+  @override
+  String get uiShowDetails => 'Record details';
+
+  @override
+  String get uiTabTable => 'Table';
+
+  @override
+  String get uiTabHabits => 'Habits';
+
+  @override
+  String get uiTabYear => 'Year';
+
+  @override
+  String get uiTabTimeline => 'Timeline';
 }

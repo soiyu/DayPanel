@@ -5,6 +5,7 @@ import '../domain/reminder.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
+import 'refined_components.dart';
 
 String formatReminderTimes(BuildContext context, List<int> minutes) =>
     (minutes.toList()..sort())
@@ -290,28 +291,16 @@ class _RemindersPageState extends State<RemindersPage>
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              SoftPanel(
-                tinted: true,
-                tone: UiTone.peach,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const ToneIcon(
-                      Icons.notifications_active_outlined,
-                      tone: UiTone.peach,
-                      size: 52,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      s.remindersIntro,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(s.snoozeHint),
-                  ],
-                ),
+              Text(
+                s.uiReminderIntro,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
+              DetailDisclosure(
+                title: s.uiReminderRules,
+                child: Text('${s.remindersIntro}\n\n${s.snoozeHint}'),
+              ),
+              const SizedBox(height: 8),
               SectionTitle(s.notificationSettings),
               SoftPanel(
                 padding: const EdgeInsets.all(16),

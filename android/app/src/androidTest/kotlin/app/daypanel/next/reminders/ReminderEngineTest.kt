@@ -22,7 +22,10 @@ class ReminderEngineTest {
     @Before fun setup() {
         val target=InstrumentationRegistry.getInstrumentation().targetContext
         if(Build.VERSION.SDK_INT>=33) {
-            InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("pm grant ${target.packageName} android.permission.POST_NOTIFICATIONS").close()
+            val user=android.os.Process.myUid()/100000
+            InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("pm grant --user $user ${target.packageName} android.permission.POST_NOTIFICATIONS").use { p ->
+                java.io.FileInputStream(p.fileDescriptor).readBytes()
+            }
         }
         c=object:ContextWrapper(target) {
             override fun getDatabasePath(name:String)=File(target.cacheDir,"reminder-native-test.db")
@@ -46,10 +49,20 @@ class ReminderEngineTest {
         c.getSharedPreferences("reminder_runtime",0).edit().clear().commit()
         ReminderEngine.ensureChannel(c)
         Assume.assumeTrue(ReminderEngine.status(c)["notifications"]==true)
+        c.getSystemService(NotificationManager::class.java).cancel(id,1)
+        awaitNotice(false)
     }
     @After fun cleanup() {
         if(::db.isInitialized) { db.execSQL("DELETE FROM reminders");ReminderEngine.sync(c);db.close();c.getDatabasePath("").delete() }
         if(::c.isInitialized)c.getSystemService(NotificationManager::class.java).cancel(id,1)
+    }
+    private fun awaitNotice(expected:Boolean) {
+        val manager=c.getSystemService(NotificationManager::class.java)
+        val deadline=android.os.SystemClock.elapsedRealtime()+5000
+        while(manager.activeNotifications.any { it.tag==id } != expected && android.os.SystemClock.elapsedRealtime()<deadline) {
+            android.os.SystemClock.sleep(50)
+        }
+        assertEquals("Notification service must reach the requested state",expected,manager.activeNotifications.any { it.tag==id })
     }
     private fun event():AlarmEvent {
         ReminderEngine.sync(c)
@@ -76,12 +89,12 @@ class ReminderEngineTest {
         val e=event()
         ReminderEngine.receive(c,ReminderEngine.FIRE,e.json().toString())
         val manager=c.getSystemService(NotificationManager::class.java)
-        assertTrue(manager.activeNotifications.any { it.tag==id })
+        awaitNotice(true)
         val notice=JSONObject(c.getSharedPreferences("reminder_runtime",0).getString("notices","{}")!!).getJSONObject(id)
         ReminderEngine.receive(c,ReminderEngine.FIRE,e.json().toString())
         assertEquals(e.token,notice.getString("token"))
         ReminderEngine.receive(c,ReminderEngine.SNOOZE,notice.toString())
-        assertFalse(manager.activeNotifications.any { it.tag==id })
+        awaitNotice(false)
         db.rawQuery("SELECT COUNT(*) FROM entries",null).use { it.moveToFirst();assertEquals(0,it.getInt(0)) }
         val before=c.getSharedPreferences("reminder_runtime",0).getString("snoozes","")
         ReminderEngine.receive(c,ReminderEngine.SNOOZE,notice.toString())
@@ -91,7 +104,7 @@ class ReminderEngineTest {
         val e=event();ReminderEngine.receive(c,ReminderEngine.FIRE,e.json().toString())
         db.execSQL("INSERT INTO entries VALUES(?,?,1000)",arrayOf(id,LocalDate.now().toString()))
         ReminderEngine.sync(c)
-        assertFalse(c.getSystemService(NotificationManager::class.java).activeNotifications.any { it.tag==id })
+        awaitNotice(false)
         val next=JSONObject(c.getSharedPreferences("reminder_runtime",0).getString("scheduled","{}")!!).getJSONObject(id)
         assertTrue(LocalDate.parse(next.getString("day"))>LocalDate.now())
     }
@@ -103,7 +116,7 @@ class ReminderEngineTest {
         db.execSQL("UPDATE reminders SET enabled=0,revision=1")
         ReminderEngine.sync(c)
         assertEquals(0,ReminderEngine.status(c)["pending"])
-        assertFalse(c.getSystemService(NotificationManager::class.java).activeNotifications.any { it.tag==id })
+        awaitNotice(false)
     }
     @Test fun rebootStyleRescheduleUsesStoredDataAndClearsSnoozesOnClockChange() {
         val e=event();ReminderEngine.receive(c,ReminderEngine.FIRE,e.json().toString())
@@ -126,12 +139,12 @@ class ReminderEngineTest {
         val e=event()
         db.execSQL("UPDATE reminders SET revision=1")
         ReminderEngine.receive(c,ReminderEngine.FIRE,e.json().toString())
-        assertFalse(c.getSystemService(NotificationManager::class.java).activeNotifications.any { it.tag==id })
+        awaitNotice(false)
         val old=event().copy(day=LocalDate.now().minusDays(1))
         val map=JSONObject().put(id,old.json())
         c.getSharedPreferences("reminder_runtime",0).edit().putString("scheduled",map.toString()).commit()
         ReminderEngine.receive(c,ReminderEngine.FIRE,old.json().toString())
-        assertFalse(c.getSystemService(NotificationManager::class.java).activeNotifications.any { it.tag==id })
+        awaitNotice(false)
         assertNull(ReminderEngine.openRequest(c,old.json().toString()))
     }
 }

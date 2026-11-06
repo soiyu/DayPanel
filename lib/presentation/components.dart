@@ -80,9 +80,9 @@ class AppAction extends StatelessWidget {
                 BoxShadow(
                   color: DayPanelStyle.of(
                     context,
-                  ).actionEnd.withValues(alpha: .18),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
+                  ).actionEnd.withValues(alpha: .10),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
             ],
           ),

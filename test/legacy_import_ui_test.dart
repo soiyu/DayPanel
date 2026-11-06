@@ -110,10 +110,7 @@ void main() {
       final before = await store.exportSnapshot();
       await open(t);
       expect(await store.habits(), isEmpty);
-      expect(
-        t.widget<AppAction>(find.byKey(const Key('legacy-commit'))).onTap,
-        isNull,
-      );
+      expect(find.byKey(const Key('legacy-commit')), findsNothing);
       await t.tap(find.text('Cancel'));
       await t.pumpAndSettle();
       expect((await store.exportSnapshot()).tables, before.tables);
@@ -125,6 +122,7 @@ void main() {
     (t) async {
       await open(t);
       await tap(t, 'legacy-select-2');
+      await tap(t, 'legacy-next');
       await tap(t, 'legacy-acknowledge');
       await tap(t, 'legacy-commit');
       expect(app.habits.length, 1);
@@ -146,9 +144,8 @@ void main() {
   ) async {
     files.data = legacyFixture(rolling: true);
     await open(t);
-    await tap(t, 'legacy-acknowledge');
     expect(
-      t.widget<AppAction>(find.byKey(const Key('legacy-commit'))).onTap,
+      t.widget<AppAction>(find.byKey(const Key('legacy-next'))).onTap,
       isNull,
     );
     await tap(t, 'legacy-schedule-1');
@@ -158,6 +155,8 @@ void main() {
     expect(find.byKey(const Key('legacy-count')), findsOneWidget);
     await t.enterText(find.byKey(const Key('legacy-count')), '2');
     await tap(t, 'legacy-rule-save');
+    await tap(t, 'legacy-next');
+    await tap(t, 'legacy-acknowledge');
     await tap(t, 'legacy-commit');
     expect(app.habits.first.schedule, ScheduleKind.weekly);
     expect(app.habits.first.weeklyGoal, 2);
@@ -166,11 +165,12 @@ void main() {
     'cancelled new file selection does not authorize stale preview after restore',
     (t) async {
       await open(t);
+      await tap(t, 'legacy-next');
       await tap(t, 'legacy-acknowledge');
       final snap = await store.exportSnapshot();
       await app.run(() => store.restoreSnapshot(snap));
       files.data = null;
-      await tap(t, 'legacy-pick');
+      await tap(t, 'legacy-change-file');
       await tap(t, 'legacy-commit');
       expect(await store.habits(), isEmpty);
       expect(find.textContaining('Import could not finish.'), findsOneWidget);
@@ -207,6 +207,7 @@ void main() {
           addTearDown(t.view.resetDevicePixelRatio);
           addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
           await open(t, locale: locale, dark: dark);
+          await tap(t, 'legacy-next');
           await tap(t, 'legacy-acknowledge');
           expect(t.takeException(), isNull);
           expect(

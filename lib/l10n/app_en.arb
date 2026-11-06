@@ -461,5 +461,57 @@
   "legacyEmpty": "No habits to append. Existing habits are never overwritten or merged.",
   "legacyRecovery": "The latest full copy from before import is kept. Rollback also replaces later changes. Export a file first if you need a lasting copy.",
   "offlineTransferTitle": "Move devices offline",
-  "offlineTransferBody": "1. Export a full DayPanel JSON backup on the old device.\n2. Transfer the file yourself using USB or file transfer.\n3. Choose Restore from file on the new device and review before confirming.\n4. Set notification permissions and widgets again.\n\nThere is no cloud sync or automatic backup. Files are not encrypted; keep them private. Uninstalling deletes app data and the rollback copy. Keep exported files outside the app."
+  "offlineTransferBody": "1. Export a full DayPanel JSON backup on the old device.\n2. Transfer the file yourself using USB or file transfer.\n3. Choose Restore from file on the new device and review before confirming.\n4. Set notification permissions and widgets again.\n\nThere is no cloud sync or automatic backup. Files are not encrypted; keep them private. Uninstalling deletes app data and the rollback copy. Keep exported files outside the app.",
+  "uiAppearanceHint": "Choose the colors and type that feel like you.",
+  "uiPreviewLive": "Live preview",
+  "uiPreviewHint": "Applies to every page when saved",
+  "uiFontSample": "A little progress, every day",
+  "uiMoreDetails": "Details",
+  "uiBackupHint": "Keep your days in your own hands.",
+  "uiExportHint": "Save a complete copy for safekeeping or a new device.",
+  "uiRestoreHint": "Review a backup before replacing current data.",
+  "uiLegacyHint": "Bring habits from Loop while keeping current content.",
+  "uiRecoveryHint": "A complete copy from before your last import or restore",
+  "uiFileScope": "Supported files",
+  "uiChooseFile": "Choose a backup file",
+  "uiChooseItems": "Choose items",
+  "uiReviewImport": "Review import",
+  "uiContinue": "Continue",
+  "uiBack": "Back",
+  "uiChangeFile": "Choose another file",
+  "uiImportSelectHint": "Choose the habits to bring over and their future schedules.",
+  "uiImportReviewHint": "Your current content stays. Only selected items are added.",
+  "uiImportRules": "What changes after import",
+  "uiImportNoSelection": "Choose at least one supported habit",
+  "uiImportNeedsSchedule": "Choose a schedule for each selected habit",
+  "uiSelectedCount": "{count} habits selected",
+  "uiRecordCount": "{count} records",
+  "uiNeedsSchedule": "Schedule needed",
+  "uiSchedule": "New schedule",
+  "uiImportedDone": "Your habits are here",
+  "uiReturnData": "Back to data & backup",
+  "uiWidgetChooseHint": "Keep a habit or task within reach on your home screen.",
+  "uiNoWidgetChoice": "Choose an item to show",
+  "uiReminderIntro": "A gentle reminder at the right time.",
+  "uiReminderRules": "How reminders work",
+  "uiStatisticsHelp": "How these numbers are calculated",
+  "uiShowDetails": "Record details",
+  "@uiSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@uiRecordCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "uiTabTable": "Table",
+  "uiTabHabits": "Habits",
+  "uiTabYear": "Year",
+  "uiTabTimeline": "Timeline"
 }

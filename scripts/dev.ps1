@@ -17,6 +17,11 @@ $env:ANDROID_HOME = $config.androidSdk
 $env:ANDROID_SDK_ROOT = $config.androidSdk
 $env:PUB_CACHE = Join-Path $projectRoot '.local/pub-cache'
 $env:GRADLE_USER_HOME = Join-Path $projectRoot '.local/gradle'
+# Keep compiler/test temporary data on the project volume, including child tests.
+$taskTemp = Join-Path $projectRoot '.local/tmp'
+New-Item -ItemType Directory -Force $taskTemp | Out-Null
+$env:TEMP = $taskTemp
+$env:TMP = $taskTemp
 $env:FLUTTER_SUPPRESS_ANALYTICS = 'true'
 $env:DART_SUPPRESS_ANALYTICS = 'true'
 # Flutter prefers its settings (then Android Studio) over JAVA_HOME. Isolate
@@ -50,7 +55,7 @@ try {
       Invoke-Flutter @('pub','get'); Invoke-Flutter @('gen-l10n')
       & $dart format --output=none --set-exit-if-changed lib test
       if ($LASTEXITCODE -ne 0) { throw 'Run scripts/dev.ps1 format first' }
-      Invoke-Flutter @('analyze'); Invoke-Flutter @('test'); Invoke-Flutter @('build','apk','--debug')
+      Invoke-Flutter @('analyze'); Invoke-Flutter @('test','--concurrency=2'); Invoke-Flutter @('build','apk','--debug')
       Invoke-Gradle @(':app:testDebugUnitTest')
     }
   }

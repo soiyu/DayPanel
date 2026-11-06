@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -63,7 +64,9 @@ object WidgetEngine {
         views.setInt(R.id.widget_root, "setBackgroundResource", if (dark) R.drawable.widget_dark else R.drawable.widget_light)
         listOf(R.id.widget_title, R.id.widget_state).forEach { views.setTextColor(it, ink) }
         listOf(R.id.widget_date, R.id.widget_hint, R.id.widget_settings).forEach { views.setTextColor(it, secondary) }
-        val width = manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 160)
+        val options = manager.getAppWidgetOptions(id)
+        val portrait = c.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE
+        val width = options.getInt(if(portrait) AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH else AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 160)
         val date = if (width < 160 || c.resources.configuration.fontScale > 1.3f)
             "${day.year}\n%02d/%02d".format(day.monthValue, day.dayOfMonth)
             else day.toString().replace('-', '/')
@@ -71,7 +74,7 @@ object WidgetEngine {
         views.setTextViewText(R.id.widget_settings, "⚙")
         views.setContentDescription(R.id.widget_settings, t("配置桌面组件", "Configure widget"))
         views.setOnClickPendingIntent(R.id.widget_settings, pending(c, id, "configure", binding, day))
-        val height = manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 180)
+        val height = options.getInt(if(portrait) AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT else AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 180)
         val large = height >= 240 && c.resources.configuration.fontScale <= 1.3f
         val compactText = height < 240 && c.resources.configuration.fontScale > 1.3f
         views.setInt(R.id.widget_title, "setMaxLines", if (compactText) 1 else 2)

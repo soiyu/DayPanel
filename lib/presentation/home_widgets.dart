@@ -7,6 +7,7 @@ import 'theme.dart';
 import 'editors.dart';
 import 'habits.dart';
 import 'tasks.dart';
+import 'refined_components.dart';
 
 class WidgetFlow extends StatefulWidget {
   const WidgetFlow({
@@ -192,34 +193,90 @@ class _WidgetFlowState extends State<WidgetFlow> {
                   child: ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
-                      SoftPanel(
-                        tone: UiTone.violet,
-                        tinted: true,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const ToneIcon(
-                              Icons.widgets_outlined,
-                              tone: UiTone.violet,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              configuring ? s.widgetChoose : s.widgetsTitle,
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              failed
-                                  ? s.widgetExpired
-                                  : configuring
-                                  ? s.widgetConfigHint
-                                  : widget.request['mode'] == 'complete'
-                                  ? s.widgetSaving
-                                  : s.widgetOpening,
-                            ),
-                          ],
+                      if (configuring) ...[
+                        Text(
+                          s.widgetChoose,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        Text(
+                          s.uiWidgetChooseHint,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        if (selected != null &&
+                            choices.any((c) => c.$1 == selected)) ...[
+                          const SizedBox(height: 18),
+                          SoftPanel(
+                            tinted: true,
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                const ToneIcon(
+                                  Icons.widgets_outlined,
+                                  tone: UiTone.violet,
+                                  size: 42,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        choices
+                                            .firstWhere((c) => c.$1 == selected)
+                                            .$2,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        s.widgetConfigHint,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ] else
+                        SoftPanel(
+                          tinted: true,
+                          tone: failed ? UiTone.peach : UiTone.violet,
+                          child: Column(
+                            children: [
+                              Icon(
+                                failed
+                                    ? Icons.info_outline
+                                    : Icons.widgets_outlined,
+                                size: 32,
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                failed
+                                    ? s.widgetExpired
+                                    : widget.request['mode'] == 'complete'
+                                    ? s.widgetSaving
+                                    : s.widgetOpening,
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (failed && configuring)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(
+                            s.widgetExpired,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
                       if (configuring) ...[
                         const SizedBox(height: 20),
                         if (choices.isEmpty) ...[
@@ -261,31 +318,28 @@ class _WidgetFlowState extends State<WidgetFlow> {
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
+                EditorFooter(
+                  children: [
+                    Expanded(
+                      child: AppAction(
+                        label: configuring ? s.cancel : s.widgetClose,
+                        onTap: busy ? null : close,
+                      ),
+                    ),
+                    if (configuring) ...[
+                      const SizedBox(width: 12),
                       Expanded(
                         child: AppAction(
-                          label: configuring ? s.cancel : s.widgetClose,
-                          onTap: busy ? null : close,
+                          label: s.save,
+                          primary: true,
+                          busy: busy,
+                          onTap: busy || !choices.any((c) => c.$1 == selected)
+                              ? null
+                              : save,
                         ),
                       ),
-                      if (configuring) ...[
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppAction(
-                            label: s.save,
-                            primary: true,
-                            busy: busy,
-                            onTap: busy || !choices.any((c) => c.$1 == selected)
-                                ? null
-                                : save,
-                          ),
-                        ),
-                      ],
                     ],
-                  ),
+                  ],
                 ),
               ],
             ),

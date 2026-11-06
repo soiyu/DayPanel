@@ -4,6 +4,7 @@ import '../domain/appearance.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
+import 'refined_components.dart';
 
 String frameLabel(AppLocalizations s, String frame) => switch (frame) {
   'ring' => s.frameRing,
@@ -65,11 +66,10 @@ class StyleChoices extends StatelessWidget {
       for (final entry in choices.entries)
         Semantics(
           selected: selected == entry.key,
-          child: AppAction(
+          child: QuietChoice(
             key: Key('$prefix${entry.key}'),
             label: entry.value,
-            icon: selected == entry.key ? Icons.check_circle_outline : null,
-            primary: selected == entry.key,
+            selected: selected == entry.key,
             onTap: onChanged == null ? null : () => onChanged!(entry.key),
           ),
         ),
@@ -126,40 +126,64 @@ class _AppearancePageState extends State<AppearancePage> {
         builder: (context) {
           final s = AppLocalizations.of(context);
           final h = widget.app.habits.where((h) => !h.archived).firstOrNull;
-          Widget section(String title, Widget child) => Padding(
-            padding: const EdgeInsets.only(top: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [SectionTitle(title), child],
-            ),
-          );
+          final scheme = Theme.of(context).colorScheme;
           return PopScope(
             canPop: !saving,
             child: AppCanvas(
               child: Scaffold(
                 backgroundColor: Colors.transparent,
-                appBar: AppBar(title: Text(s.appearance)),
+                appBar: AppBar(
+                  title: Text(s.appearance),
+                  actions: [
+                    IconButton(
+                      key: const Key('appearance-reset'),
+                      tooltip: s.appearanceReset,
+                      icon: const Icon(Icons.restart_alt_rounded),
+                      onPressed: saving
+                          ? null
+                          : () => setState(() => draft = const Appearance()),
+                    ),
+                  ],
+                ),
                 body: SafeArea(
+                  bottom: false,
                   child: Column(
                     children: [
                       Expanded(
                         child: ListView(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                           children: [
                             SoftPanel(
+                              padding: const EdgeInsets.all(18),
                               tinted: true,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    s.appearancePreview,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleLarge,
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.visibility_outlined,
+                                        size: 16,
+                                        color: scheme.primary,
+                                      ),
+                                      const SizedBox(width: 7),
+                                      Expanded(
+                                        child: Text(
+                                          s.uiPreviewLive,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelLarge
+                                              ?.copyWith(color: scheme.primary),
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.auto_awesome_outlined,
+                                        size: 18,
+                                        color: UiTone.violet.ink(context),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(s.appearanceHint),
-                                  const SizedBox(height: 22),
+                                  const SizedBox(height: 18),
                                   Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -171,7 +195,7 @@ class _AppearancePageState extends State<AppearancePage> {
                                           h?.color ?? 'auto',
                                         ),
                                         frame: h?.frame ?? 'auto',
-                                        size: 52,
+                                        size: 48,
                                       ),
                                       const SizedBox(width: 14),
                                       Expanded(
@@ -180,24 +204,27 @@ class _AppearancePageState extends State<AppearancePage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              h?.title ?? s.appearanceSample,
+                                              h?.title ?? s.uiFontSample,
                                               style: Theme.of(
                                                 context,
                                               ).textTheme.titleMedium,
                                             ),
-                                            const SizedBox(height: 6),
+                                            const SizedBox(height: 5),
                                             Text(
                                               h == null
-                                                  ? s.appearanceSampleText
+                                                  ? s.appearanceSample
                                                   : MaterialLocalizations.of(
                                                       context,
-                                                    ).formatFullDate(
+                                                    ).formatMediumDate(
                                                       widget.app.today.date,
                                                     ),
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodySmall,
                                             ),
                                             if (h != null) ...[
                                               const SizedBox(height: 8),
-                                              AppBadge(
+                                              Text(
                                                 widget.app.achieved(
                                                       h,
                                                       widget.app.today,
@@ -210,6 +237,12 @@ class _AppearancePageState extends State<AppearancePage> {
                                                           null
                                                     ? s.notRecorded
                                                     : s.notCompleted,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelLarge
+                                                    ?.copyWith(
+                                                      color: scheme.primary,
+                                                    ),
                                               ),
                                             ],
                                           ],
@@ -222,143 +255,145 @@ class _AppearancePageState extends State<AppearancePage> {
                             ),
                             if (failed)
                               Padding(
-                                padding: const EdgeInsets.only(top: 16),
+                                padding: const EdgeInsets.only(top: 14),
                                 child: Text(
                                   epoch != widget.app.generation
                                       ? s.restoreStale
                                       : s.storageError,
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
+                                  style: TextStyle(color: scheme.error),
                                 ),
                               ),
-                            section(
-                              s.appearanceMode,
-                              StyleChoices(
-                                prefix: 'mode-',
-                                choices: {
-                                  'system': s.system,
-                                  'light': s.light,
-                                  'dark': s.dark,
-                                },
-                                selected: draft.mode,
-                                onChanged: saving
-                                    ? null
-                                    : (v) => setState(
-                                        () => draft = draft.copyWith(mode: v),
-                                      ),
-                              ),
+                            SectionHeading(s.appearanceMode),
+                            StyleChoices(
+                              prefix: 'mode-',
+                              choices: {
+                                'system': s.system,
+                                'light': s.light,
+                                'dark': s.dark,
+                              },
+                              selected: draft.mode,
+                              onChanged: saving
+                                  ? null
+                                  : (v) => setState(
+                                      () => draft = draft.copyWith(mode: v),
+                                    ),
                             ),
-                            section(
-                              s.appearancePalette,
-                              StyleChoices(
-                                prefix: 'palette-',
-                                choices: {
-                                  'blue': s.paletteBlue,
-                                  'teal': s.paletteTeal,
-                                  'violet': s.paletteViolet,
-                                },
-                                selected: draft.palette,
-                                onChanged: saving
-                                    ? null
-                                    : (v) => setState(
-                                        () =>
-                                            draft = draft.copyWith(palette: v),
-                                      ),
-                              ),
-                            ),
-                            section(
-                              s.appearanceFont,
-                              StyleChoices(
-                                prefix: 'font-',
-                                choices: {
-                                  'system': s.fontSystem,
-                                  'serif': s.fontSerif,
-                                },
-                                selected: draft.font,
-                                onChanged: saving
-                                    ? null
-                                    : (v) => setState(
-                                        () => draft = draft.copyWith(font: v),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              s.fontHint,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            section(
-                              s.appearanceFrame,
-                              StyleChoices(
-                                prefix: 'frame-',
-                                choices: {
-                                  for (final f in Appearance.frames)
-                                    f: frameLabel(s, f),
-                                },
-                                selected: draft.frame,
-                                onChanged: saving
-                                    ? null
-                                    : (v) => setState(
-                                        () => draft = draft.copyWith(frame: v),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            Wrap(
-                              spacing: 20,
+                            SectionHeading(s.appearancePalette),
+                            ResponsiveChoices(
+                              minWidth: 88,
                               children: [
-                                for (final f in Appearance.frames)
-                                  Column(
-                                    children: [
-                                      ToneIcon(
-                                        Icons.spa_outlined,
-                                        frame: f,
-                                        size: 48,
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(frameLabel(s, f)),
-                                    ],
+                                for (final palette in Appearance.palettes)
+                                  ChoiceSurface(
+                                    key: Key('palette-$palette'),
+                                    label: switch (palette) {
+                                      'teal' => s.paletteTeal,
+                                      'violet' => s.paletteViolet,
+                                      _ => s.paletteBlue,
+                                    },
+                                    selected: draft.palette == palette,
+                                    onTap: saving
+                                        ? null
+                                        : () => setState(
+                                            () => draft = draft.copyWith(
+                                              palette: palette,
+                                            ),
+                                          ),
+                                    visual: _PaletteSample(
+                                      palette: palette,
+                                      dark: brightness == Brightness.dark,
+                                    ),
                                   ),
                               ],
                             ),
-                            const SizedBox(height: 24),
-                            AppAction(
-                              key: const Key('appearance-reset'),
-                              label: s.appearanceReset,
-                              onTap: saving
-                                  ? null
-                                  : () => setState(
-                                      () => draft = const Appearance(),
+                            SectionHeading(s.appearanceFont),
+                            ResponsiveChoices(
+                              maxColumns: 2,
+                              children: [
+                                for (final font in Appearance.fonts)
+                                  ChoiceSurface(
+                                    key: Key('font-$font'),
+                                    label: font == 'serif'
+                                        ? s.fontSerif
+                                        : s.fontSystem,
+                                    selected: draft.font == font,
+                                    onTap: saving
+                                        ? null
+                                        : () => setState(
+                                            () => draft = draft.copyWith(
+                                              font: font,
+                                            ),
+                                          ),
+                                    visual: Text(
+                                      'Aa 日常',
+                                      style: TextStyle(
+                                        fontFamily: font == 'serif'
+                                            ? 'NotoSerifSC'
+                                            : null,
+                                        fontSize: 25,
+                                        height: 1.2,
+                                        color: scheme.onSurface,
+                                      ),
                                     ),
+                                  ),
+                              ],
+                            ),
+                            SectionHeading(s.appearanceFrame),
+                            ResponsiveChoices(
+                              minWidth: 88,
+                              children: [
+                                for (final frame in Appearance.frames)
+                                  ChoiceSurface(
+                                    key: Key('frame-$frame'),
+                                    label: frameLabel(s, frame),
+                                    selected: draft.frame == frame,
+                                    onTap: saving
+                                        ? null
+                                        : () => setState(
+                                            () => draft = draft.copyWith(
+                                              frame: frame,
+                                            ),
+                                          ),
+                                    visual: ToneIcon(
+                                      Icons.spa_outlined,
+                                      frame: frame,
+                                      size: 42,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            DetailDisclosure(
+                              title: s.uiMoreDetails,
+                              child: Text(
+                                s.fontHint,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: AppAction(
-                                label: s.cancel,
-                                onTap: saving
-                                    ? null
-                                    : () => Navigator.pop(context),
-                              ),
+                      EditorFooter(
+                        children: [
+                          Expanded(
+                            child: AppAction(
+                              label: s.cancel,
+                              onTap: saving
+                                  ? null
+                                  : () => Navigator.pop(context),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: AppAction(
-                                key: const Key('appearance-save'),
-                                label: s.save,
-                                primary: true,
-                                busy: saving,
-                                onTap: saving ? null : save,
-                              ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: AppAction(
+                              key: const Key('appearance-save'),
+                              label: s.save,
+                              primary: true,
+                              busy: saving,
+                              onTap: saving ? null : save,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -367,6 +402,68 @@ class _AppearancePageState extends State<AppearancePage> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _PaletteSample extends StatelessWidget {
+  const _PaletteSample({required this.palette, required this.dark});
+  final String palette;
+  final bool dark;
+  @override
+  Widget build(BuildContext context) {
+    final scheme = dayPanelTheme(
+      dark ? Brightness.dark : Brightness.light,
+      appearance: Appearance(palette: palette),
+    ).colorScheme;
+    return Container(
+      height: 54,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.spa_outlined, size: 15, color: scheme.primary),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: scheme.primary,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+                const SizedBox(height: 5),
+                FractionallySizedBox(
+                  widthFactor: .65,
+                  child: Container(
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: scheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -445,23 +542,78 @@ class HabitStylePicker extends StatelessWidget {
               ),
           ],
         ),
-        SectionTitle(s.habitColor),
-        StyleChoices(
-          prefix: 'habit-color-',
-          choices: {
-            for (final c in Appearance.habitColors) c: colorLabel(s, c),
-          },
-          selected: color,
-          onChanged: onColor,
+        SectionHeading(s.habitColor),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final c in Appearance.habitColors)
+              Tooltip(
+                message: colorLabel(s, c),
+                child: Semantics(
+                  button: true,
+                  selected: color == c,
+                  label: colorLabel(s, c),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      key: Key('habit-color-$c'),
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: onColor == null ? null : () => onColor!(c),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: color == c
+                                ? habitTone(icon, c).ink(context)
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: habitTone(icon, c).ink(context),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            color == c
+                                ? Icons.check_rounded
+                                : c == 'auto'
+                                ? Icons.auto_awesome_rounded
+                                : null,
+                            color: Theme.of(context).colorScheme.surface,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
-        SectionTitle(s.habitFrame),
-        StyleChoices(
-          prefix: 'habit-frame-',
-          choices: {
-            for (final f in Appearance.habitFrames) f: frameLabel(s, f),
-          },
-          selected: frame,
-          onChanged: onFrame,
+        SectionHeading(s.habitFrame),
+        ResponsiveChoices(
+          minWidth: 104,
+          maxColumns: 4,
+          children: [
+            for (final f in Appearance.habitFrames)
+              ChoiceSurface(
+                key: Key('habit-frame-$f'),
+                label: frameLabel(s, f),
+                selected: frame == f,
+                onTap: onFrame == null ? null : () => onFrame!(f),
+                visual: ToneIcon(
+                  habitIcons[icon],
+                  tone: habitTone(icon, color),
+                  frame: f,
+                  size: 36,
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 12),
         Text(s.decorationHint, style: Theme.of(context).textTheme.bodySmall),

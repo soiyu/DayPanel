@@ -9,6 +9,7 @@ import 'components.dart';
 import 'editors.dart';
 import 'tasks.dart';
 import 'theme.dart';
+import 'refined_components.dart';
 
 HabitStatistics statsFor(AppController app, Habit h) =>
     HabitStatistics(h, app.plans, app.activity, app.entries, app.today);
@@ -241,30 +242,83 @@ class _StatisticsPageState extends State<StatisticsPage> {
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (var i = 0; i < 4; i++)
-                    AppAction(
-                      key: Key('statistics-tab-$i'),
-                      label: [
-                        s.checkinTable,
-                        s.habitStatistics,
-                        s.yearCalendar,
-                        s.timelineTitle,
-                      ][i],
-                      icon: [
-                        Icons.table_chart_outlined,
-                        Icons.bar_chart_rounded,
-                        Icons.calendar_month_outlined,
-                        Icons.timeline_rounded,
-                      ][i],
-                      primary: tab == i,
-                      tone: UiTone.violet,
-                      onTap: () => setState(() => tab = i),
-                    ),
-                ],
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < 4; i++)
+                      Expanded(
+                        child: Semantics(
+                          selected: tab == i,
+                          button: true,
+                          label: [
+                            s.checkinTable,
+                            s.habitStatistics,
+                            s.yearCalendar,
+                            s.timelineTitle,
+                          ][i],
+                          child: Material(
+                            color: tab == i
+                                ? UiTone.violet.wash(context)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(14),
+                            clipBehavior: Clip.antiAlias,
+                            child: InkWell(
+                              key: Key('statistics-tab-$i'),
+                              onTap: () => setState(() => tab = i),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 10,
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      [
+                                        Icons.table_chart_outlined,
+                                        Icons.bar_chart_rounded,
+                                        Icons.calendar_month_outlined,
+                                        Icons.timeline_rounded,
+                                      ][i],
+                                      size: 21,
+                                      color: tab == i
+                                          ? UiTone.violet.ink(context)
+                                          : Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      [
+                                        s.uiTabTable,
+                                        s.uiTabHabits,
+                                        s.uiTabYear,
+                                        s.uiTabTimeline,
+                                      ][i],
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            fontWeight: tab == i
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                            color: tab == i
+                                                ? UiTone.violet.ink(context)
+                                                : Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(height: 18),
               if (tab != 3) ...[
@@ -358,7 +412,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
             : () => setState(() => week = week.plus(7)),
       ),
       const SizedBox(height: 12),
-      Text(s.tableHint, style: Theme.of(context).textTheme.bodySmall),
       const SizedBox(height: 16),
       if (habits.isEmpty)
         EmptyState(
@@ -439,6 +492,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
           ],
         ),
+      DetailDisclosure(
+        title: s.uiStatisticsHelp,
+        child: Text(s.tableHint, style: Theme.of(context).textTheme.bodySmall),
+      ),
       const SizedBox(height: 18),
       Text(s.statisticsKnownHint, style: Theme.of(context).textTheme.bodySmall),
     ];

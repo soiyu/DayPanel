@@ -1402,4 +1402,122 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get offlineTransferBody =>
       '1. 在旧设备导出完整 DayPanel JSON 文件。\n2. 自行通过USB或文件传输保存到新设备。\n3. 在新设备选择“从文件恢复”，核对预览后确认。\n4. 重新设置通知权限和桌面组件。\n\n不提供云同步或自动备份。备份未加密，请保存在安全位置；卸载会删除App内数据和恢复副本，务必保留App之外的导出文件。';
+
+  @override
+  String get uiAppearanceHint => '按你的喜好，安排页面的颜色与字形。';
+
+  @override
+  String get uiPreviewLive => '实时预览';
+
+  @override
+  String get uiPreviewHint => '保存后应用到所有页面';
+
+  @override
+  String get uiFontSample => '日常的小小进步';
+
+  @override
+  String get uiMoreDetails => '查看说明';
+
+  @override
+  String get uiBackupHint => '把日常留在自己手里。';
+
+  @override
+  String get uiExportHint => '保存一份完整文件，方便备份与换机。';
+
+  @override
+  String get uiRestoreHint => '先预览文件，再确认替换当前数据。';
+
+  @override
+  String get uiLegacyHint => '从 Loop 带回习惯，已有内容保留。';
+
+  @override
+  String get uiRecoveryHint => '最近一次操作前的完整副本';
+
+  @override
+  String get uiFileScope => '文件支持范围';
+
+  @override
+  String get uiChooseFile => '选择备份文件';
+
+  @override
+  String get uiChooseItems => '选择内容';
+
+  @override
+  String get uiReviewImport => '确认导入';
+
+  @override
+  String get uiContinue => '继续';
+
+  @override
+  String get uiBack => '上一步';
+
+  @override
+  String get uiChangeFile => '重新选择文件';
+
+  @override
+  String get uiImportSelectHint => '选择要带回的习惯，并确认今后的安排。';
+
+  @override
+  String get uiImportReviewHint => '已有内容保留，只追加本次选择。';
+
+  @override
+  String get uiImportRules => '导入后的变化';
+
+  @override
+  String get uiImportNoSelection => '请至少选择一个可导入习惯';
+
+  @override
+  String get uiImportNeedsSchedule => '请为选中习惯选择新的安排';
+
+  @override
+  String uiSelectedCount(int count) {
+    return '已选 $count 个习惯';
+  }
+
+  @override
+  String uiRecordCount(int count) {
+    return '$count 条记录';
+  }
+
+  @override
+  String get uiNeedsSchedule => '待选择安排';
+
+  @override
+  String get uiSchedule => '今后安排';
+
+  @override
+  String get uiImportedDone => '你的习惯已安放好';
+
+  @override
+  String get uiReturnData => '返回数据与备份';
+
+  @override
+  String get uiWidgetChooseHint => '选一个习惯或小事，放到桌面随时查看。';
+
+  @override
+  String get uiNoWidgetChoice => '先选择显示的内容';
+
+  @override
+  String get uiReminderIntro => '在合适的时候，轻轻提醒你。';
+
+  @override
+  String get uiReminderRules => '提醒如何工作';
+
+  @override
+  String get uiStatisticsHelp => '统计口径与说明';
+
+  @override
+  String get uiShowDetails => '记录详情';
+
+  @override
+  String get uiTabTable => '打卡表';
+
+  @override
+  String get uiTabHabits => '习惯';
+
+  @override
+  String get uiTabYear => '年历';
+
+  @override
+  String get uiTabTimeline => '时间线';
 }

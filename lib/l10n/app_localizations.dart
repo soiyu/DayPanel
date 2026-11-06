@@ -2869,6 +2869,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'1. Export a full DayPanel JSON backup on the old device.\n2. Transfer the file yourself using USB or file transfer.\n3. Choose Restore from file on the new device and review before confirming.\n4. Set notification permissions and widgets again.\n\nThere is no cloud sync or automatic backup. Files are not encrypted; keep them private. Uninstalling deletes app data and the rollback copy. Keep exported files outside the app.'**
   String get offlineTransferBody;
+
+  /// No description provided for @uiAppearanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the colors and type that feel like you.'**
+  String get uiAppearanceHint;
+
+  /// No description provided for @uiPreviewLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live preview'**
+  String get uiPreviewLive;
+
+  /// No description provided for @uiPreviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to every page when saved'**
+  String get uiPreviewHint;
+
+  /// No description provided for @uiFontSample.
+  ///
+  /// In en, this message translates to:
+  /// **'A little progress, every day'**
+  String get uiFontSample;
+
+  /// No description provided for @uiMoreDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get uiMoreDetails;
+
+  /// No description provided for @uiBackupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your days in your own hands.'**
+  String get uiBackupHint;
+
+  /// No description provided for @uiExportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a complete copy for safekeeping or a new device.'**
+  String get uiExportHint;
+
+  /// No description provided for @uiRestoreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Review a backup before replacing current data.'**
+  String get uiRestoreHint;
+
+  /// No description provided for @uiLegacyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring habits from Loop while keeping current content.'**
+  String get uiLegacyHint;
+
+  /// No description provided for @uiRecoveryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A complete copy from before your last import or restore'**
+  String get uiRecoveryHint;
+
+  /// No description provided for @uiFileScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported files'**
+  String get uiFileScope;
+
+  /// No description provided for @uiChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a backup file'**
+  String get uiChooseFile;
+
+  /// No description provided for @uiChooseItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose items'**
+  String get uiChooseItems;
+
+  /// No description provided for @uiReviewImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Review import'**
+  String get uiReviewImport;
+
+  /// No description provided for @uiContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get uiContinue;
+
+  /// No description provided for @uiBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get uiBack;
+
+  /// No description provided for @uiChangeFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another file'**
+  String get uiChangeFile;
+
+  /// No description provided for @uiImportSelectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the habits to bring over and their future schedules.'**
+  String get uiImportSelectHint;
+
+  /// No description provided for @uiImportReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current content stays. Only selected items are added.'**
+  String get uiImportReviewHint;
+
+  /// No description provided for @uiImportRules.
+  ///
+  /// In en, this message translates to:
+  /// **'What changes after import'**
+  String get uiImportRules;
+
+  /// No description provided for @uiImportNoSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one supported habit'**
+  String get uiImportNoSelection;
+
+  /// No description provided for @uiImportNeedsSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a schedule for each selected habit'**
+  String get uiImportNeedsSchedule;
+
+  /// No description provided for @uiSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} habits selected'**
+  String uiSelectedCount(int count);
+
+  /// No description provided for @uiRecordCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} records'**
+  String uiRecordCount(int count);
+
+  /// No description provided for @uiNeedsSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule needed'**
+  String get uiNeedsSchedule;
+
+  /// No description provided for @uiSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'New schedule'**
+  String get uiSchedule;
+
+  /// No description provided for @uiImportedDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Your habits are here'**
+  String get uiImportedDone;
+
+  /// No description provided for @uiReturnData.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to data & backup'**
+  String get uiReturnData;
+
+  /// No description provided for @uiWidgetChooseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a habit or task within reach on your home screen.'**
+  String get uiWidgetChooseHint;
+
+  /// No description provided for @uiNoWidgetChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an item to show'**
+  String get uiNoWidgetChoice;
+
+  /// No description provided for @uiReminderIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'A gentle reminder at the right time.'**
+  String get uiReminderIntro;
+
+  /// No description provided for @uiReminderRules.
+  ///
+  /// In en, this message translates to:
+  /// **'How reminders work'**
+  String get uiReminderRules;
+
+  /// No description provided for @uiStatisticsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'How these numbers are calculated'**
+  String get uiStatisticsHelp;
+
+  /// No description provided for @uiShowDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Record details'**
+  String get uiShowDetails;
+
+  /// No description provided for @uiTabTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get uiTabTable;
+
+  /// No description provided for @uiTabHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits'**
+  String get uiTabHabits;
+
+  /// No description provided for @uiTabYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get uiTabYear;
+
+  /// No description provided for @uiTabTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get uiTabTimeline;
 }
 
 class _AppLocalizationsDelegate

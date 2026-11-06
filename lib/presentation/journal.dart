@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'editors.dart';
 import 'theme.dart';
+import 'refined_components.dart';
 
 class JournalPage extends StatefulWidget {
   const JournalPage({super.key, required this.app});
@@ -208,21 +209,24 @@ class _JournalPageState extends State<JournalPage> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        AppAction(
+                        QuietChoice(
+                          selected: q.month == null,
                           label: q.month == null ? s.thisMonth : s.allMonths,
                           icon: Icons.date_range_outlined,
                           tone: UiTone.violet,
                           onTap: () =>
                               month(q.month == null ? app.today : null),
                         ),
-                        AppAction(
+                        QuietChoice(
+                          selected: q.day != null,
                           key: const Key('locate-note-date'),
                           label: s.locateDate,
                           icon: Icons.event_outlined,
                           tone: UiTone.peach,
                           onTap: locate,
                         ),
-                        AppAction(
+                        QuietChoice(
+                          selected: q.habitId != null || q.independent,
                           key: const Key('note-filter'),
                           label: q.habitId != null
                               ? noteHabitLabel(context, app, q.habitId)
@@ -256,11 +260,7 @@ class _JournalPageState extends State<JournalPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      s.journalFilterHint,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+
                     if (q.day != null) ...[
                       const SizedBox(height: 10),
                       AppAction(

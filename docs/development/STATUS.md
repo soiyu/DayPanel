@@ -1,6 +1,6 @@
 # 当前执行状态
 
-更新 2026-11-06。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
+更新 2026-11-07。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
 
 当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索、FL14 成就卡/收藏/心得/反馈、FL15 打卡表/量化/年历/时间线、FL16 Android 桌面组件、FL17 免费外观/字体/习惯装扮和 FL18 旧习惯导入/离线换机。最新版本 SQLite v8，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志、成就卡与按日期归档履历；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
 
@@ -589,3 +589,64 @@ FL18限定范围实现及验收通过。只支持已核定Loop21–25数据库�
 收尾切回用户0，停止并删除临时用户11，清理本轮/data/local/tmp合成文件，系统仅主用户。关闭主进程归档post-import-db.tar，`python .local/import_retention.py`逐表比对通过（fl18-retention-final.log）：SQLite8及全部14表原字段逐行一致，foreign_key_check为空，原2习惯/1记录/2小事/1手记/偏好完全保留。主用户最终启动Status: ok。检查单列，不混入223项。
 
 `git diff --check`与`git diff --cached --check`通过。SDK/APK/数据库/截图/本机路径及日志均不提交；仅提交代码、文档、合成测试。电脑和可见模拟器继续运行，未推送远端。
+
+## 2026-11-07 UI02 新功能界面重构与 FL19 系统回归
+
+用户明确指出新功能UI很差、要求优化并做下一步。本轮同时推进UI02和FL19，未进入FL20发布。设计判断和范围见[UI02-REFINEMENT](../design/UI02-REFINEMENT.md)，系统结果见[SYSTEM-REGRESSION](SYSTEM-REGRESSION.md)。不将“完美”当未经验证的结论，保留真机/手工读屏/厂商限制。
+
+### UI实际变化
+
+- 外观由同权的大色块按钮改为低强调明暗选择、真实主题样卡、字体字形样卡和边框图标预览。真实习惯预览更紧凑，默认重置移到工具栏，保存/取消固定。习惯装扮配色为有具名语义的色样，边框直接预览，24图标和真实持久化保持。
+- 数据与备份首屏直接显示导出/恢复/旧习惯导入三个操作行，重要操作有图标与简短用途。完整副本回退独立呈现，离线换机/文件说明可展开，覆盖后果仍在确认流程。恢复预览时不再在背后持续显示无关加载动画。
+- 旧习惯导入拆成选文件→选内容→确认三步。选择页优先条目名称、类型、记录数/原频率，需要新安排的项有明显入口；跳过/未知/备注计数按需展开。最终页汇总所选习惯和真实记录数，完整差异/回退说明及勾选确认后才写入。上一步与系统返回可改选择，改变选择/安排清除旧确认；失败滚回消息位置，成功提供返回数据页入口。
+- 统计改为一行图标导航（短标签+完整语义名称），数据表提前，口径说明移到数据后可展开；名称固定/日期横滑和显式纠正保持。提醒中心压缩重复介绍，权限动作与状态相邻；手记筛选换为较轻的选项，不再堆积主动作按钮。组件配置减少重复标题、显示真实选中预览；原生内容顶部排列并保留底部动作。
+- Launcher尺寸判断修复：竖屏使用minWidth/maxHeight、横屏使用maxWidth/minHeight，避免大竖屏组件误按横屏最小高度隐藏图标/说明。没有更改组件写入规则或PendingIntent身份。
+- 新增ChoiceSurface/QuietChoice/ResponsiveChoices/ActionTile/DetailDisclosure/EditorFooter/SectionHeading，将选择、说明、主要提交区别呈现。保留冷白/蓝/淡紫/暖橙以及主题/字体，控件48dp目标、英文和大字号换行；真实入口和业务规则不减少。SQLite8/schema8及产品免费/离线范围不变。
+
+### 工程检查与环境问题
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 assemble
+```
+
+最终完整verify `.local/reports/ui02-final.log`：68个Dart文件格式无变化、analyze无问题、**227项Flutter/Dart通过**（原223+4项可访问性），debug构建24.3秒成功，Kotlin JVM **12/12**。新增4项中英×明暗页面48dp点击区/具名操作检查；原外观、导入、恢复、统计、数量、历史、卡片、提醒、组件、进程终止恢复继续通过。三步流程测试更新为确认后写入，没有删除安全断言。最终原生尺寸修复后assemble21.6秒成功；原生测试时序修正后native-test再次成功，日志ui02-native-final.log。既有Kotlin/Gradle弃用提示保留。
+
+本机C盘TEMP满导致一次测试编译复制失败，之后多模拟器与全测试并发耗尽提交内存导致Dart/辅助模拟器退出，这些运行不算通过。`scripts/dev.ps1`现仅在当前项目进程设置TEMP/TMP到ignored `.local/tmp`，verify并发2；不改全局Java/SDK/系统设置，不自动清理系统目录。尝试删除本轮失败临时目录被工具策略拒绝，未执行删除；改用项目临时路径完成验证。辅助模拟器串行运行，主API28可见环境保留。新增可访问性测试初次因未await异步匹配导致语义句柄未释放，修复后真实断言通过。
+
+独立规模测试 `./scripts/dev.ps1 test -Extra '--concurrency=1','.local/fl19_scale_test.dart'`：100习惯/36,500记录，读取8245ms、导出9156ms、恢复18096ms、备份2,425,475bytes，外键/恢复副本/记录数正确，**1项通过**，fl19-scale-final.log。此为Windows FFI冷环境测量，不是手机UI性能验收，不混入227项。首次默认30秒超时及一次诊断脚本编辑错误不计通过，大数据性能仍列后续。
+
+最终APK `build/app/outputs/flutter-apk/app-debug.apk`，174861005 bytes，SHA-256 `a3f73e005f95e29b35d1639cb93143c115e961bfd16e5270712bb04a4b6436f4`。已覆盖安装，包身份/Manifest权限未变化，非商店release包。只提交源码/测试/文档，SDK/镜像/APK/数据库/截图/个人路径均不提交。
+
+### 模拟器与真实界面证据
+
+API28 emulator-5554、API35 emulator-5556、API36 emulator-5558。API36使用官方default x86_64 r02镜像，下载大小844217077 bytes，SHA1 `829c076e8ff448a336097ae25a355b495ba36e2c`核对后解压到本项目ignored目录；下载曾分段重试，未跳过校验。未修改旧工程源码。
+
+原生测试安装后执行：
+
+```powershell
+& $adb -s <device> install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s <device> install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s <device> shell am instrument --user <qaUser> -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+API28用户13最终 **OK(20)**，15.870秒，fl19-api28-final.log。API35用户10最终 **OK(20)**，32.608秒，fl19-api35-final.log，提醒7项有实际执行标记；最后用与API28/36相同的最终APK及测试包重新安装验证。API36用户10最终 **OK(20)**，23.681秒，fl19-api36-final.log，包含通知达标取消、去记录/稍后、重排、世代、组件多实例/过期动作、旧库读取完整性等。不是全部系统状态的穷举。
+
+API35首次提醒用例因权限授给错误用户而assumption跳过，未当通过；测试改为`pm grant --user 当前用户`并读完结果，之后全组实际执行。API36通知取消立即读activeNotifications偶发读到旧状态，测试新增最多5秒等待真实通知服务状态，再断言出现/消失；再次全20项通过，无产品写入规则变化。
+
+API28使用临时用户13从真实SAF选合成旧备份，走完新的三步导入、安排选择、最终确认与成功返回；真实内容保留在测试用户，安装包无演示数据。截图检查外观样卡/色样、数据操作行、导入选择/确认、统计表，实际主题选择/保存正常。最终核心页面图 `.local/reports/ui02-overview.png`，各页ui02-appearance-final.png、ui02-data-first.png、ui02-import-final.png、ui02-statistics-final.png，字体/边框细节ui02-appearance-fonts.png；不同截图按实际时点采集，未用示意图代替设备截图。
+
+API35真实新建Read a page，Launcher长按→Widgets→DayPanel→配置选择→保存→桌面Complete→Completed today通过，截图fl19-api35-widget-config.png/fl19-api35-widget-home.png/fl19-api35-completed.png。新测试用户user_setup_complete=0导致Home键不响应，先确认并完成隔离用户初始化后继续；未改主用户。辅助环境遇到System UI无响应弹窗选择等待后恢复，部分后续启动时辅助模拟器退出，软件渲染重试与未完成矩阵保留，不当App崩溃已定位或全设备通过。
+
+### 数据与交接
+
+开始前关闭API28主用户进程归档pre-ui02-db.tar，结束切回0、删除用户13，再归档post-ui02-db.tar。`python .local/ui02_retention.py`逐表比较通过：SQLite8、全部14表原字段逐行一致，foreign_key_check为空，原2习惯/1记录/2小事/1手记/设置与历史保持。主用户最终启动Status: ok。此核对单列不混入227项。
+
+UI02实现和上述限定工程/设备范围通过，用户尚未重新确认视觉满意度，不宣称完美。FL19仍进行中：真机、真正TalkBack手工、API35/36完整权限拒绝/授权与长时间Doze、所有Launcher缩放与横屏/字体极限、大数据手机性能、锁屏平台能力仍开放；下一步继续这些回归及问题修复，不自动推进发布。电脑与API28可见模拟器保持运行，不推送远端。
+
+API36改用1024MiB、swiftshader并禁用Vulkan后，系统启动完成；当前用户10等待System UI弹窗恢复后，主Activity启动Status: ok，实际进入外观、选择Dark/Evening violet，截图fl19-api36-appearance-dark.png可读且无溢出。随后保存/提醒页检查时辅助模拟器再次退出，提醒权限拒绝/授权全流程和Launcher手工未验收，不把这些失败命令当通过。原生20项已经独立通过，软件模拟环境稳定性仍是本机限制。
+
+最终清理日志fl19-cleanup.log确认API36与API35均切回主用户、停止并删除本轮用户10，然后关闭辅助模拟器；API35清理前再次安装最终APK/测试包并跑全20项通过。只保留API28可见模拟器运行，当前用户0，错误日志ui02-final-errors.log无AndroidRuntime/flutter错误。`git diff --check`和`git diff --cached --check`通过，未推送、未关机。

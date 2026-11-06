@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
 import 'legacy_import.dart';
+import 'refined_components.dart';
 
 class BackupPage extends StatefulWidget {
   const BackupPage({super.key, required this.app, this.files});
@@ -214,120 +215,117 @@ class _BackupPageState extends State<BackupPage> {
             automaticallyImplyLeading: !working,
           ),
           body: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
             children: [
-              SoftPanel(
-                tinted: true,
-                tone: UiTone.blue,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const ToneIcon(Icons.shield_outlined, size: 52),
-                    const SizedBox(height: 16),
-                    Text(
-                      s.backupLocal,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(s.backupBody),
-                  ],
-                ),
+              Text(
+                s.uiBackupHint,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 22),
-              AppAction(
+              const SizedBox(height: 8),
+              Text(s.backupBody, style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 24),
+              ActionTile(
                 key: const Key('export-backup'),
-                label: s.exportBackup,
-                icon: Icons.file_upload_outlined,
-                primary: true,
-                busy: committing,
+                title: s.exportBackup,
+                subtitle: s.uiExportHint,
+                icon: Icons.upload_file_outlined,
+                emphasized: true,
                 onTap: working ? null : export,
+                trailing: committing
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
               ),
-              const SizedBox(height: 10),
-              Text(s.exportHint, style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: 22),
-              AppAction(
+              const SizedBox(height: 12),
+              ActionTile(
                 key: const Key('import-backup'),
-                label: s.importBackup,
-                icon: Icons.file_download_outlined,
+                title: s.importBackup,
+                subtitle: s.uiRestoreHint,
+                icon: Icons.restore_page_outlined,
                 tone: UiTone.violet,
                 onTap: working ? null : import,
               ),
-              const SizedBox(height: 10),
-              Text(s.restoreHint, style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: 22),
-              SoftPanel(
-                tinted: true,
-                tone: UiTone.violet,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(s.legacyIntro),
-                    const SizedBox(height: 14),
-                    AppAction(
-                      key: const Key('legacy-import'),
-                      label: s.legacyTitle,
-                      icon: Icons.move_to_inbox_outlined,
-                      tone: UiTone.violet,
-                      onTap: working
-                          ? null
-                          : () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute<void>(
-                                  builder: (_) =>
-                                      LegacyImportPage(app: widget.app),
-                                ),
-                              );
-                              await loadRecovery();
-                            },
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 12),
+              ActionTile(
+                key: const Key('legacy-import'),
+                title: s.legacyTitle,
+                subtitle: s.uiLegacyHint,
+                icon: Icons.move_to_inbox_outlined,
+                tone: UiTone.peach,
+                onTap: working
+                    ? null
+                    : () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => LegacyImportPage(app: widget.app),
+                          ),
+                        );
+                        await loadRecovery();
+                      },
               ),
-              const SizedBox(height: 22),
-              SectionTitle(s.offlineTransferTitle),
-              SoftPanel(child: Text(s.offlineTransferBody)),
               if (message != null) ...[
                 const SizedBox(height: 18),
-                SoftPanel(
-                  tinted: true,
-                  tone: failed ? UiTone.peach : UiTone.blue,
-                  child: Text(message!),
-                ),
-              ],
-              if (recovery != null) ...[
-                const SizedBox(height: 24),
-                SectionTitle(s.rollbackTitle, tone: UiTone.peach),
-                SoftPanel(
-                  tinted: true,
-                  tone: UiTone.peach,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        s.rollbackBody,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 14),
-                      AppAction(
-                        key: const Key('rollback-backup'),
-                        label: s.rollbackTitle,
-                        icon: Icons.history_rounded,
-                        tone: UiTone.peach,
-                        onTap: working
-                            ? null
-                            : () => operate(
-                                () => confirm(
-                                  recovery!,
-                                  epoch: recoveryEpoch,
-                                  rollback: true,
-                                ),
-                              ),
-                      ),
-                    ],
+                Semantics(
+                  liveRegion: true,
+                  child: SoftPanel(
+                    tinted: true,
+                    tone: failed ? UiTone.peach : UiTone.blue,
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          failed
+                              ? Icons.info_outline
+                              : Icons.check_circle_outline,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text(message!)),
+                      ],
+                    ),
                   ),
                 ),
               ],
+              if (recovery != null) ...[
+                SectionHeading(s.rollbackTitle, description: s.uiRecoveryHint),
+                ActionTile(
+                  key: const Key('rollback-backup'),
+                  title: s.rollbackTitle,
+                  subtitle: s.rollbackBody,
+                  tone: UiTone.peach,
+                  icon: Icons.history_rounded,
+                  onTap: working
+                      ? null
+                      : () => operate(
+                          () => confirm(
+                            recovery!,
+                            epoch: recoveryEpoch,
+                            rollback: true,
+                          ),
+                        ),
+                ),
+              ],
+              const SizedBox(height: 20),
+              DetailDisclosure(
+                title: s.offlineTransferTitle,
+                icon: Icons.phonelink_rounded,
+                child: Text(
+                  s.offlineTransferBody,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              DetailDisclosure(
+                title: s.uiFileScope,
+                icon: Icons.shield_outlined,
+                child: Text(
+                  '${s.exportHint}\n\n${s.restoreHint}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
             ],
           ),
         ),
