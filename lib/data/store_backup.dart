@@ -2,7 +2,7 @@ part of 'app_store.dart';
 
 extension StoreBackup on AppStore {
   Future<BackupSnapshot> exportSnapshot({DateTime? now}) =>
-      db.transaction((txn) => _snapshot(txn, now ?? DateTime.now()));
+      _transaction((txn) => _snapshot(txn, now ?? DateTime.now()));
   Future<BackupSnapshot> _snapshot(
     DatabaseExecutor executor,
     DateTime now,
@@ -15,7 +15,7 @@ extension StoreBackup on AppStore {
   }
 
   Future<BackupSnapshot?> recoverySnapshot() async {
-    final rows = await db.query('recovery', where: 'id=1');
+    final rows = await _executor.query('recovery', where: 'id=1');
     if (rows.isEmpty) return null;
     return BackupSnapshot.decode(
       utf8.encode(rows.single['snapshot'] as String),
@@ -29,7 +29,7 @@ extension StoreBackup on AppStore {
   }) async {
     // Revalidate the immutable public snapshot before opening the replacement transaction.
     final validated = BackupSnapshot.decode(snapshot.encode());
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       final previous = await _snapshot(txn, DateTime.now());
       await txn.insert('recovery', {
         'id': 1,

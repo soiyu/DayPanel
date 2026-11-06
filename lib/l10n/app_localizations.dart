@@ -2305,6 +2305,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Task'**
   String get task;
+
+  /// No description provided for @widgetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home widgets'**
+  String get widgetsTitle;
+
+  /// No description provided for @widgetChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an item to display'**
+  String get widgetChoose;
+
+  /// No description provided for @widgetConfigHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Each widget keeps its own choice. Save to return to your home screen.'**
+  String get widgetConfigHint;
+
+  /// No description provided for @widgetEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No items yet. Create a habit or task in the app first.'**
+  String get widgetEmpty;
+
+  /// No description provided for @widgetExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'The content or date changed. Return to your home screen and open again. After restoring data, choose the widget item again.'**
+  String get widgetExpired;
+
+  /// No description provided for @widgetOpenApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open DayPanel'**
+  String get widgetOpenApp;
+
+  /// No description provided for @widgetClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to home screen'**
+  String get widgetClose;
+
+  /// No description provided for @widgetSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving your record'**
+  String get widgetSaving;
+
+  /// No description provided for @widgetHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch and hold your home screen, choose Widgets, then add a DayPanel habit or task. Resize it or use its settings to choose another item. Battery saving may delay updates; reopen the app after a force stop. Widget choices stay on this device.'**
+  String get widgetHelp;
+
+  /// No description provided for @widgetOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening your record'**
+  String get widgetOpening;
 }
 
 class _AppLocalizationsDelegate

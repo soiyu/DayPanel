@@ -13,7 +13,7 @@ import android.provider.Settings
 import android.net.Uri
 import app.daypanel.next.reminders.ReminderEngine
 
-class MainActivity : FlutterActivity() {
+open class MainActivity : FlutterActivity() {
     private var pending: MethodChannel.Result? = null
     private var exportBytes: ByteArray? = null
     private val worker = Executors.newSingleThreadExecutor()
@@ -25,6 +25,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        app.daypanel.next.widgets.WidgetBridge(this, flutterEngine)
         completionFeedback = try { CompletionFeedback(this) } catch (_: Exception) { null }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.daypanel.next/feedback").setMethodCallHandler { call, reply ->
             if (call.method != "complete") reply.notImplemented()
@@ -36,12 +37,12 @@ class MainActivity : FlutterActivity() {
         reminderChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"app.daypanel.next/reminders").also { channel ->
             channel.setMethodCallHandler { call, reply ->
                 when(call.method) {
-                    "sync" -> reminderWork(reply) { ReminderEngine.sync(this); ReminderEngine.status(this) }
+                    "sync" -> reminderWork(reply) { syncReminderStatus() }
                     "permission" -> {
                         if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED) {
                             if(permissionReply!=null) reply.error("busy","Permission request active",null)
                             else { permissionReply=reply; requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS),4201) }
-                        } else reminderWork(reply) { ReminderEngine.sync(this); ReminderEngine.status(this) }
+                        } else reminderWork(reply) { syncReminderStatus() }
                     }
                     "settings" -> try {
                         val exact=call.argument<Boolean>("exact")==true
@@ -96,9 +97,18 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        worker.shutdown()
         completionFeedback?.release()
         completionFeedback = null
         super.onDestroy()
+    }
+    private fun syncReminderStatus(): Map<String, Any> {
+        if (this !is app.daypanel.next.widgets.WidgetActivity) {
+            ReminderEngine.sync(this)
+            return ReminderEngine.status(this)
+        }
+        val result = requireNotNull(contentResolver.call(Uri.parse("content://$packageName.widget-bindings"), "syncReminders", null, null))
+        return mapOf("notifications" to result.getBoolean("notifications"), "exact" to result.getBoolean("exact"), "pending" to result.getInt("pending"))
     }
     private fun reminderWork(reply: MethodChannel.Result, work: () -> Any?) {
         ReminderEngine.worker.execute {
@@ -118,7 +128,7 @@ class MainActivity : FlutterActivity() {
         super.onRequestPermissionsResult(requestCode,permissions,grantResults)
         if(requestCode==4201) {
             val reply=permissionReply;permissionReply=null
-            if(reply!=null) reminderWork(reply) { ReminderEngine.sync(this);ReminderEngine.status(this) }
+            if(reply!=null) reminderWork(reply) { syncReminderStatus() }
         }
     }
 

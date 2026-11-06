@@ -1,4 +1,5 @@
 import 'tasks.dart';
+import 'home_widgets.dart';
 import 'journal.dart';
 import 'achievements.dart';
 import 'statistics.dart';
@@ -506,6 +507,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   context,
                   MaterialPageRoute<void>(
                     builder: (_) => CardCollection(app: app),
+                  ),
+                ),
+              ),
+              SettingRow(
+                icon: Icons.widgets_outlined,
+                title: s.widgetsTitle,
+                tone: UiTone.violet,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const WidgetsHelpPage(),
                   ),
                 ),
               ),

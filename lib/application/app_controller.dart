@@ -8,6 +8,7 @@ import '../domain/activity.dart';
 import '../data/completion_feedback.dart';
 import '../domain/reminder.dart';
 import '../data/reminder_platform.dart';
+import '../data/widget_platform.dart';
 
 class AppController extends ChangeNotifier {
   AppController(
@@ -15,6 +16,7 @@ class AppController extends ChangeNotifier {
     DateTime Function()? clock,
     this.reminderPlatform,
     this.completionFeedback,
+    this.widgetPlatform,
   }) : clock = clock ?? DateTime.now {
     selectedDay = today;
     journalQuery = JournalQuery(month: today);
@@ -22,15 +24,60 @@ class AppController extends ChangeNotifier {
   final AppStore store;
   final ReminderPlatform? reminderPlatform;
   final CompletionFeedback? completionFeedback;
+  final WidgetPlatform? widgetPlatform;
+  bool widgetSyncFailed = false;
+  bool closing = false;
+  Future<void> syncWidgets() async {
+    try {
+      await widgetPlatform?.refresh();
+      widgetSyncFailed = false;
+    } catch (_) {
+      widgetSyncFailed = true;
+    }
+    notifyListeners();
+  }
+
+  Future<bool> recordFromWidget({
+    required String kind,
+    required String id,
+    required Day day,
+    required int epoch,
+  }) async {
+    if (kind == 'habit') {
+      final habit = habits.where((h) => h.id == id).firstOrNull;
+      if (habit == null || habit.kind != HabitKind.check) return false;
+      return recordHabit(habit, day, 1000, epoch, requireToday: true);
+    }
+    return run(() async {
+      if (day != today || kind != 'task') {
+        throw StateError('Invalid widget action');
+      }
+      final task = (await store.tasks()).where((t) => t.id == id).firstOrNull;
+      if (task == null) throw StateError('Task missing');
+      if (task.resident) {
+        await store.setResidentRecord(id, day, true, today: today);
+      } else {
+        await store.completeTask(id, true, today);
+      }
+    }, expectedGeneration: epoch);
+  }
+
   bool feedbackFailed = false;
   List<AchievementCard> cards = [];
   AchievementCard? cardFor(Day day) =>
       cards.where((c) => c.day == day).firstOrNull;
   bool get canClaimCard =>
       completedCardEvidence(today, habits, plans, entries) != null;
-  Future<bool> recordHabit(Habit habit, Day day, int? value, int epoch) async {
+  Future<bool> recordHabit(
+    Habit habit,
+    Day day,
+    int? value,
+    int epoch, {
+    bool requireToday = false,
+  }) async {
     var completed = false;
     final ok = await run(() async {
+      if (requireToday && day != today) throw StateError('Widget date expired');
       completed = await store.setRecord(habit.id, day, value, today: today);
     }, expectedGeneration: epoch);
     if (ok &&
@@ -101,7 +148,9 @@ class AppController extends ChangeNotifier {
   bool busy = false;
   String? error;
 
-  Future<void> load() async {
+  Future<void> load() => store.readConsistent(_loadSnapshot);
+
+  Future<void> _loadSnapshot() async {
     final h = await store.habits();
     final e = await store.entries();
     final t = await store.tasks();
@@ -160,9 +209,10 @@ class AppController extends ChangeNotifier {
         await load();
         throw StateError('Data generation changed; refresh before retrying');
       }
-      await operation();
+      await store.inGeneration(generation, operation);
       await load();
       await syncReminders();
+      await syncWidgets();
       return true;
     } catch (_) {
       error = 'storage'; // UI localizes; no personal content in logs.

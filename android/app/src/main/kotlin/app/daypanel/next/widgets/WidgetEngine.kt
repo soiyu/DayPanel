@@ -1,0 +1,136 @@
+package app.daypanel.next.widgets
+
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
+import android.os.Bundle
+import android.util.TypedValue
+import android.view.View
+import android.widget.RemoteViews
+import app.daypanel.next.R
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.concurrent.Executors
+import org.json.JSONObject
+
+object WidgetEngine {
+    val worker = Executors.newSingleThreadExecutor()
+    const val REFRESH = "app.daypanel.next.WIDGET_REFRESH"
+    const val OPEN = "app.daypanel.next.WIDGET_OPEN"
+    fun refresh(context: Context) {
+        WidgetBindings.prune(context)
+        val snapshot = try { WidgetSnapshotReader.read(context) } catch (_: Exception) { null }
+        WidgetBindings.ids(context).forEach { id -> render(context, id, snapshot) }
+        schedule(context)
+    }
+    private fun schedule(c: Context) {
+        val alarm = c.getSystemService(AlarmManager::class.java)
+        val intent = PendingIntent.getBroadcast(c, 1600, Intent(c, WidgetSystemReceiver::class.java).setAction(REFRESH),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        alarm.cancel(intent)
+        if (WidgetBindings.ids(c).isNotEmpty()) {
+            val midnight = LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() + 1000
+            alarm.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, midnight, intent)
+        }
+    }
+    fun pending(c: Context, widgetId: Int, mode: String, binding: WidgetBinding?, day: LocalDate): PendingIntent {
+        val payload = (binding?.json() ?: JSONObject().put("widgetId", widgetId)).put("mode", mode).put("day", day.toString())
+        // Identity is display context, not a physical-click ID. All writes are explicit values.
+        val data = Uri.Builder().scheme("daypanel-widget").authority(c.packageName).appendPath(widgetId.toString())
+            .appendPath(binding?.token ?: "unbound").appendPath((binding?.generation ?: -1).toString())
+            .appendPath(day.toString()).appendPath(mode).build()
+        val intent = Intent(c, WidgetActivity::class.java).setAction(OPEN).setData(data)
+            .putExtra("widget", payload.toString()).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+        return PendingIntent.getActivity(c, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    }
+    fun render(c: Context, id: Int, snapshot: WidgetSnapshot?) {
+        val manager = AppWidgetManager.getInstance(c)
+        val binding = WidgetBindings.get(c, id)
+        val validBinding = binding?.takeIf { it.generation == snapshot?.generation }
+        val item = validBinding?.let { snapshot?.items?.get("${it.kind}:${it.id}") }
+        val zh = snapshot?.chinese ?: (c.resources.configuration.locales[0].language == "zh")
+        fun t(chinese: String, english: String) = if (zh) chinese else english
+        val day = snapshot?.day ?: LocalDate.now()
+        val views = RemoteViews(c.packageName, R.layout.daypanel_widget)
+        val dark = snapshot?.dark ?: (c.resources.configuration.uiMode and 48 == 32)
+        val ink = Color.parseColor(if (dark) "#EDF1FF" else "#18223B")
+        val secondary = Color.parseColor(if (dark) "#B6C2E0" else "#52627F")
+        views.setInt(R.id.widget_root, "setBackgroundResource", if (dark) R.drawable.widget_dark else R.drawable.widget_light)
+        listOf(R.id.widget_title, R.id.widget_state).forEach { views.setTextColor(it, ink) }
+        listOf(R.id.widget_date, R.id.widget_hint, R.id.widget_settings).forEach { views.setTextColor(it, secondary) }
+        val width = manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 160)
+        val date = if (width < 160 || c.resources.configuration.fontScale > 1.3f)
+            "${day.year}\n%02d/%02d".format(day.monthValue, day.dayOfMonth)
+            else day.toString().replace('-', '/')
+        views.setTextViewText(R.id.widget_date, date)
+        views.setTextViewText(R.id.widget_settings, "⚙")
+        views.setContentDescription(R.id.widget_settings, t("配置桌面组件", "Configure widget"))
+        views.setOnClickPendingIntent(R.id.widget_settings, pending(c, id, "configure", binding, day))
+        val height = manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 180)
+        val large = height >= 240 && c.resources.configuration.fontScale <= 1.3f
+        val compactText = height < 240 && c.resources.configuration.fontScale > 1.3f
+        views.setInt(R.id.widget_title, "setMaxLines", if (compactText) 1 else 2)
+        views.setInt(R.id.widget_state, "setMaxLines", if (compactText) 1 else 2)
+        views.setViewVisibility(R.id.widget_hint, if (large) View.VISIBLE else View.GONE)
+        val title: String
+        val state: String
+        val hint: String
+        val action: String
+        val mode: String
+        if (item == null) {
+            title = t("你的日常，放在桌面", "Your day, at a glance")
+            state = if (snapshot == null) t("打开 App 以读取数据", "Open the app to load data")
+                else if (binding == null) t("选择要显示的内容", "Choose an item to show")
+                else t("内容已变，请重新选择", "Content changed. Choose again")
+            hint = t("每个组件独立保存选择", "Each widget keeps its own selection")
+            action = t("选择内容", "Choose item")
+            mode = "configure"
+        } else {
+            title = item.title
+            hint = when {
+                item.archived -> t("归档内容保留记录", "Archived; history is preserved")
+                item.kind == "task" && item.resident -> t("常驻 · 按需记录，无欠账", "Resident · as needed, no overdue days")
+                item.kind == "task" -> t("一次性 · 完成后不会自动重建", "One-time · does not repeat automatically")
+                item.schedule == "weekly" -> t("本周 ${item.weekCount}/${item.weekGoal} 天", "This week ${item.weekCount}/${item.weekGoal} days")
+                !item.scheduled -> t("今天未安排", "Not scheduled today")
+                else -> t("今天的安排", "Scheduled today")
+            }
+            state = when {
+                item.archived -> t("已归档 · 查看记录", "Archived · view records")
+                item.quantity -> "${item.value?.let { WidgetDisplayRules.quantity(it) } ?: "—"} / ${WidgetDisplayRules.quantity(item.target)} ${item.unit}"
+                item.kind == "habit" && item.done -> t("今天已完成", "Completed today")
+                item.kind == "habit" && item.schedule == "weekly" -> t("本周 ${item.weekCount}/${item.weekGoal} 天", "Week ${item.weekCount}/${item.weekGoal} days")
+                item.kind == "habit" && !item.scheduled -> t("今天未安排", "Not scheduled today")
+                item.kind == "habit" -> t("今天未记录", "Not recorded today")
+                item.resident -> if (item.done) t("常驻 · 今天已做", "Resident · done today") else t("常驻 · 今天未记录", "Resident · not recorded today")
+                item.done -> t("完成于 ${item.doneDay}", "Done ${item.doneDay}")
+                item.dueDay != null -> t("一次性 · ${item.dueDay}", "One-time · ${item.dueDay}")
+                else -> t("一次性 · 未设日期", "One-time · no planned date")
+            }
+            mode = when {
+                item.archived -> "view"
+                item.quantity -> "quantity"
+                item.done || (item.kind == "habit" && !item.scheduled) -> "view"
+                else -> "complete"
+            }
+            action = when (mode) {
+                "quantity" -> t("输入总量", "Enter total")
+                "complete" -> t("完成", "Complete")
+                else -> t("查看记录", "View records")
+            }
+        }
+        views.setTextViewText(R.id.widget_title, title)
+        views.setTextViewText(R.id.widget_state, state)
+        views.setTextViewText(R.id.widget_hint, hint)
+        views.setTextViewText(R.id.widget_action, action)
+        views.setContentDescription(R.id.widget_content, "$title. $day. $state. $hint")
+        views.setContentDescription(R.id.widget_action, "$action. $title. $day")
+        views.setOnClickPendingIntent(R.id.widget_content, pending(c, id, if (item == null) "configure" else "view", binding, day))
+        views.setOnClickPendingIntent(R.id.widget_action, pending(c, id, mode, binding, day))
+        manager.updateAppWidget(id, views)
+    }
+}

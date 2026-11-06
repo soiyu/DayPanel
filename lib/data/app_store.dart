@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
@@ -26,6 +27,7 @@ class AppStore {
       dbPath,
       options: OpenDatabaseOptions(
         version: 7,
+        singleInstance: false,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           await db.execute(
@@ -65,20 +67,45 @@ class AppStore {
     return AppStore._(db);
   }
 
+  final Object _transactionZone = Object();
+  DatabaseExecutor get _executor =>
+      Zone.current[_transactionZone] as Transaction? ?? db;
+
+  Future<T> _transaction<T>(Future<T> Function(Transaction) operation) {
+    final current = Zone.current[_transactionZone] as Transaction?;
+    if (current != null) return operation(current);
+    return db.transaction(
+      (txn) =>
+          runZoned(() => operation(txn), zoneValues: {_transactionZone: txn}),
+    );
+  }
+
+  /// Generation validation and every nested write share one SQLite transaction.
+  /// This also serializes separate Flutter Activity connections with recovery.
+  Future<T> inGeneration<T>(int expected, Future<T> Function() operation) =>
+      _transaction((txn) async {
+        final actual = (await txn.query('runtime')).single['generation'];
+        if (actual != expected) throw StateError('Data generation changed');
+        return operation();
+      });
+
+  Future<T> readConsistent<T>(Future<T> Function() read) =>
+      _transaction((_) => read());
+
   Future<void> close() => db.close();
-  Future<List<HabitActivity>> activity() async => (await db.query(
+  Future<List<HabitActivity>> activity() async => (await _executor.query(
     'habit_activity',
     orderBy: 'day',
   )).map(HabitActivity.fromMap).toList();
-  Future<List<TaskEntry>> taskEntries() async => (await db.query(
+  Future<List<TaskEntry>> taskEntries() async => (await _executor.query(
     'task_entries',
     orderBy: 'day DESC,task_id',
   )).map(TaskEntry.fromMap).toList();
   Future<List<HabitReminder>> reminders() async =>
-      (await db.query('reminders')).map(HabitReminder.fromMap).toList();
+      (await _executor.query('reminders')).map(HabitReminder.fromMap).toList();
   Future<void> saveReminder(HabitReminder reminder) async {
     if (!reminder.valid) throw ArgumentError('Invalid reminder');
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       if ((await txn.query(
         'habits',
         where: 'id=?',
@@ -99,29 +126,29 @@ class AppStore {
     });
   }
 
-  Future<List<Habit>> habits() async => (await db.query(
+  Future<List<Habit>> habits() async => (await _executor.query(
     'habits',
     orderBy: 'position,rowid',
   )).map(Habit.fromMap).toList();
-  Future<List<HabitGroup>> groups() async => (await db.query(
+  Future<List<HabitGroup>> groups() async => (await _executor.query(
     'habit_groups',
     orderBy: 'position,rowid',
   )).map(HabitGroup.fromMap).toList();
-  Future<List<HabitPlan>> plans() async => (await db.query(
+  Future<List<HabitPlan>> plans() async => (await _executor.query(
     'plans',
     orderBy: 'effective_day',
   )).map(HabitPlan.fromMap).toList();
   Future<int> generation() async =>
-      (await db.query('runtime')).single['generation'] as int;
-  Future<List<SmallTask>> tasks() async => (await db.query(
+      (await _executor.query('runtime')).single['generation'] as int;
+  Future<List<SmallTask>> tasks() async => (await _executor.query(
     'tasks',
     orderBy: 'rowid DESC',
   )).map(SmallTask.fromMap).toList();
-  Future<List<Note>> notes() async => (await db.query(
+  Future<List<Note>> notes() async => (await _executor.query(
     'notes',
     orderBy: 'day DESC, rowid DESC',
   )).map(Note.fromMap).toList();
-  Future<List<HabitEntry>> entries() async => (await db.query('entries'))
+  Future<List<HabitEntry>> entries() async => (await _executor.query('entries'))
       .map(
         (m) => HabitEntry(
           habitId: m['habit_id'] as String,
@@ -131,7 +158,7 @@ class AppStore {
       )
       .toList();
   Future<Map<String, String>> settings() async => {
-    for (final m in await db.query('settings'))
+    for (final m in await _executor.query('settings'))
       m['key'] as String: m['value'] as String,
   };
 
@@ -155,7 +182,7 @@ class AppStore {
       throw ArgumentError('Invalid schedule');
     }
     final date = today ?? Day(DateTime.now());
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       if (create) {
         final last = await txn.rawQuery(
           'SELECT COALESCE(MAX(position),-1)+1 AS next FROM habits',
@@ -234,7 +261,7 @@ class AppStore {
     if (group.name.trim().isEmpty || group.name.length > 40) {
       throw ArgumentError('Invalid group');
     }
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       final existing = await txn.query('habit_groups');
       if (existing.any(
         (m) =>
@@ -266,9 +293,9 @@ class AppStore {
   }
 
   Future<void> removeGroup(String id) async =>
-      db.delete('habit_groups', where: 'id=?', whereArgs: [id]);
+      _executor.delete('habit_groups', where: 'id=?', whereArgs: [id]);
   Future<void> reorderHabits(List<String> ids) async {
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       final existing = (await txn.query(
         'habits',
       )).map((m) => m['id'] as String).toSet();
@@ -292,7 +319,7 @@ class AppStore {
 
   Future<void> setArchived(String id, bool archived, {Day? today}) async {
     final day = today ?? Day(DateTime.now());
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       final rows = await txn.query('habits', where: 'id=?', whereArgs: [id]);
       if (rows.isEmpty) throw StateError('Habit missing');
       if ((rows.single['archived'] == 1) == archived) return;
@@ -326,7 +353,7 @@ class AppStore {
     int? value, {
     required Day today,
   }) async {
-    return db.transaction((txn) async {
+    return _transaction((txn) async {
       final rows = await txn.query('habits', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) throw StateError('Habit missing');
       final h = Habit.fromMap(rows.single);
@@ -396,7 +423,7 @@ class AppStore {
         : (task.startDay != null || task.archived)) {
       throw ArgumentError('Invalid task type fields');
     }
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       if (create) {
         if (task.resident &&
             (task.startDay != (today ?? Day(DateTime.now())) ||
@@ -436,7 +463,7 @@ class AppStore {
     bool done, {
     required Day today,
   }) async {
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       final rows = await txn.query('tasks', where: 'id=?', whereArgs: [id]);
       if (rows.isEmpty) throw StateError('Task missing');
       final task = SmallTask.fromMap(rows.single);
@@ -462,7 +489,7 @@ class AppStore {
   }
 
   Future<void> archiveTask(String id, bool archived) async {
-    if (await db.update(
+    if (await _executor.update(
           'tasks',
           {'archived': archived ? 1 : 0},
           where: 'id=? AND resident=1',
@@ -474,7 +501,7 @@ class AppStore {
   }
 
   Future<void> completeTask(String id, bool done, Day today) async {
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       final rows = await txn.query('tasks', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) throw StateError('Task missing');
       if (rows.single['resident'] == 1) {
@@ -500,7 +527,7 @@ class AppStore {
     if (note.day.compareTo(today ?? Day(DateTime.now())) > 0) {
       throw ArgumentError('Future note date');
     }
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       if (note.habitId != null &&
           (await txn.query(
             'habits',
@@ -528,7 +555,7 @@ class AppStore {
     if (!{'habits', 'tasks', 'notes'}.contains(table)) {
       throw ArgumentError('Invalid entity');
     }
-    await db.delete(table, where: 'id = ?', whereArgs: [id]);
+    await _executor.delete(table, where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> preference(String key, String value) async {
@@ -544,7 +571,7 @@ class AppStore {
         }.contains(key)) {
       throw ArgumentError('Invalid preference');
     }
-    await db.insert('settings', {
+    await _executor.insert('settings', {
       'key': key,
       'value': value,
     }, conflictAlgorithm: ConflictAlgorithm.replace);

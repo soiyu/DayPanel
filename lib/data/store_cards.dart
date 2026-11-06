@@ -1,14 +1,14 @@
 part of 'app_store.dart';
 
 extension StoreCards on AppStore {
-  Future<List<AchievementCard>> cards() async => (await db.query(
+  Future<List<AchievementCard>> cards() async => (await _executor.query(
     'cards',
     orderBy: 'day DESC',
   )).map(AchievementCard.fromMap).toList();
 
   Future<void> claimCard(Day day, {required Day today}) async {
     if (day != today) throw ArgumentError('Only today can be claimed');
-    await db.transaction((txn) async {
+    await _transaction((txn) async {
       if (await earnCardIn(txn, day) == null) {
         throw StateError('Daily plan is not complete');
       }
@@ -53,7 +53,7 @@ extension StoreCards on AppStore {
   }
 
   Future<void> favoriteCard(Day day, bool favorite) async {
-    if (await db.update(
+    if (await _executor.update(
           'cards',
           {'favorite': favorite ? 1 : 0},
           where: 'day=?',
@@ -66,7 +66,7 @@ extension StoreCards on AppStore {
 
   Future<void> reflectOnCard(Day day, String reflection) async {
     if (reflection.length > 10000) throw ArgumentError('Reflection too long');
-    if (await db.update(
+    if (await _executor.update(
           'cards',
           {'reflection': reflection},
           where: 'day=?',

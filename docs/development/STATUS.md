@@ -2,7 +2,7 @@
 
 更新 2026-11-06。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
 
-当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索、FL14 成就卡/收藏/心得/反馈和 FL15 打卡表/量化/年历/时间线。最新版本 SQLite v7，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志、成就卡与按日期归档履历；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
+当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索、FL14 成就卡/收藏/心得/反馈、FL15 打卡表/量化/年历/时间线和 FL16 Android 桌面组件。最新版本 SQLite v7，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志、成就卡与按日期归档履历；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
 
 ## 已实现基座与 UI
 
@@ -411,3 +411,70 @@ API28最终APK和测试包上运行：
 ### 交接
 
 FL15实现与限定验收通过。未完成真机、真实TalkBack、全部横屏/长列表/大规模数据性能、API35/36本批矩阵；统计只依据当前保留的数据，已删除事实和升级前缺失的归档/计划历史无法重建。下一批 **FL16 习惯/待办桌面组件**，需明确冷启动、跨日、显式写入、数量直输与尺寸适配。电脑和可见模拟器保持运行，不推送、不关机。
+
+## 2026-11-06 FL16 习惯与小事桌面组件
+
+按用户明确授权直接实现。先记录 [ADR0008](../adr/0008-home-widgets.md) 与 [WIDGETS](../design/WIDGETS.md)，沿用已有冷白/蓝/淡紫样式。仅修改 Flutter 项目源码，旧 Loop 源码未复制、翻译或修改；全部免费，无专注/云/账号/广告/分析。
+
+### 实现与边界
+
+- 两个真实 RemoteViews Provider：每个 Launcher 实例选择一个习惯或一次性/常驻小事，可添加多实例、保存/取消、重新配置、移除、横纵缩放。设置按钮始终是独立点击区；配置页复用 AppCanvas/SoftPanel/SettingRow/AppAction，数量直接复用 QuantityEditor。我的提供实际添加说明。
+- 完整本地日期、名称、实际数量/完成状态、日期对应目标、周目标进度、一次性实际完成日与常驻当日状态。归档只读、对象不存在/恢复后显示重新选择。中英/浅深使用 App 设置，系统模式遵循系统；窄尺寸年份与月日分行、大字号保留动作和完整语义描述。
+- 布尔/任务设置显式完成值，重复请求不切换；已完成进入详情，桌面没有快捷撤销或增量。数量仅确认保存/清除后写入，取消/返回不写入。旧日期、旧配置、旧实例及旧 generation 拒绝；PendingIntent 身份包含实例/配置版本/世代/日期/动作，未将静态 extras 当物理点击 ID。未新增依赖值相等的撤销算法。
+- Android 业务库只读，所有完成通过独立 :widgets Flutter Activity 调用现有 Dart 规则。AppController 全部写入在同一 SQLite 事务核对 generation，嵌套操作复用事务；加载也取得一致快照。数量/历史计划、常驻唯一日、卡片同事务解锁和提醒取消沿用已有实现。主 App 回到前台重新加载。独立进程避免 sqflite 单工作线程池跨引擎等待；配置、提醒运行态和刷新经私有同 UID Provider 在主进程统一管理，避免多进程偏好缓存分歧。
+- WidgetActivity 单实例，未关闭表单再次点击不会替换输入对象；保存/取消后再打开另一组件。显式退出关闭独立数据库连接；主 Activity 的文件操作执行器随销毁释放。
+- SQLite 仍 v7、备份仍 schema7，ReminderSnapshot 兼容 3..7 不变。实例绑定为设备私有状态，不进备份或恢复副本，不转移 Launcher ID；恢复/回退后必须重新选择。没有新用户字段需要迁移。
+- 每次 App 成功操作/前台、配置/缩放、系统周期、午夜普通闹钟、开机、覆盖安装、日期/时间/时区/语言变化刷新。不申请额外通知/精确闹钟权限；Doze/厂商延迟和强停限制明确说明，不承诺锁屏组件。
+
+### 工程证据
+
+在项目根执行：
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 assemble
+```
+
+最后完整 verify 为 `.local/reports/widgets-final.log`：56 个 Dart 文件格式无变化、analyze 无问题、**171 项 Flutter/Dart 通过**（原153 + 新18），debug 构建与 **12 项 Kotlin JVM 测试通过**（原9 + 新3）。最后一处原生 Activity 执行器释放后另跑 assemble（19.5秒）和 native-test（12秒）通过，日志 widgets-final-assemble.log / widgets-native-final.log。既有 Kotlin/Gradle 迁移弃用提示仍存在。
+
+新增 Dart 测试覆盖重复显式完成/一张卡/一次反馈、数量不能盲完成和重复总量、常驻每日本地日唯一/空白无欠账、一次性完成日不被重复更新、旧日期/归档/删除、恢复回退旧世代、周目标不发每日卡、刷新失败保留成功记录、独立连接旧写入与事务异常回滚；配置保存/取消、数量直开/取消/保存、恢复后的旧面板、原生失效动作、中英×明暗 320dp/160%。
+
+API28 最终 APK 和测试包覆盖安装（使用 --no-streaming 的最后一次安装 Success），执行：
+
+```powershell
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument --user 12 -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+**OK (15 tests)**，widgets-native-api28-final.log，2.991秒。原有提醒7项/反馈2项继续通过，组件4项快照/身份 + 2项真实系统实例生命周期覆盖历史目标/单位/精确数量/日期/常驻/一次性、世代/主题/语言/未知库版本、PendingIntent实例/日期/动作/配置隔离、重新配置/删除/归档/恢复旧动作。生命周期测试强制只在非主用户运行，测试授权用完撤销；fixture数据库独立，不写用户业务库。
+
+最终 APK `build/app/outputs/flutter-apk/app-debug.apk`，174751163 bytes，SHA-256 `46ef01de14833c37a5b76a33516a33d5b2baa6182d4e7c50580ebabd19ccda18`。合并 Manifest 核对 app.daypanel.next.debug、min28/target36、allowBackup=false；组件Activity可供Launcher启动，Provider/系统Receiver不导出，配置ContentProvider不导出并检查同UID，组件进程为:widgets。原有通知/开机/精确提醒/触感权限保留，未新增组件通知权限要求。
+
+### 实际 Launcher 与数据保护
+
+可见 API28 emulator-5554，1080×1920/420dpi。先关闭主用户进程并归档 `.local/reports/pre-widgets-db.tar`，覆盖安装保留数据；创建临时用户 DayPanelFL16QA（id12）执行真实界面操作，主用户记录不用于测试。通过UI新建 Read a page、Water（目标2000，本次设备输入单位为空）、Post a letter（一次性）、Stretch（常驻）；安装包没有演示内容。
+
+真实 Launcher 长按→微件→选择 DayPanel 习惯/小事→选择内容→保存。布尔桌面完成后显示今天已完成，App可见一张成就卡；切换配置到数量前先验证取消保留原选择，确认保存才替换。数量点击直接输入，取消后仍无记录，保存250.001后桌面显示真实总量。常驻与一次性分别完成并显示今天已做/实际完成日；强停测试用户进程后桌面点击成功冷启动写入。主App恢复可读组件写入。
+
+多个实例分别保存（习惯和任务），PendingIntent独立且配置未串用。实际拖动调整为两列宽，160%系统字号检查并截图；英文深色、中文浅色均有真实截图。由于较窄栏位原日期在字符中间断行，最终改为年份/月日两行；内容超长可省略但保留完整读屏描述与详情入口。
+
+将模拟器时区从GMT切到Pacific/Kiritimati进入次日，常驻显示新日期与未记录，切回原时区恢复原日状态；全过程无新完成写入。打开数量面板后切到次日再保存，旧日期操作被拒绝，原250.001保留。另在测试用户桌面暂时关闭自动时间，把时刻设到23:59:48，20秒后实际00:00:08桌面日期/数量已切次日；测试后恢复原时刻、GMT与auto_time=1（auto_time_zone始终1），日志 widgets-midnight.log。未将短时前台测试算作长时间Doze验收。
+
+本轮截图保存在 ignored `.local/reports/widgets-*.png`，包括配置、习惯完成、数量输入/取消后/保存、常驻/一次性、缩放把手/窄尺寸/160%字体、英文深色、次日/午夜和过期数量面板。不同截图按相应检查时点记录，不把早期画面当最终全部矩阵。
+
+设备中途持续运行多小时后模拟器进程无响应（ADB/控制端口均超时），一次streamed测试包安装被中断；该次安装/重启不算通过。停止卡住的模拟器进程后额外保存其userdata qcow2到ignored widgets-avd-recovery，再用同一AVD、-no-snapshot启动。检查两用户数据库目录仍存在，归档widgets-after-emulator-recovery-u{0,12}.tar；系统安装中断使包暂不可用，--no-streaming覆盖重装后恢复，测试用户Launcher组件需重新添加。随后已重新跑最终15项原生测试。未清空、替换或直接修改主用户库。
+
+`python .local/widgets_retention.py` 对原始归档和恢复后的主用户库逐表比较通过，v7与全部14表（含android_metadata）逐行一致，foreign_key_check为空；见 widgets-recovery-retention.log。此检查单列，不混入171测试。
+
+正常 `adb shell reboot` 后连接重建、sys.boot_completed=1、uptime重新计数，切回测试用户无需打开主App即显示原组件与250.001；截图 widgets-final-reboot.png。最终两列/160%/英文深色截图 widgets-final-narrow-dark.png 明确显示年份/月日两行、完整数量和主动作，真实数量面板保存相同总量成功。Launcher拖到“移除”后配置文件变为空map，业务记录没有删除。
+
+### 交接范围
+
+FL16 实现及限定验收通过。尚未完成API35/36本批Launcher矩阵、厂商真机、真实TalkBack手工、长时间Doze/省电、极端字号/横屏/长名称全矩阵及大量组件性能；不称全设备无BUG。午夜/时区实测属于API28前台可见Launcher范围。组件单实例Activity保留当前未关闭表单，再次点击需先完成或取消当前输入。锁屏能力留给FL19按平台核验，不承诺iOS式能力。下一批 **FL17 免费主题、字体、图标、配色与边框**。不推送远端、不关机，最终保持可见模拟器运行。
+收尾切回主用户0、停止并删除临时用户12，系统只剩主用户。主用户进程关闭后归档post-widgets-db.tar，`python .local/widgets_retention.py`再次逐表比对通过，日志widgets-retention-final.log；原2习惯/1记录/2小事/1手记/原偏好及其余表完全保留，外键检查为空。主用户最终启动Status: ok。删除组件后的旧Activity入口显示内容/日期已变并可返回，截图widgets-final-deleted-action.png，没有写入。
+
+完成 `git diff --check` 与 `git diff --cached --check`，均通过。APK、数据库、截图、AVD恢复副本、工具链和日志均在ignored路径，未提交。最后正常重启后Android自动时区选择了America/New_York，结束前重新设为原GMT，保留auto_time/auto_time_zone原值1；主用户App语言/主题未改。电脑和可见模拟器保持运行。

@@ -41,3 +41,5 @@ FL13 延展采用同一组件：紧凑淡紫搜索/月浏览区、暖橙日期�
 FL14 卡片册、原创卡面、翻面/收藏/心得与反馈设置延续同一视觉组件，日常入口放在清单后。详情见 [ACHIEVEMENTS](ACHIEVEMENTS.md)。
 
 FL15 四个统计视图复用共享组件，年月日定位采用暖橙、历史与统计用淡紫，柱形显示实际数量。规则/交互与可追溯性见 [STATISTICS](STATISTICS.md)。
+
+FL16 原生组件采用独立浅/深渐层背景、细边、圆角、蓝色主动作和淡紫设置区；日期、名称、真实状态分层。配置和数量 Activity 复用 AppCanvas/SoftPanel/SettingRow/AppAction/QuantityEditor；窄尺寸日期按年份与月日分行，完整信息可在读屏/详情取得。具体见 [WIDGETS](WIDGETS.md)。

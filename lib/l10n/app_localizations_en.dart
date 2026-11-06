@@ -1184,4 +1184,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get task => 'Task';
+
+  @override
+  String get widgetsTitle => 'Home widgets';
+
+  @override
+  String get widgetChoose => 'Choose an item to display';
+
+  @override
+  String get widgetConfigHint =>
+      'Each widget keeps its own choice. Save to return to your home screen.';
+
+  @override
+  String get widgetEmpty =>
+      'No items yet. Create a habit or task in the app first.';
+
+  @override
+  String get widgetExpired =>
+      'The content or date changed. Return to your home screen and open again. After restoring data, choose the widget item again.';
+
+  @override
+  String get widgetOpenApp => 'Open DayPanel';
+
+  @override
+  String get widgetClose => 'Return to home screen';
+
+  @override
+  String get widgetSaving => 'Saving your record';
+
+  @override
+  String get widgetHelp =>
+      'Touch and hold your home screen, choose Widgets, then add a DayPanel habit or task. Resize it or use its settings to choose another item. Battery saving may delay updates; reopen the app after a force stop. Widget choices stay on this device.';
+
+  @override
+  String get widgetOpening => 'Opening your record';
 }

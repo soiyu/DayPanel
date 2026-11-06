@@ -9,6 +9,8 @@ import 'data/reminder_platform.dart';
 import 'data/completion_feedback.dart';
 import 'presentation/habits.dart';
 import 'domain/models.dart';
+import 'data/widget_platform.dart';
+import 'presentation/home_widgets.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,10 +37,12 @@ class _BootstrapState extends State<Bootstrap> {
       store,
       reminderPlatform: AndroidReminders(),
       completionFeedback: AndroidCompletionFeedback(),
+      widgetPlatform: AndroidWidgets(),
     );
     try {
       await app.load();
       await app.syncReminders();
+      await app.syncWidgets();
       return app;
     } catch (_) {
       app.dispose();
@@ -98,12 +102,22 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
   final navigatorKey = GlobalKey<NavigatorState>();
   AppController get app => widget.app;
   bool opening = false;
+  Map<String, Object?>? widgetRequest;
+  bool widgetLaunchReady = false;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     app.reminderPlatform?.onOpen(openReminder);
-    WidgetsBinding.instance.addPostFrameCallback((_) => openReminder());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        widgetRequest = await app.widgetPlatform?.launch();
+      } catch (_) {
+        widgetRequest = {'mode': 'stale'};
+      }
+      if (mounted) setState(() => widgetLaunchReady = true);
+      if (widgetRequest == null) openReminder();
+    });
   }
 
   @override
@@ -116,8 +130,19 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      app.syncReminders();
-      openReminder();
+      refreshForeground();
+    }
+  }
+
+  Future<void> refreshForeground() async {
+    if (app.busy || app.closing) return;
+    try {
+      await app.load();
+      await app.syncReminders();
+      await app.syncWidgets();
+      if (widgetRequest == null) await openReminder();
+    } catch (_) {
+      /* The existing error/retry UI remains available. */
     }
   }
 
@@ -178,7 +203,15 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
           : null,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: HomePage(app: app),
+      home: !widgetLaunchReady && app.widgetPlatform != null
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : widgetRequest != null
+          ? WidgetFlow(
+              app: app,
+              request: widgetRequest!,
+              release: app.store.close,
+            )
+          : HomePage(app: app),
     ),
   );
 }

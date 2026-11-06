@@ -858,10 +858,12 @@ class QuantityEditor extends StatefulWidget {
     required this.app,
     required this.habit,
     required this.day,
+    this.onSave,
   });
   final AppController app;
   final Habit habit;
   final Day day;
+  final Future<bool> Function(int? value)? onSave;
   @override
   State<QuantityEditor> createState() => _QuantityEditorState();
 }
@@ -896,12 +898,9 @@ class _QuantityEditorState extends State<QuantityEditor> {
       return;
     }
     setState(() => saving = true);
-    final ok = await widget.app.recordHabit(
-      widget.habit,
-      widget.day,
-      amount,
-      epoch,
-    );
+    final ok = widget.onSave != null
+        ? await widget.onSave!(amount)
+        : await widget.app.recordHabit(widget.habit, widget.day, amount, epoch);
     if (!mounted) return;
     if (ok) {
       Navigator.pop(context);

@@ -1115,4 +1115,35 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get task => '小事';
+
+  @override
+  String get widgetsTitle => '桌面组件';
+
+  @override
+  String get widgetChoose => '选择显示的内容';
+
+  @override
+  String get widgetConfigHint => '每个组件独立保存选择。保存后返回桌面。';
+
+  @override
+  String get widgetEmpty => '还没有可用内容，请先在 App 创建习惯或小事。';
+
+  @override
+  String get widgetExpired => '内容或日期已改变，请返回桌面后重新打开。恢复数据后需要重新选择组件内容。';
+
+  @override
+  String get widgetOpenApp => '打开 DayPanel';
+
+  @override
+  String get widgetClose => '返回桌面';
+
+  @override
+  String get widgetSaving => '正在保存记录';
+
+  @override
+  String get widgetHelp =>
+      '长按桌面，选择组件，再添加 DayPanel 习惯或小事。组件可缩放，可通过设置重新选择内容。后台刷新可能受系统节电影响；强行停止后请重新打开 App。组件选择仅保存在这台设备。';
+
+  @override
+  String get widgetOpening => '正在打开记录';
 }
