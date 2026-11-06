@@ -133,6 +133,12 @@ void main() {
           jsonDecode(e['payload'] as String) as Map<String, dynamic>;
       payload['schema'] = 2;
       (payload['tables'] as Map).remove('reminders');
+      (payload['tables'] as Map).remove('task_entries');
+      for (final row in payload['tables']['tasks'] as List) {
+        (row as Map).removeWhere(
+          (k, v) => {'resident', 'start_day', 'archived'}.contains(k),
+        );
+      }
       e['payload'] = jsonEncode(payload);
       e['sha256'] = sha256
           .convert(utf8.encode(e['payload'] as String))

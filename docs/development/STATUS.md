@@ -2,7 +2,7 @@
 
 更新 2026-11-06。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
 
-当前已完成基座、UI01 精修、FL09/FL10 和 FL11 习惯提醒。最新版本 SQLite v3，支持文件备份/恢复、习惯安排历史和提醒配置；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
+当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒和 FL12 常驻小事/完成历史。最新版本 SQLite v4，支持文件备份/恢复、习惯安排历史、提醒配置与独立常驻日记录；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
 
 ## 已实现基座与 UI
 
@@ -195,3 +195,49 @@ Kotlin JVM 覆盖未来时刻、当日完成、归档/关闭、日期/版本切�
 未覆盖厂商真机、全部Doze/长时间休眠、多时刻全天投递、Android34/36完整矩阵与实际TalkBack。标准提醒延迟是平台行为；应用不保证被强停后继续投递。FL11 标为实现与限定验收通过，发布 QA 继续跟踪这些边界。
 
 下一批 FL12 常驻小事，先明确常驻与重复任务的不同规则；随后 FL13 关联日志/月浏览/搜索。全部免费，保持当前设计。此轮记录、提交和安装完成后保持电脑开机，不推送远端、不关机。
+
+## 2026-11-06 FL12 常驻小事与完成历史
+
+按“继续往下做”完成 FL12，沿用用户要求的操作顺畅、当前 UI 风格、全免费/无专注。本轮保持开机。规则与界面分别见 [ADR0004](../adr/0004-resident-tasks.md)、[RESIDENT-TASKS](../design/RESIDENT-TASKS.md)。这是 DayPanel 对常驻能力的具体设计，不声称小日常未公开细节已经逐项实测。
+
+### 本批实现
+
+- 新建小事选择一次性/常驻，创建后类型固定。普通任务仍按原日期/实际完成日处理，不重生、不自动改期；常驻不设到期日，一直可复用，每个当地日最多一条实际完成记录，空白日不算逾期或失败。
+- 小事页增加独立常驻区、今天已做/未记录状态；常驻完成仍保留在原位置。摘要区分待处理的一次性事项与今天总完成记录，避免把全部常驻项算作欠账。
+- 常驻详情支持日期选择、补记、单日撤销、真实完成历史、归档/恢复、永久删除确认；归档保留历史且禁止写入，删除级联清理记录。跨午夜旧当日按钮拒绝写入，恢复后的旧编辑受世代保护。
+- 完成历史按日期汇总两类小事，可找到归档内容并纠正；过去的一次性完成从主列表移到历史入口。七日回顾的小事完成数含常驻日记录，习惯统计不受影响。
+- SQLite4：tasks 新增默认一次性字段 resident/start_day/archived，task_entries 独立唯一 task_id/day；v1–v3 迁移。备份 schema4 纳入所有新字段/记录，兼容 schema2/3 和对应恢复副本；严格拒绝无效类型字段、日期、孤儿引用和重复日记录。
+- Android 提醒 SnapshotReader 支持 v3/v4 共享的习惯/提醒结构，不因小事升级停止提醒。没有新增系统权限或通知功能。
+
+### 验证结果
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+git diff --check
+git diff --cached --check
+```
+
+最终 `.local/reports/resident-final.log`：36 个 Dart 文件格式无变化，analyze `No issues found`，**74 项 Dart/Flutter 测试通过**，debug 构建成功13.7s；Kotlin JVM规则 **8/8**。新增17项 = 11项常驻存储/迁移/备份/日期规则 + 6项UI。覆盖重复完成幂等、跨日保留、不生成欠账、日期纠正、未来/创建前拒绝、归档与旧编辑、类型不变、schema2/3恢复回退、过期世代、汇总不混入习惯。UI验证中英×明暗320dp/160%、新建选择/完成/跨日、历史纠正/归档、删除取消。
+
+初次旧备份转换测试发现动态 Map.addAll 字段类型异常，已改成明确字段赋值；最终两种旧备份有真实普通小事数据的恢复/回退均通过。已保留对过期按钮和异常写入的明确反馈，未隐藏失败用例。
+
+原生测试APK构建成功；API28 安装最终主包与instrumentation包，`app.daypanel.next.reminders.ReminderEngineTest` **OK (6 tests)**，测试fixture现在使用SQLite4。日志 resident-native.log / resident-native-api28.log。本轮没有重跑API35设备矩阵，不以此前结果替代新证据。既有Gradle/Kotlin未来迁移告警仍在。
+
+最终APK `build/app/outputs/flutter-apk/app-debug.apk`，174589379 bytes，SHA-256 `193e222504feae91d633fc09162b71387bdae4fb8e0a87681a0132a3ab2fe301`。应用身份和权限保持，非release商店包。
+
+### 实际设备与数据保护
+
+API28中文可见模拟器，1080×1920/420dpi/字号1.0。覆盖安装前将关闭进程的数据库和WAL归档到ignored `.local/reports/pre-resident-db.tar`；升级启动Success/Status: ok，已有任务保留。
+
+通过真实UI创建 Resident QA，选择常驻后不显示安排日期。完成后卡片标今天已做；force-stop→重新启动仍保留。详情撤销后该日历史消失，再记完成恢复；归档后主列表隐藏，完成历史仍显示常驻及已归档标记；从历史进入详情取消归档，再通过明确“删除全部完成记录”确认删除本轮测试项。
+
+清理后归档 post-resident-db.tar，并用真实SQLite校验：前库v3、后库v4，原 habits/plans/entries/notes/settings/habit_groups/reminders/runtime/recovery 逐表相同；tasks 原id/title/due_day/completed_day完全相同，新字段均默认一次性/未归档，task_entries为空。额外1项校验通过，日志 resident-retention.log，不计入74项统计。未改旧原生工程/旧包数据。
+
+截图 `.local/reports/resident-{create,create-selected,live,completed,detail,archived,history,delete-confirm}.png` 来自最终APK的真实临时样本；样本已经清理，安装包无预置数据。跨日行为在可控时钟自动化验证，未修改用户模拟器时间冒充真实跨午夜观察。AndroidRuntime/flutter错误日志及最终启动另行检查。
+
+### 交接
+
+FL12 实现与限定验收通过；仍需真机/TalkBack/长列表性能与更多系统版本验证。不宣称零缺陷。下一批 FL13：习惯关联日志、按月浏览与搜索；本批不增加这些未实施入口。提交代码、记录进度后保持可见模拟器和电脑运行，不关机、不推送远端。

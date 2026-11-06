@@ -209,15 +209,23 @@ class SmallTask {
     required this.title,
     this.dueDay,
     this.completedDay,
+    this.resident = false,
+    this.startDay,
+    this.archived = false,
   });
   final String id, title;
   final Day? dueDay, completedDay;
+  final bool resident, archived;
+  final Day? startDay;
   bool get done => completedDay != null;
   Map<String, Object?> toMap() => {
     'id': id,
     'title': title,
     'due_day': dueDay?.key,
     'completed_day': completedDay?.key,
+    'resident': resident ? 1 : 0,
+    'start_day': startDay?.key,
+    'archived': archived ? 1 : 0,
   };
   factory SmallTask.fromMap(Map<String, Object?> m) => SmallTask(
     id: m['id'] as String,
@@ -226,6 +234,22 @@ class SmallTask {
     completedDay: m['completed_day'] == null
         ? null
         : Day.parse(m['completed_day'] as String),
+    resident: m['resident'] == 1,
+    startDay: m['start_day'] == null
+        ? null
+        : Day.parse(m['start_day'] as String),
+    archived: m['archived'] == 1,
+  );
+}
+
+class TaskEntry {
+  const TaskEntry({required this.taskId, required this.day});
+  final String taskId;
+  final Day day;
+  Map<String, Object?> toMap() => {'task_id': taskId, 'day': day.key};
+  factory TaskEntry.fromMap(Map<String, Object?> m) => TaskEntry(
+    taskId: m['task_id'] as String,
+    day: Day.parse(m['day'] as String),
   );
 }
 

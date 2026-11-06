@@ -30,7 +30,7 @@ class ReminderEngineTest {
         }
         c.getDatabasePath("").delete()
         db=SQLiteDatabase.openOrCreateDatabase(c.getDatabasePath(""),null)
-        db.version=3
+        db.version=4
         db.execSQL("CREATE TABLE runtime (id INTEGER,generation INTEGER)")
         db.execSQL("INSERT INTO runtime VALUES(1,0)")
         db.execSQL("CREATE TABLE habits(id TEXT,title TEXT,kind TEXT,start_day TEXT,archived INTEGER)")

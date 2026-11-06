@@ -9,6 +9,90 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get taskKind => '小事类型';
+
+  @override
+  String get oneTimeTask => '一次性';
+
+  @override
+  String get residentTask => '常驻';
+
+  @override
+  String get residentTasks => '常驻小事';
+
+  @override
+  String get residentHelp => '一直保留，按需记录；每天最多完成一次，不设截止日，也不累积逾期。';
+
+  @override
+  String get oneTimeHelp => '完成后进入已完成列表，可以安排日期。';
+
+  @override
+  String get residentToday => '今天已做';
+
+  @override
+  String get residentUnrecorded => '今天未记录';
+
+  @override
+  String get recordThisDay => '记为完成';
+
+  @override
+  String get clearThisDay => '撤销这天的记录';
+
+  @override
+  String get residentRecords => '常驻完成记录';
+
+  @override
+  String get taskHistory => '完成历史';
+
+  @override
+  String get taskArchive => '已归档常驻小事';
+
+  @override
+  String get taskArchiveHint => '归档后不再显示在小事页，完成历史仍保留。';
+
+  @override
+  String get residentDeleteWarning => '将删除这项常驻小事及其全部完成记录，无法恢复。';
+
+  @override
+  String get residentDetailHint => '只记录实际做过的日子，没做的日子不算失败。';
+
+  @override
+  String get taskTypeFixed => '创建后类型固定，避免改变已有完成记录的含义。';
+
+  @override
+  String get noTaskHistory => '这一天还没有完成记录';
+
+  @override
+  String get noArchivedTasks => '没有已归档的常驻小事';
+
+  @override
+  String get residentStart => '开始于';
+
+  @override
+  String get editTaskHistory => '查看与纠正记录';
+
+  @override
+  String get residentHistoryHint => '选择日期补记或纠正，只影响这一天。';
+
+  @override
+  String get historyShowsBoth => '一次性小事按实际完成日归档，常驻小事按记录日期显示。';
+
+  @override
+  String get residentTypeChoice => '选一次性或常驻';
+
+  @override
+  String get taskHistoryCount => '完成记录';
+
+  @override
+  String get taskSummaryPending => '待处理的一次性小事';
+
+  @override
+  String get taskSummaryToday => '今天完成';
+
+  @override
+  String get taskHistoryEditHint => '点开条目可编辑或纠正，归档内容也能在这里找到。';
+
+  @override
   String get habitReminder => '习惯提醒';
 
   @override

@@ -52,6 +52,7 @@ class _EntryEditorState extends State<EntryEditor> {
   late int epoch;
   Day? due;
   bool saving = false;
+  bool resident = false;
   String? error;
   bool get isHabit => widget.type == 'habit';
   bool get isNote => widget.type == 'note';
@@ -70,6 +71,7 @@ class _EntryEditorState extends State<EntryEditor> {
     weekdays = widget.habit?.weekdays ?? 127;
     icon = widget.habit?.icon ?? 0;
     due = widget.task?.dueDay;
+    resident = widget.task?.resident ?? false;
     schedule = widget.habit?.schedule ?? ScheduleKind.weekdays;
     habitContext = widget.habit?.context ?? HabitContext.anytime;
     groupId = widget.habit?.groupId;
@@ -145,9 +147,13 @@ class _EntryEditorState extends State<EntryEditor> {
           SmallTask(
             id: widget.task?.id ?? const Uuid().v4(),
             title: title.text.trim(),
-            dueDay: due,
+            dueDay: resident ? null : due,
+            resident: resident,
+            startDay: resident ? (widget.task?.startDay ?? app.today) : null,
+            archived: widget.task?.archived ?? false,
           ),
           create: widget.task == null,
+          today: app.today,
         );
       }
     }, expectedGeneration: epoch);
@@ -494,6 +500,43 @@ class _EntryEditorState extends State<EntryEditor> {
               ),
             ],
             if (!isHabit && !isNote) ...[
+              const SizedBox(height: 20),
+              fieldLabel(s.taskKind),
+              LayoutBuilder(
+                builder: (context, constraints) => Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final keep in [false, true])
+                      SizedBox(
+                        width: (constraints.maxWidth - 10) / 2,
+                        child: _TypeChoice(
+                          label: keep ? s.residentTask : s.oneTimeTask,
+                          icon: keep
+                              ? Icons.bookmark_border_rounded
+                              : Icons.check_circle_outline_rounded,
+                          selected: resident == keep,
+                          enabled: !saving && widget.task == null,
+                          onTap: () => setState(() => resident = keep),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                resident ? s.residentHelp : s.oneTimeHelp,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (widget.task != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  s.taskTypeFixed,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ],
+            if (!isHabit && !isNote && !resident) ...[
               const SizedBox(height: 20),
               fieldLabel(s.dueDate),
               SoftPanel(

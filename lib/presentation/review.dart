@@ -17,9 +17,7 @@ class ReviewPage extends StatelessWidget {
       final counts = days
           .map((d) => app.entries.where((e) => e.day == d).length)
           .toList();
-      final taskCounts = days
-          .map((d) => app.tasks.where((t) => t.completedDay == d).length)
-          .toList();
+      final taskCounts = days.map(app.tasksCompletedOn).toList();
       final max = counts.fold<int>(1, (a, b) => a > b ? a : b);
       return AppCanvas(
         child: Scaffold(

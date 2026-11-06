@@ -9,6 +9,99 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get taskKind => 'Task type';
+
+  @override
+  String get oneTimeTask => 'One-time';
+
+  @override
+  String get residentTask => 'Keep around';
+
+  @override
+  String get residentTasks => 'Keep-around tasks';
+
+  @override
+  String get residentHelp =>
+      'Keep it for whenever you need it. Log once per day, with no due date or overdue backlog.';
+
+  @override
+  String get oneTimeHelp =>
+      'Complete once, then move to history. A planned date is optional.';
+
+  @override
+  String get residentToday => 'Done today';
+
+  @override
+  String get residentUnrecorded => 'Not logged today';
+
+  @override
+  String get recordThisDay => 'Mark completed';
+
+  @override
+  String get clearThisDay => 'Clear this day';
+
+  @override
+  String get residentRecords => 'Keep-around logs';
+
+  @override
+  String get taskHistory => 'Completion history';
+
+  @override
+  String get taskArchive => 'Archived keep-around tasks';
+
+  @override
+  String get taskArchiveHint =>
+      'Archive to hide it from Tasks. Completion history stays available.';
+
+  @override
+  String get residentDeleteWarning =>
+      'Delete this keep-around task and all its completion records? This cannot be undone.';
+
+  @override
+  String get residentDetailHint =>
+      'Log the days you did it. Days without a log are not failures.';
+
+  @override
+  String get taskTypeFixed =>
+      'The type stays fixed after creation so existing records keep their meaning.';
+
+  @override
+  String get noTaskHistory => 'No completions for this day';
+
+  @override
+  String get noArchivedTasks => 'No archived keep-around tasks';
+
+  @override
+  String get residentStart => 'Started';
+
+  @override
+  String get editTaskHistory => 'View & correct records';
+
+  @override
+  String get residentHistoryHint =>
+      'Choose a date to log or correct. Only that day changes.';
+
+  @override
+  String get historyShowsBoth =>
+      'One-time tasks use their actual completion date. Keep-around tasks use each logged date.';
+
+  @override
+  String get residentTypeChoice => 'Choose a task type';
+
+  @override
+  String get taskHistoryCount => 'Completions';
+
+  @override
+  String get taskSummaryPending => 'Open one-time tasks';
+
+  @override
+  String get taskSummaryToday => 'Completed today';
+
+  @override
+  String get taskHistoryEditHint =>
+      'Open an item to edit or correct it. Archived items remain here.';
+
+  @override
   String get habitReminder => 'Habit reminder';
 
   @override

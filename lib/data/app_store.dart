@@ -18,7 +18,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: 4,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           await db.execute(
@@ -38,10 +38,12 @@ class AppStore {
           );
           await upgradeToV2(db);
           await upgradeToV3(db);
+          await upgradeToV4(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
           if (oldVersion < 3) await upgradeToV3(db);
+          if (oldVersion < 4) await upgradeToV4(db);
         },
       ),
     );
@@ -49,6 +51,10 @@ class AppStore {
   }
 
   Future<void> close() => db.close();
+  Future<List<TaskEntry>> taskEntries() async => (await db.query(
+    'task_entries',
+    orderBy: 'day DESC,task_id',
+  )).map(TaskEntry.fromMap).toList();
   Future<List<HabitReminder>> reminders() async =>
       (await db.query('reminders')).map(HabitReminder.fromMap).toList();
   Future<void> saveReminder(HabitReminder reminder) async {
@@ -306,23 +312,95 @@ class AppStore {
     });
   }
 
-  Future<void> saveTask(SmallTask task, {bool create = false}) async {
+  Future<void> saveTask(
+    SmallTask task, {
+    bool create = false,
+    Day? today,
+  }) async {
     if (task.title.trim().isEmpty || task.title.length > 100) {
       throw ArgumentError('Invalid task');
     }
-    if (create) {
-      await db.insert('tasks', task.toMap());
-    } else {
-      // Editing text/date must not resurrect a deleted task or overwrite completion.
-      if (await db.update(
-            'tasks',
-            {'title': task.title, 'due_day': task.dueDay?.key},
-            where: 'id = ?',
-            whereArgs: [task.id],
-          ) !=
-          1) {
-        throw StateError('Task missing');
+    if (task.resident
+        ? (task.startDay == null ||
+              task.dueDay != null ||
+              task.completedDay != null)
+        : (task.startDay != null || task.archived)) {
+      throw ArgumentError('Invalid task type fields');
+    }
+    await db.transaction((txn) async {
+      if (create) {
+        if (task.resident &&
+            (task.startDay != (today ?? Day(DateTime.now())) ||
+                task.archived)) {
+          throw ArgumentError('New resident task must start today');
+        }
+        await txn.insert('tasks', task.toMap());
+      } else {
+        final rows = await txn.query(
+          'tasks',
+          where: 'id=?',
+          whereArgs: [task.id],
+        );
+        if (rows.isEmpty) throw StateError('Task missing');
+        final previous = SmallTask.fromMap(rows.single);
+        if (previous.resident != task.resident ||
+            previous.startDay != task.startDay) {
+          throw StateError('Task type and start date are immutable');
+        }
+        // Editing text/date must not resurrect a deleted task or overwrite completion.
+        if (await txn.update(
+              'tasks',
+              {'title': task.title, 'due_day': task.dueDay?.key},
+              where: 'id = ?',
+              whereArgs: [task.id],
+            ) !=
+            1) {
+          throw StateError('Task missing');
+        }
       }
+    });
+  }
+
+  Future<void> setResidentRecord(
+    String id,
+    Day day,
+    bool done, {
+    required Day today,
+  }) async {
+    await db.transaction((txn) async {
+      final rows = await txn.query('tasks', where: 'id=?', whereArgs: [id]);
+      if (rows.isEmpty) throw StateError('Task missing');
+      final task = SmallTask.fromMap(rows.single);
+      if (!task.resident ||
+          task.archived ||
+          day.compareTo(task.startDay!) < 0 ||
+          day.compareTo(today) > 0) {
+        throw ArgumentError('Invalid resident task date');
+      }
+      if (done) {
+        await txn.insert('task_entries', {
+          'task_id': id,
+          'day': day.key,
+        }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      } else {
+        await txn.delete(
+          'task_entries',
+          where: 'task_id=? AND day=?',
+          whereArgs: [id, day.key],
+        );
+      }
+    });
+  }
+
+  Future<void> archiveTask(String id, bool archived) async {
+    if (await db.update(
+          'tasks',
+          {'archived': archived ? 1 : 0},
+          where: 'id=? AND resident=1',
+          whereArgs: [id],
+        ) !=
+        1) {
+      throw StateError('Resident task missing');
     }
   }
 
@@ -330,6 +408,9 @@ class AppStore {
     await db.transaction((txn) async {
       final rows = await txn.query('tasks', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) throw StateError('Task missing');
+      if (rows.single['resident'] == 1) {
+        throw ArgumentError('Resident task requires dated record');
+      }
       if (done && rows.single['completed_day'] != null) {
         return; // Keep first completion date.
       }

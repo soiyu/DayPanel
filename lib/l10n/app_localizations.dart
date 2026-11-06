@@ -98,6 +98,174 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @taskKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Task type'**
+  String get taskKind;
+
+  /// No description provided for @oneTimeTask.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time'**
+  String get oneTimeTask;
+
+  /// No description provided for @residentTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep around'**
+  String get residentTask;
+
+  /// No description provided for @residentTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep-around tasks'**
+  String get residentTasks;
+
+  /// No description provided for @residentHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it for whenever you need it. Log once per day, with no due date or overdue backlog.'**
+  String get residentHelp;
+
+  /// No description provided for @oneTimeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete once, then move to history. A planned date is optional.'**
+  String get oneTimeHelp;
+
+  /// No description provided for @residentToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Done today'**
+  String get residentToday;
+
+  /// No description provided for @residentUnrecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not logged today'**
+  String get residentUnrecorded;
+
+  /// No description provided for @recordThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark completed'**
+  String get recordThisDay;
+
+  /// No description provided for @clearThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear this day'**
+  String get clearThisDay;
+
+  /// No description provided for @residentRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep-around logs'**
+  String get residentRecords;
+
+  /// No description provided for @taskHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion history'**
+  String get taskHistory;
+
+  /// No description provided for @taskArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived keep-around tasks'**
+  String get taskArchive;
+
+  /// No description provided for @taskArchiveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive to hide it from Tasks. Completion history stays available.'**
+  String get taskArchiveHint;
+
+  /// No description provided for @residentDeleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this keep-around task and all its completion records? This cannot be undone.'**
+  String get residentDeleteWarning;
+
+  /// No description provided for @residentDetailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Log the days you did it. Days without a log are not failures.'**
+  String get residentDetailHint;
+
+  /// No description provided for @taskTypeFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'The type stays fixed after creation so existing records keep their meaning.'**
+  String get taskTypeFixed;
+
+  /// No description provided for @noTaskHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No completions for this day'**
+  String get noTaskHistory;
+
+  /// No description provided for @noArchivedTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'No archived keep-around tasks'**
+  String get noArchivedTasks;
+
+  /// No description provided for @residentStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get residentStart;
+
+  /// No description provided for @editTaskHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'View & correct records'**
+  String get editTaskHistory;
+
+  /// No description provided for @residentHistoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date to log or correct. Only that day changes.'**
+  String get residentHistoryHint;
+
+  /// No description provided for @historyShowsBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time tasks use their actual completion date. Keep-around tasks use each logged date.'**
+  String get historyShowsBoth;
+
+  /// No description provided for @residentTypeChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a task type'**
+  String get residentTypeChoice;
+
+  /// No description provided for @taskHistoryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Completions'**
+  String get taskHistoryCount;
+
+  /// No description provided for @taskSummaryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Open one-time tasks'**
+  String get taskSummaryPending;
+
+  /// No description provided for @taskSummaryToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed today'**
+  String get taskSummaryToday;
+
+  /// No description provided for @taskHistoryEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open an item to edit or correct it. Archived items remain here.'**
+  String get taskHistoryEditHint;
+
   /// No description provided for @habitReminder.
   ///
   /// In en, this message translates to:

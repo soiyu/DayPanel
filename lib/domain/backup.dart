@@ -17,6 +17,7 @@ class BackupSnapshot {
     'plans',
     'entries',
     'tasks',
+    'task_entries',
     'notes',
     'settings',
     'reminders',
@@ -26,7 +27,7 @@ class BackupSnapshot {
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 3,
+      'schema': 4,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -69,17 +70,32 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3}.contains(content['schema'])) throw const BackupInvalid();
+      if (!{2, 3, 4}.contains(content['schema'])) throw const BackupInvalid();
       final created = DateTime.parse(content['created_at'] as String);
       if (!created.isUtc || created.year < 1900 || created.year > 2200) {
         throw const BackupInvalid();
       }
       final raw = content['tables'] as Map<String, dynamic>;
-      if (content['schema'] == 2) {
-        _keys(raw, tableNames.where((n) => n != 'reminders').toSet());
-        raw['reminders'] = <Object>[];
-      } else {
-        _keys(raw, tableNames.toSet());
+      final schema = content['schema'] as int;
+      _keys(
+        raw,
+        tableNames
+            .where(
+              (n) =>
+                  (schema >= 3 || n != 'reminders') &&
+                  (schema >= 4 || n != 'task_entries'),
+            )
+            .toSet(),
+      );
+      if (schema < 3) raw['reminders'] = <Object>[];
+      if (schema < 4) {
+        raw['task_entries'] = <Object>[];
+        for (final row in raw['tasks'] as List) {
+          _keys(row as Map, {'id', 'title', 'due_day', 'completed_day'});
+          row['resident'] = 0;
+          row['start_day'] = null;
+          row['archived'] = 0;
+        }
       }
       final tables = <String, List<Map<String, Object?>>>{};
       var total = 0;
@@ -227,13 +243,45 @@ class BackupSnapshot {
         throw const BackupInvalid();
       }
     }
-    final taskIds = <String>{};
+    final taskIds = <String, SmallTask>{};
     for (final m in t['tasks']!) {
-      _keys(m, {'id', 'title', 'due_day', 'completed_day'});
-      if (!taskIds.add(_text(m, 'id', 128))) throw const BackupInvalid();
+      _keys(m, {
+        'id',
+        'title',
+        'due_day',
+        'completed_day',
+        'resident',
+        'start_day',
+        'archived',
+      });
+      final id = _text(m, 'id', 128);
+      if (taskIds.containsKey(id)) throw const BackupInvalid();
       _text(m, 'title', 100);
+      _int(m, 'resident', 0, 1);
+      _int(m, 'archived', 0, 1);
       if (m['due_day'] != null) Day.parse(m['due_day'] as String);
       if (m['completed_day'] != null) Day.parse(m['completed_day'] as String);
+      final task = SmallTask.fromMap(m);
+      if (task.resident
+          ? (task.startDay == null ||
+                task.dueDay != null ||
+                task.completedDay != null)
+          : (task.startDay != null || task.archived)) {
+        throw const BackupInvalid();
+      }
+      taskIds[id] = task;
+    }
+    final taskEntryKeys = <String>{};
+    for (final m in t['task_entries']!) {
+      _keys(m, {'task_id', 'day'});
+      final task = taskIds[m['task_id']];
+      final date = Day.parse(m['day'] as String);
+      if (task == null ||
+          !task.resident ||
+          date.compareTo(task.startDay!) < 0 ||
+          !taskEntryKeys.add('${task.id}/${date.key}')) {
+        throw const BackupInvalid();
+      }
     }
     final noteIds = <String>{};
     for (final m in t['notes']!) {

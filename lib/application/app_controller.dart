@@ -36,6 +36,7 @@ class AppController extends ChangeNotifier {
   List<Habit> habits = [];
   List<HabitEntry> entries = [];
   List<SmallTask> tasks = [];
+  List<TaskEntry> taskEntries = [];
   List<Note> notes = [];
   Map<String, String> preferences = {};
   List<HabitPlan> plans = [];
@@ -51,6 +52,7 @@ class AppController extends ChangeNotifier {
     final h = await store.habits();
     final e = await store.entries();
     final t = await store.tasks();
+    final te = await store.taskEntries();
     final n = await store.notes();
     final p = await store.settings();
     final versions = await store.plans();
@@ -60,6 +62,7 @@ class AppController extends ChangeNotifier {
     habits = h;
     entries = e;
     tasks = t;
+    taskEntries = te;
     notes = n;
     preferences = p;
     plans = versions;
@@ -109,6 +112,25 @@ class AppController extends ChangeNotifier {
     selectedDay = day;
     notifyListeners();
   }
+
+  bool taskDoneOn(SmallTask task, Day day) => task.resident
+      ? taskEntries.any((e) => e.taskId == task.id && e.day == day)
+      : task.completedDay == day;
+  List<SmallTask> get oneTimeTasks => tasks.where((t) => !t.resident).toList();
+  List<SmallTask> get residentTasks =>
+      tasks.where((t) => t.resident && !t.archived).toList();
+  int tasksCompletedOn(Day day) =>
+      oneTimeTasks.where((t) => t.completedDay == day).length +
+      taskEntries.where((e) => e.day == day).length;
+  Future<bool> recordResidentToday(
+    SmallTask task,
+    Day renderedDay,
+    bool done,
+    int epoch,
+  ) => run(() async {
+    if (renderedDay != today) throw StateError('Day changed');
+    await store.setResidentRecord(task.id, renderedDay, done, today: today);
+  }, expectedGeneration: epoch);
 
   void acknowledgeError() {
     error = null;

@@ -1,5 +1,18 @@
 import 'package:sqflite/sqflite.dart';
 
+Future<void> upgradeToV4(DatabaseExecutor db) async {
+  await db.execute(
+    'ALTER TABLE tasks ADD COLUMN resident INTEGER NOT NULL DEFAULT 0 CHECK(resident IN (0,1))',
+  );
+  await db.execute('ALTER TABLE tasks ADD COLUMN start_day TEXT');
+  await db.execute(
+    'ALTER TABLE tasks ADD COLUMN archived INTEGER NOT NULL DEFAULT 0 CHECK(archived IN (0,1))',
+  );
+  await db.execute(
+    'CREATE TABLE task_entries(task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE, day TEXT NOT NULL, PRIMARY KEY(task_id,day))',
+  );
+}
+
 Future<void> upgradeToV3(DatabaseExecutor db) async {
   await db.execute(
     'CREATE TABLE reminders (habit_id TEXT PRIMARY KEY REFERENCES habits(id) ON DELETE CASCADE, enabled INTEGER NOT NULL CHECK(enabled IN (0,1)), minutes TEXT NOT NULL, revision INTEGER NOT NULL CHECK(revision>=0))',
