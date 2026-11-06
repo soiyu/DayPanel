@@ -98,6 +98,198 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @habitReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit reminder'**
+  String get habitReminder;
+
+  /// No description provided for @remindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get remindersTitle;
+
+  /// No description provided for @remindersIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a little time for your habits, at the right moments.'**
+  String get remindersIntro;
+
+  /// No description provided for @reminderOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get reminderOff;
+
+  /// No description provided for @reminderOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable reminder'**
+  String get reminderOn;
+
+  /// No description provided for @reminderTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder times'**
+  String get reminderTimes;
+
+  /// No description provided for @addReminderTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a time'**
+  String get addReminderTime;
+
+  /// No description provided for @reminderLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose up to 5 different times.'**
+  String get reminderLimit;
+
+  /// No description provided for @reminderScheduleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind only on planned days while unfinished. Weekly reminders stop once the weekly goal is reached.'**
+  String get reminderScheduleHint;
+
+  /// No description provided for @reminderLocalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Times follow your current time zone. Turning reminders off keeps your chosen times.'**
+  String get reminderLocalTime;
+
+  /// No description provided for @notificationAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are allowed'**
+  String get notificationAllowed;
+
+  /// No description provided for @notificationBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are blocked'**
+  String get notificationBlocked;
+
+  /// No description provided for @enableNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications'**
+  String get enableNotifications;
+
+  /// No description provided for @notificationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings'**
+  String get notificationSettings;
+
+  /// No description provided for @exactReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder timing'**
+  String get exactReminder;
+
+  /// No description provided for @exactAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise timing allowed'**
+  String get exactAvailable;
+
+  /// No description provided for @exactUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard timing; power saving may delay delivery'**
+  String get exactUnavailable;
+
+  /// No description provided for @requestExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Set precise timing'**
+  String get requestExact;
+
+  /// No description provided for @reminderSavedBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder saved, but notifications are blocked. You can enable them later in Reminders.'**
+  String get reminderSavedBlocked;
+
+  /// No description provided for @reminderSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the reminder. Please retry.'**
+  String get reminderSaveFailed;
+
+  /// No description provided for @reminderSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings are saved, but system scheduling did not update. Retry or reopen the app.'**
+  String get reminderSyncFailed;
+
+  /// No description provided for @reminderSystemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage sound and vibration in system notification settings. After force-stopping the app, reopen it to resume reminders.'**
+  String get reminderSystemHint;
+
+  /// No description provided for @reminderPermissionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only for habit reminders you choose. Turn them off at any time.'**
+  String get reminderPermissionHint;
+
+  /// No description provided for @removeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove time'**
+  String get removeTime;
+
+  /// No description provided for @noReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with a habit'**
+  String get noReminders;
+
+  /// No description provided for @noRemindersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a habit to choose its reminder times.'**
+  String get noRemindersBody;
+
+  /// No description provided for @reminderArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived; reminders paused'**
+  String get reminderArchived;
+
+  /// No description provided for @reminderSettingsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open system settings. Please try again.'**
+  String get reminderSettingsFailed;
+
+  /// No description provided for @remindersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled reminders'**
+  String get remindersCount;
+
+  /// No description provided for @snoozeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'From a notification, log your habit or snooze for 10 minutes. Opening it never logs automatically.'**
+  String get snoozeHint;
+
+  /// No description provided for @reminderBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder settings are backed up. System permission must be enabled on each device.'**
+  String get reminderBackups;
+
+  /// No description provided for @reminderChannelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your times are kept if notification permission is denied.'**
+  String get reminderChannelHint;
+
   /// No description provided for @restoreRefreshFailed.
   ///
   /// In en, this message translates to:

@@ -11,6 +11,7 @@ import 'review.dart';
 import 'theme.dart';
 import 'organization.dart';
 import 'backup_page.dart';
+import 'reminders.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.app});
@@ -866,6 +867,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           padding: const EdgeInsets.all(5),
           child: Column(
             children: [
+              SettingRow(
+                icon: Icons.notifications_none_rounded,
+                title: s.remindersTitle,
+                tone: UiTone.peach,
+                subtitle:
+                    '${app.reminders.where((r) => r.enabled && app.habits.any((h) => h.id == r.habitId && !h.archived)).length} ${s.remindersCount}',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => RemindersPage(app: app),
+                  ),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(left: 66, right: 14),
+                child: Divider(),
+              ),
               SettingRow(
                 icon: Icons.palette_outlined,
                 title: s.appearance,

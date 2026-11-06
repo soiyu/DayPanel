@@ -20,3 +20,5 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - run: flutter build apk --debug
+      - run: ./gradlew :app:testDebugUnitTest --console=plain
+        working-directory: android

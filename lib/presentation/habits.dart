@@ -6,6 +6,7 @@ import 'components.dart';
 import 'editors.dart';
 import 'theme.dart';
 import 'organization.dart';
+import 'reminders.dart';
 
 class HabitTile extends StatelessWidget {
   const HabitTile({
@@ -316,15 +317,35 @@ class HabitLibrary extends StatelessWidget {
 }
 
 class HabitDetails extends StatefulWidget {
-  const HabitDetails({super.key, required this.app, required this.id});
+  const HabitDetails({
+    super.key,
+    required this.app,
+    required this.id,
+    this.logOnOpen = false,
+  });
   final AppController app;
   final String id;
+  final bool logOnOpen;
   @override
   State<HabitDetails> createState() => _HabitDetailsState();
 }
 
 class _HabitDetailsState extends State<HabitDetails> {
   Day? selected;
+  @override
+  void initState() {
+    super.initState();
+    if (widget.logOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final h = widget.app.habits
+            .where((h) => h.id == widget.id && !h.archived)
+            .firstOrNull;
+        if (h != null) openQuantity(context, widget.app, h, widget.app.today);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: widget.app,
@@ -391,6 +412,24 @@ class _HabitDetailsState extends State<HabitDetails> {
               ),
               const SizedBox(height: 16),
               HabitTile(app: app, habit: h, day: day, openDetails: false),
+              const SizedBox(height: 14),
+              SoftPanel(
+                padding: const EdgeInsets.all(3),
+                tinted: true,
+                tone: UiTone.peach,
+                child: SettingRow(
+                  icon: Icons.notifications_none_rounded,
+                  title: s.habitReminder,
+                  tone: UiTone.peach,
+                  subtitle: widget.app.reminderFor(h.id).enabled
+                      ? formatReminderTimes(
+                          context,
+                          widget.app.reminderFor(h.id).minutes,
+                        )
+                      : s.reminderOff,
+                  onTap: () => openReminderEditor(context, app, h),
+                ),
+              ),
               if (app.pending(h) != null) ...[
                 const SizedBox(height: 12),
                 AppBadge(s.planPending, tone: UiTone.peach),

@@ -7,15 +7,49 @@ import android.app.Activity
 import android.content.Intent
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
+import android.Manifest
+import android.os.Build
+import android.provider.Settings
+import android.net.Uri
+import app.daypanel.next.reminders.ReminderEngine
 
 class MainActivity : FlutterActivity() {
     private var pending: MethodChannel.Result? = null
     private var exportBytes: ByteArray? = null
     private val worker = Executors.newSingleThreadExecutor()
     private val limit = 8 * 1024 * 1024
+    private var reminderChannel: MethodChannel? = null
+    private var permissionReply: MethodChannel.Result? = null
+    private var pendingOpen: String? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        pendingOpen = intent?.getStringExtra("reminder")
+        reminderChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"app.daypanel.next/reminders").also { channel ->
+            channel.setMethodCallHandler { call, reply ->
+                when(call.method) {
+                    "sync" -> reminderWork(reply) { ReminderEngine.sync(this); ReminderEngine.status(this) }
+                    "permission" -> {
+                        if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            if(permissionReply!=null) reply.error("busy","Permission request active",null)
+                            else { permissionReply=reply; requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS),4201) }
+                        } else reminderWork(reply) { ReminderEngine.sync(this); ReminderEngine.status(this) }
+                    }
+                    "settings" -> try {
+                        val exact=call.argument<Boolean>("exact")==true
+                        val target=if(exact&&Build.VERSION.SDK_INT>=31) Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:$packageName"))
+                            else Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,packageName)
+                        startActivity(target);reply.success(null)
+                    } catch(_:Exception){reply.error("unavailable","Settings unavailable",null)}
+                    "takeOpen" -> {
+                        val encoded=pendingOpen;pendingOpen=null
+                        intent?.removeExtra("reminder")
+                        reminderWork(reply) { ReminderEngine.openRequest(this,encoded) }
+                    }
+                    else -> reply.notImplemented()
+                }
+            }
+        }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.daypanel.next/documents")
             .setMethodCallHandler { call, result ->
                 if (call.method != "save" && call.method != "pick") {
@@ -51,6 +85,28 @@ class MainActivity : FlutterActivity() {
                     }
                 }
             }
+    }
+
+    private fun reminderWork(reply: MethodChannel.Result, work: () -> Any?) {
+        ReminderEngine.worker.execute {
+            try { val value=work();runOnUiThread { reply.success(value) } }
+            catch(_:Exception) { runOnUiThread { reply.error("schedule","Unable to update reminders",null) } }
+        }
+    }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if(intent.action==ReminderEngine.OPEN) {
+            pendingOpen=intent.getStringExtra("reminder")
+            reminderChannel?.invokeMethod("opened",null)
+        }
+    }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode,permissions,grantResults)
+        if(requestCode==4201) {
+            val reply=permissionReply;permissionReply=null
+            if(reply!=null) reminderWork(reply) { ReminderEngine.sync(this);ReminderEngine.status(this) }
+        }
     }
 
     @Deprecated("Activity result compatibility")

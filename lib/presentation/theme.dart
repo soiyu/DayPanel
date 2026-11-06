@@ -167,6 +167,27 @@ ThemeData dayPanelTheme(Brightness brightness) {
       ),
       dividerColor: scheme.outlineVariant,
     ),
+    timePickerTheme: TimePickerThemeData(
+      backgroundColor: dark ? const Color(0xFF222B3D) : const Color(0xFFFBFCFF),
+      shape: shape,
+      hourMinuteShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      hourMinuteColor: scheme.primaryContainer,
+      hourMinuteTextColor: scheme.primary,
+      dialBackgroundColor: dark
+          ? const Color(0xFF263957)
+          : const Color(0xFFEAF0FF),
+      dialHandColor: scheme.primary,
+      dayPeriodShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      helpTextStyle: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: scheme.onSurfaceVariant,
+      ),
+    ),
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,

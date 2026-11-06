@@ -8,6 +8,8 @@ Flutter 3.47.9 stable / Dart 3.13.7，JDK 17，Android SDK 36；当前 Flutter A
 
 `format` 格式化，`analyze` 静态检查，`test` 测试，`assemble` 构建 debug，`run -Extra '-d','设备ID'` 启动。默认没有 release 签名，不使用 debug 签名充当发布包。
 
+FL11 后 `verify` 同时运行 Kotlin `:app:testDebugUnitTest`；`native-test` 运行原生单测并构建 Android instrumentation APK。可在测试设备安装 `build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk` 后运行 `app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner` 的 `app.daypanel.next.reminders.ReminderEngineTest`。它用单独临时 SQLite 文件/偏好和测试通知标识，不替换用户数据库。API33+ 用例会在测试包上下文允许通知权限；真实拒绝流程需另行手动验证。
+
 脚本在子进程里使用项目 `.local/tool-settings` 保存 Flutter 设置，让所选 JDK 优先于主机 Android Studio JBR；不调用全局 `flutter config`。Gradle / Pub 缓存同样位于 `.local`。
 
 桌面测试固定 `sqflite_common_ffi 2.3.6 + sqlite3 2.9.4`，二者须配套升级。App 使用 `sqflite` 的 Android 原生实现；这些测试包不作为产品桌面端。Native hooks 的更新需独立检查构建影响。

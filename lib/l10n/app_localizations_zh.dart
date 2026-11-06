@@ -9,6 +9,102 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get habitReminder => '习惯提醒';
+
+  @override
+  String get remindersTitle => '提醒中心';
+
+  @override
+  String get remindersIntro => '在合适的时刻，给自己的小习惯留一点时间。';
+
+  @override
+  String get reminderOff => '未开启';
+
+  @override
+  String get reminderOn => '开启提醒';
+
+  @override
+  String get reminderTimes => '提醒时刻';
+
+  @override
+  String get addReminderTime => '添加时刻';
+
+  @override
+  String get reminderLimit => '最多 5 个时刻，不能重复。';
+
+  @override
+  String get reminderScheduleHint => '只在计划日且尚未达标时提醒；周目标达标后，本周不再提醒。';
+
+  @override
+  String get reminderLocalTime => '时间跟随当前时区；关闭提醒会保留所选时刻。';
+
+  @override
+  String get notificationAllowed => '系统通知已开启';
+
+  @override
+  String get notificationBlocked => '系统通知未开启';
+
+  @override
+  String get enableNotifications => '允许通知';
+
+  @override
+  String get notificationSettings => '系统通知设置';
+
+  @override
+  String get exactReminder => '提醒精度';
+
+  @override
+  String get exactAvailable => '已允许准时提醒';
+
+  @override
+  String get exactUnavailable => '标准提醒，可能受节电策略延迟';
+
+  @override
+  String get requestExact => '设置准时提醒';
+
+  @override
+  String get reminderSavedBlocked => '提醒已保存，但系统通知未开启。可以稍后在提醒中心设置。';
+
+  @override
+  String get reminderSaveFailed => '提醒未保存，请重试。';
+
+  @override
+  String get reminderSyncFailed => '设置已保存，系统调度暂未更新。请重试或重新打开 App。';
+
+  @override
+  String get reminderSystemHint => '声音和震动由系统通知设置管理。强行停止 App 后，请重新打开以恢复提醒。';
+
+  @override
+  String get reminderPermissionHint => '仅用于你设置的习惯提醒，可以随时关闭。';
+
+  @override
+  String get removeTime => '移除此时刻';
+
+  @override
+  String get noReminders => '从一个习惯开始';
+
+  @override
+  String get noRemindersBody => '创建习惯后，即可为它设置提醒。';
+
+  @override
+  String get reminderArchived => '已归档，提醒暂停';
+
+  @override
+  String get reminderSettingsFailed => '无法打开系统设置，请稍后重试。';
+
+  @override
+  String get remindersCount => '已开启提醒';
+
+  @override
+  String get snoozeHint => '通知中可去记录，或选择 10 分钟后再提醒。打开通知不会自动打卡。';
+
+  @override
+  String get reminderBackups => '提醒配置随备份保存；系统权限需要在设备上单独开启。';
+
+  @override
+  String get reminderChannelHint => '通知权限被拒绝时，已选时刻仍然保留。';
+
+  @override
   String get restoreRefreshFailed => '数据已恢复，但页面刷新失败。请返回并重试加载，勿重复恢复。';
 
   @override

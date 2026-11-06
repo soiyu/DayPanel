@@ -172,6 +172,10 @@ class _BackupPageState extends State<BackupPage> {
             '${s.plansLabel} ${snap.count('plans')}',
             tone: UiTone.violet,
           ),
+          AppBadge(
+            '${s.remindersTitle} ${snap.count('reminders')}',
+            tone: UiTone.peach,
+          ),
         ],
       ),
     );

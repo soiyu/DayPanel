@@ -4,6 +4,7 @@ import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
 import 'schema.dart';
 import '../domain/backup.dart';
+import '../domain/reminder.dart';
 part 'store_backup.dart';
 
 class AppStore {
@@ -17,7 +18,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 2,
+        version: 3,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           await db.execute(
@@ -36,9 +37,11 @@ class AppStore {
             'CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)',
           );
           await upgradeToV2(db);
+          await upgradeToV3(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
+          if (oldVersion < 3) await upgradeToV3(db);
         },
       ),
     );
@@ -46,6 +49,31 @@ class AppStore {
   }
 
   Future<void> close() => db.close();
+  Future<List<HabitReminder>> reminders() async =>
+      (await db.query('reminders')).map(HabitReminder.fromMap).toList();
+  Future<void> saveReminder(HabitReminder reminder) async {
+    if (!reminder.valid) throw ArgumentError('Invalid reminder');
+    await db.transaction((txn) async {
+      if ((await txn.query(
+        'habits',
+        where: 'id=?',
+        whereArgs: [reminder.habitId],
+      )).isEmpty) {
+        throw StateError('Habit missing');
+      }
+      final old = await txn.query(
+        'reminders',
+        where: 'habit_id=?',
+        whereArgs: [reminder.habitId],
+      );
+      final revision = old.isEmpty ? 0 : (old.single['revision'] as int) + 1;
+      await txn.insert('reminders', {
+        ...reminder.toMap(),
+        'revision': revision,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    });
+  }
+
   Future<List<Habit>> habits() async => (await db.query(
     'habits',
     orderBy: 'position,rowid',

@@ -9,6 +9,114 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get habitReminder => 'Habit reminder';
+
+  @override
+  String get remindersTitle => 'Reminders';
+
+  @override
+  String get remindersIntro =>
+      'Make a little time for your habits, at the right moments.';
+
+  @override
+  String get reminderOff => 'Off';
+
+  @override
+  String get reminderOn => 'Enable reminder';
+
+  @override
+  String get reminderTimes => 'Reminder times';
+
+  @override
+  String get addReminderTime => 'Add a time';
+
+  @override
+  String get reminderLimit => 'Choose up to 5 different times.';
+
+  @override
+  String get reminderScheduleHint =>
+      'Remind only on planned days while unfinished. Weekly reminders stop once the weekly goal is reached.';
+
+  @override
+  String get reminderLocalTime =>
+      'Times follow your current time zone. Turning reminders off keeps your chosen times.';
+
+  @override
+  String get notificationAllowed => 'Notifications are allowed';
+
+  @override
+  String get notificationBlocked => 'Notifications are blocked';
+
+  @override
+  String get enableNotifications => 'Allow notifications';
+
+  @override
+  String get notificationSettings => 'Notification settings';
+
+  @override
+  String get exactReminder => 'Reminder timing';
+
+  @override
+  String get exactAvailable => 'Precise timing allowed';
+
+  @override
+  String get exactUnavailable =>
+      'Standard timing; power saving may delay delivery';
+
+  @override
+  String get requestExact => 'Set precise timing';
+
+  @override
+  String get reminderSavedBlocked =>
+      'Reminder saved, but notifications are blocked. You can enable them later in Reminders.';
+
+  @override
+  String get reminderSaveFailed => 'Could not save the reminder. Please retry.';
+
+  @override
+  String get reminderSyncFailed =>
+      'Settings are saved, but system scheduling did not update. Retry or reopen the app.';
+
+  @override
+  String get reminderSystemHint =>
+      'Manage sound and vibration in system notification settings. After force-stopping the app, reopen it to resume reminders.';
+
+  @override
+  String get reminderPermissionHint =>
+      'Only for habit reminders you choose. Turn them off at any time.';
+
+  @override
+  String get removeTime => 'Remove time';
+
+  @override
+  String get noReminders => 'Start with a habit';
+
+  @override
+  String get noRemindersBody => 'Create a habit to choose its reminder times.';
+
+  @override
+  String get reminderArchived => 'Archived; reminders paused';
+
+  @override
+  String get reminderSettingsFailed =>
+      'Could not open system settings. Please try again.';
+
+  @override
+  String get remindersCount => 'Enabled reminders';
+
+  @override
+  String get snoozeHint =>
+      'From a notification, log your habit or snooze for 10 minutes. Opening it never logs automatically.';
+
+  @override
+  String get reminderBackups =>
+      'Reminder settings are backed up. System permission must be enabled on each device.';
+
+  @override
+  String get reminderChannelHint =>
+      'Your times are kept if notification permission is denied.';
+
+  @override
   String get restoreRefreshFailed =>
       'Data was restored, but the screen could not refresh. Go back and reload before making more changes.';
 

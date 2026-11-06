@@ -2,13 +2,34 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../data/app_store.dart';
 import '../domain/models.dart';
+import '../domain/reminder.dart';
+import '../data/reminder_platform.dart';
 
 class AppController extends ChangeNotifier {
-  AppController(this.store, {DateTime Function()? clock})
+  AppController(this.store, {DateTime Function()? clock, this.reminderPlatform})
     : clock = clock ?? DateTime.now {
     selectedDay = today;
   }
   final AppStore store;
+  final ReminderPlatform? reminderPlatform;
+  ReminderStatus reminderStatus = const ReminderStatus(available: false);
+  List<HabitReminder> reminders = [];
+  bool reminderSyncFailed = false;
+  HabitReminder reminderFor(String id) =>
+      reminders.where((r) => r.habitId == id).firstOrNull ??
+      HabitReminder(habitId: id, enabled: false, minutes: [9 * 60]);
+  Future<void> syncReminders() async {
+    if (reminderPlatform == null) return;
+    try {
+      reminderStatus = await reminderPlatform!.sync();
+      reminderSyncFailed = false;
+    } catch (_) {
+      reminderSyncFailed = true;
+      reminderStatus = const ReminderStatus(available: false);
+    }
+    notifyListeners();
+  }
+
   final DateTime Function() clock;
   Day get today => Day(clock());
   late Day selectedDay;
@@ -35,6 +56,7 @@ class AppController extends ChangeNotifier {
     final versions = await store.plans();
     final g = await store.groups();
     final epoch = await store.generation();
+    final remindersSaved = await store.reminders();
     habits = h;
     entries = e;
     tasks = t;
@@ -43,6 +65,7 @@ class AppController extends ChangeNotifier {
     plans = versions;
     groups = g;
     generation = epoch;
+    reminders = remindersSaved;
     if (groupFilter != null && !g.any((g) => g.id == groupFilter)) {
       groupFilter = null;
     }
@@ -71,6 +94,7 @@ class AppController extends ChangeNotifier {
       }
       await operation();
       await load();
+      await syncReminders();
       return true;
     } catch (_) {
       error = 'storage'; // UI localizes; no personal content in logs.

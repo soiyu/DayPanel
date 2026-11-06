@@ -1,5 +1,5 @@
 param(
-  [ValidateSet('doctor','pub','format','analyze','test','assemble','verify','run')]
+  [ValidateSet('doctor','pub','format','analyze','test','assemble','verify','run','native-test')]
   [string]$Command = 'verify',
   [string[]]$Extra = @()
 )
@@ -30,6 +30,11 @@ function Invoke-Flutter([string[]]$Arguments) {
   & $flutter --suppress-analytics @Arguments
   if ($LASTEXITCODE -ne 0) { throw "Flutter command failed: $Arguments (exit $LASTEXITCODE)" }
 }
+function Invoke-Gradle([string[]]$Arguments) {
+  Push-Location (Join-Path $projectRoot 'android')
+  try { & .\gradlew.bat @Arguments --console=plain; if($LASTEXITCODE -ne 0){throw 'Native Gradle checks failed'} }
+  finally { Pop-Location }
+}
 Push-Location $projectRoot
 try {
   switch ($Command) {
@@ -40,11 +45,13 @@ try {
     'test' { Invoke-Flutter (@('test') + $Extra) }
     'assemble' { Invoke-Flutter (@('build','apk','--debug') + $Extra) }
     'run' { Invoke-Flutter (@('run') + $Extra) }
+    'native-test' { Invoke-Gradle (@(':app:testDebugUnitTest',':app:assembleDebugAndroidTest')+$Extra) }
     'verify' {
       Invoke-Flutter @('pub','get'); Invoke-Flutter @('gen-l10n')
       & $dart format --output=none --set-exit-if-changed lib test
       if ($LASTEXITCODE -ne 0) { throw 'Run scripts/dev.ps1 format first' }
       Invoke-Flutter @('analyze'); Invoke-Flutter @('test'); Invoke-Flutter @('build','apk','--debug')
+      Invoke-Gradle @(':app:testDebugUnitTest')
     }
   }
 } finally { Pop-Location }

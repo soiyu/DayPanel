@@ -1,8 +1,8 @@
 # 当前执行状态
 
-更新 2026-11-05。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
+更新 2026-11-06。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
 
-当前已完成基座、UI01 精修和 M2 第一批 FL09/FL10：完整文件备份/恢复/回退，情境/分组/排序，间隔/周目标和计划历史。最新验证与限制见文末；此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
+当前已完成基座、UI01 精修、FL09/FL10 和 FL11 习惯提醒。最新版本 SQLite v3，支持文件备份/恢复、习惯安排历史和提醒配置；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
 
 ## 已实现基座与 UI
 
@@ -148,3 +148,50 @@ UI 测试覆盖文件取消/无效文件不改数据、预览必须确认、恢�
 ### 交接与关机
 
 下一批从 FL11 习惯提醒开始，核定多时刻/稍后与权限、取消、重启、时区；之后 FL12 常驻小事和 FL13 关联日志/月浏览/搜索。本轮完成进度记录、Git 提交与 APK 保存后按用户指示关机。关机前正常退出模拟器以保存持久 AVD；不推送远端。
+
+## 2026-11-06 FL11 习惯提醒交付
+
+用户要求“下一批任务，做完不用关机”，继续此前操作方便/逻辑正确/既定视觉方向。本轮实现仅 FL11，规则见 [ADR 0003](../adr/0003-habit-reminders.md)，界面见 [REMINDERS](../design/REMINDERS.md)。不启动此前关机脚本。
+
+### 实现与边界
+
+- 单习惯详情的提醒设置：开关、1–5 个不同本地时刻、修改/添加/移除、保存/取消；关闭保留时刻，归档显示暂停。我的新增提醒中心，系统通知权限、频道和准时权限状态来自 Android。
+- SQLite v3 存储提醒及 revision；v1/v2 自动迁移。完整备份 schema3 包含提醒，仍可恢复 schema2 文件（无提醒）；权限、设备闹钟、稍后和投递去重记录不写入备份。
+- Kotlin AlarmManager + 非导出 Receiver。触发时以事务读取现有数据库、当日计划、记录、目标和版本；仅用户配置的未达标计划投递。按每习惯下一次事件循环排程，支持本地时区/DST，不靠预排七天或 Flutter 进程常驻。
+- Flutter 成功写入后同步调度；完成、周目标达标、关闭、归档/删除或数据恢复导致旧事件失效。native 调度失败单独显示，不误报用户数据保存失败。事件校验数据世代/revision/token；同日同一时刻去重，旧通知/稍后不可重复执行。
+- 通知可去记录或稍后10分钟；去记录直接打开 Activity，布尔进入详情、数量进入快记。打开本身不写记录，过期日期/恢复前事件拒绝。稍后不跨午夜，一条习惯保持一条当前通知。
+- API33+ 保存开启提醒时请求 POST_NOTIFICATIONS，拒绝保留配置且不排闹钟；系统设置可恢复。精确权限为可选 SCHEDULE_EXACT_ALARM，无权限使用标准模式；声音/震动通过系统频道。新增 RECEIVE_BOOT_COMPLETED/VIBRATE，无 USE_EXACT_ALARM、全屏/后台无限运行权限。
+- BOOT_COMPLETED、包更新、时间/时区/语言变化与精确权限授权事件重排；前台恢复也重查。标准模式可能节电延迟，超过两小时或跨日的过期触发不补发。用户强行停止 App 后需重新打开；精确权限被撤销并杀进程后也要重开或等待受支持系统事件才重新注册标准闹钟，不声称可绕过系统规则。
+
+### 最终检查
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+```
+
+`.local/reports/reminders-final.log`：analyze `No issues found`，**57 项 Dart/Flutter 测试通过**，debug APK 构建成功 19.7s，Kotlin JVM 单测 **8/8**。原有 46 项继续通过，新加7项提醒数据/备份/同步规则、4项提醒UI（拒绝保存/中英窄屏大字号/通知打开不写入）。`native-test` 另成功构建测试 APK，日志 reminders-native-final.log；既有 Kotlin Gradle 插件迁移告警仍在。
+
+Kotlin JVM 覆盖未来时刻、当日完成、归档/关闭、日期/版本切换、周界限、间隔、DST缺失/重复小时、本地时区和跨日稍后。Android instrumentation 使用隔离测试文件与偏好、专用通知 ID；**API28、API35 各6项通过**，覆盖真实 NotificationManager、AlarmManager、去重/稍后、完成取消、归档、世代/revision/跨日失效与消费通知入口不写用户库。结果见 reminders-api28-final.log / reminders-api35-final.log。
+
+最终 APK `build/app/outputs/flutter-apk/app-debug.apk`，174559234 bytes，SHA-256 `f43ad36d85aec36bea8ad86389d65257332f8bd79cab9fae00725f8f35f499e7`。两台模拟器均覆盖安装此最终包。合并 Manifest 核对 `app.daypanel.next.debug`、ReminderReceiver exported=false、上述四项权限，无广告/Billing。CI 增加 Kotlin JVM 单测，远端仍未运行。
+
+### 实际系统验证
+
+- API28 可见模拟器保留用户库。升级前停进程归档 `pre-reminders-db.tar`；新包升级成功。临时创建 Reminder QA、设置两分钟后的时刻并保存，系统 alarms 中真实出现精确事件。按 Home 并 `am kill` 后进程不在，到点仍出现中文通知，含去记录/10分钟后按钮。
+- 真正点击10分钟后，通知消失，系统出现约10分钟后的事件；打开 App 不自动完成。随后在详情显式完成，稍后事件清空并改排次日；临时习惯最终通过删除确认移除，runtime 中 notices/scheduled/snoozes 均为空。
+- API35 独立 AVD（本轮安装官方 default x86_64 镜像并校验 SHA-1）：真实系统授权弹窗点击拒绝，配置保留且无待触发提醒，界面显示系统通知未开启；再次主动允许后重排。未允许准时时 `dumpsys alarm` window=1h（标准模式），从系统设置允许后 window=0 / exactAllowReason=permission。
+- API35 App 在后台被 `am kill` 后通过 `cmd alarm set-timezone Asia/Shanghai` 修改测试设备时区，保存的9:00重新对应当地9:00。真正 `adb reboot` 并解锁、未打开 App 时，闹钟由 BOOT_COMPLETED 重排。AVD 重启后系统自动时区回到原UTC，闹钟按当时系统时区解释，未宣称上海时区持久化。
+- 精确撤销检查首次仅设置包 appop，uid allow 仍覆盖，未把该次算通过；随后设置 uid deny、重启 App，真实看到标准模式 window=1h，无崩溃。
+- API35 在中途出现 emulator ColorBuffer/render context 故障导致掉线；以 swiftshader、无快照重新启动后继续，并在最终包上跑完6项原生测试。该问题属于环境记录，不是 DayPanel 全设备可靠性证据。专用API35测试App内容已清理并正常停止该模拟器，API28可见模拟器仍保留。
+- API28 升级后关闭进程再归档 `post-reminders-db.tar`；独立本地校验通过：前库v2、后库v3，habits/plans/entries/tasks/notes/settings/habit_groups/runtime/recovery 逐表完全相同，新增 reminders 表为空。临时记录未混进用户数据，升级前后原数据未改变。校验日志 reminder-retention.log（额外1项，未混入57项统计）。
+
+截图位于 `.local/reports/reminder-*.png`，包括配置面板、实际通知、API35授权/拒绝/精确设置、中文提醒中心。早期时间选择器截图在最终统一主题前拍摄；以最终已安装包为准。仪器与实际系统操作证据分别记录，不把Android28结果当作API35结果。
+
+### 剩余项与交接
+
+未覆盖厂商真机、全部Doze/长时间休眠、多时刻全天投递、Android34/36完整矩阵与实际TalkBack。标准提醒延迟是平台行为；应用不保证被强停后继续投递。FL11 标为实现与限定验收通过，发布 QA 继续跟踪这些边界。
+
+下一批 FL12 常驻小事，先明确常驻与重复任务的不同规则；随后 FL13 关联日志/月浏览/搜索。全部免费，保持当前设计。此轮记录、提交和安装完成后保持电脑开机，不推送远端、不关机。

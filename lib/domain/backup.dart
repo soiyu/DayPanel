@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'models.dart';
+import 'reminder.dart';
 
 class BackupInvalid implements Exception {
   const BackupInvalid();
@@ -18,13 +19,14 @@ class BackupSnapshot {
     'tasks',
     'notes',
     'settings',
+    'reminders',
   ];
   final DateTime createdAt;
   final Map<String, List<Map<String, Object?>>> tables;
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 2,
+      'schema': 3,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -67,13 +69,18 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (content['schema'] != 2) throw const BackupInvalid();
+      if (!{2, 3}.contains(content['schema'])) throw const BackupInvalid();
       final created = DateTime.parse(content['created_at'] as String);
       if (!created.isUtc || created.year < 1900 || created.year > 2200) {
         throw const BackupInvalid();
       }
       final raw = content['tables'] as Map<String, dynamic>;
-      _keys(raw, tableNames.toSet());
+      if (content['schema'] == 2) {
+        _keys(raw, tableNames.where((n) => n != 'reminders').toSet());
+        raw['reminders'] = <Object>[];
+      } else {
+        _keys(raw, tableNames.toSet());
+      }
       final tables = <String, List<Map<String, Object?>>>{};
       var total = 0;
       for (final name in tableNames) {
@@ -236,6 +243,19 @@ class BackupSnapshot {
       Day.parse(m['day'] as String);
     }
     final settingKeys = <String>{};
+    final reminderIds = <String>{};
+    for (final m in t['reminders']!) {
+      _keys(m, {'habit_id', 'enabled', 'minutes', 'revision'});
+      _int(m, 'enabled', 0, 1);
+      _int(m, 'revision', 0, 2147483647);
+      _text(m, 'minutes', 100);
+      final r = HabitReminder.fromMap(m);
+      if (!r.valid ||
+          !habitIds.containsKey(r.habitId) ||
+          !reminderIds.add(r.habitId)) {
+        throw const BackupInvalid();
+      }
+    }
     for (final m in t['settings']!) {
       _keys(m, {'key', 'value'});
       if (!settingKeys.add(m['key'] as String)) throw const BackupInvalid();

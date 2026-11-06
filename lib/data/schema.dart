@@ -1,5 +1,11 @@
 import 'package:sqflite/sqflite.dart';
 
+Future<void> upgradeToV3(DatabaseExecutor db) async {
+  await db.execute(
+    'CREATE TABLE reminders (habit_id TEXT PRIMARY KEY REFERENCES habits(id) ON DELETE CASCADE, enabled INTEGER NOT NULL CHECK(enabled IN (0,1)), minutes TEXT NOT NULL, revision INTEGER NOT NULL CHECK(revision>=0))',
+  );
+}
+
 Future<void> upgradeToV2(DatabaseExecutor db) async {
   await db.execute(
     'CREATE TABLE habit_groups (id TEXT PRIMARY KEY, name TEXT NOT NULL, position INTEGER NOT NULL)',
