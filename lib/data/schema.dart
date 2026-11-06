@@ -1,5 +1,11 @@
 import 'package:sqflite/sqflite.dart';
 
+Future<void> upgradeToV6(DatabaseExecutor db) async {
+  await db.execute(
+    'CREATE TABLE cards(day TEXT PRIMARY KEY, artwork INTEGER NOT NULL CHECK(artwork BETWEEN 0 AND 5), favorite INTEGER NOT NULL CHECK(favorite IN (0,1)), reflection TEXT NOT NULL, evidence TEXT NOT NULL)',
+  );
+}
+
 Future<void> upgradeToV5(DatabaseExecutor db) async {
   await db.execute(
     'ALTER TABLE notes ADD COLUMN habit_id TEXT REFERENCES habits(id) ON DELETE SET NULL',

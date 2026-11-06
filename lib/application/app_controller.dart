@@ -3,17 +3,55 @@ import 'package:flutter/foundation.dart';
 import '../data/app_store.dart';
 import '../domain/models.dart';
 import '../domain/journal.dart';
+import '../domain/achievement.dart';
+import '../data/completion_feedback.dart';
 import '../domain/reminder.dart';
 import '../data/reminder_platform.dart';
 
 class AppController extends ChangeNotifier {
-  AppController(this.store, {DateTime Function()? clock, this.reminderPlatform})
-    : clock = clock ?? DateTime.now {
+  AppController(
+    this.store, {
+    DateTime Function()? clock,
+    this.reminderPlatform,
+    this.completionFeedback,
+  }) : clock = clock ?? DateTime.now {
     selectedDay = today;
     journalQuery = JournalQuery(month: today);
   }
   final AppStore store;
   final ReminderPlatform? reminderPlatform;
+  final CompletionFeedback? completionFeedback;
+  bool feedbackFailed = false;
+  List<AchievementCard> cards = [];
+  AchievementCard? cardFor(Day day) =>
+      cards.where((c) => c.day == day).firstOrNull;
+  bool get canClaimCard =>
+      completedCardEvidence(today, habits, plans, entries) != null;
+  Future<bool> recordHabit(Habit habit, Day day, int? value, int epoch) async {
+    var completed = false;
+    final ok = await run(() async {
+      completed = await store.setRecord(habit.id, day, value, today: today);
+    }, expectedGeneration: epoch);
+    if (ok &&
+        completed &&
+        day == today &&
+        epoch == generation &&
+        completionFeedback != null) {
+      final sound = preferences['completion_sound'] == 'on';
+      final haptics = preferences['completion_haptics'] == 'on';
+      if (sound || haptics) {
+        try {
+          await completionFeedback!.play(sound: sound, haptics: haptics);
+          feedbackFailed = false;
+        } catch (_) {
+          feedbackFailed = true;
+        }
+        notifyListeners();
+      }
+    }
+    return ok;
+  }
+
   ReminderStatus reminderStatus = const ReminderStatus(available: false);
   List<HabitReminder> reminders = [];
   bool reminderSyncFailed = false;
@@ -72,6 +110,7 @@ class AppController extends ChangeNotifier {
     final g = await store.groups();
     final epoch = await store.generation();
     final remindersSaved = await store.reminders();
+    final savedCards = await store.cards();
     habits = h;
     entries = e;
     tasks = t;
@@ -82,6 +121,7 @@ class AppController extends ChangeNotifier {
     groups = g;
     generation = epoch;
     reminders = remindersSaved;
+    cards = savedCards;
     if (journalQuery.habitId != null &&
         !h.any((h) => h.id == journalQuery.habitId)) {
       journalQuery = JournalQuery(

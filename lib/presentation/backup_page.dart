@@ -171,6 +171,10 @@ class _BackupPageState extends State<BackupPage> {
             tone: UiTone.peach,
           ),
           AppBadge('${s.notes} ${snap.count('notes')}', tone: UiTone.violet),
+          AppBadge(
+            '${s.cardCollection} ${snap.count('cards')}',
+            tone: UiTone.violet,
+          ),
           AppBadge('${s.groupsLabel} ${snap.count('habit_groups')}'),
           AppBadge(
             '${s.plansLabel} ${snap.count('plans')}',

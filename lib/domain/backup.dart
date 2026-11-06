@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'models.dart';
 import 'reminder.dart';
+import 'achievement.dart';
 
 class BackupInvalid implements Exception {
   const BackupInvalid();
@@ -21,13 +22,14 @@ class BackupSnapshot {
     'notes',
     'settings',
     'reminders',
+    'cards',
   ];
   final DateTime createdAt;
   final Map<String, List<Map<String, Object?>>> tables;
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 5,
+      'schema': 6,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -70,7 +72,7 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3, 4, 5}.contains(content['schema'])) {
+      if (!{2, 3, 4, 5, 6}.contains(content['schema'])) {
         throw const BackupInvalid();
       }
       final created = DateTime.parse(content['created_at'] as String);
@@ -85,11 +87,13 @@ class BackupSnapshot {
             .where(
               (n) =>
                   (schema >= 3 || n != 'reminders') &&
-                  (schema >= 4 || n != 'task_entries'),
+                  (schema >= 4 || n != 'task_entries') &&
+                  (schema >= 6 || n != 'cards'),
             )
             .toSet(),
       );
       if (schema < 3) raw['reminders'] = <Object>[];
+      if (schema < 6) raw['cards'] = <Object>[];
       if (schema < 4) {
         raw['task_entries'] = <Object>[];
         for (final row in raw['tasks'] as List) {
@@ -301,6 +305,11 @@ class BackupSnapshot {
         throw const BackupInvalid();
       }
     }
+    final cardDays = <Day>{};
+    for (final m in t['cards']!) {
+      final card = AchievementCard.fromMap(m);
+      if (!cardDays.add(card.day)) throw const BackupInvalid();
+    }
     final settingKeys = <String>{};
     final reminderIds = <String>{};
     for (final m in t['reminders']!) {
@@ -318,6 +327,10 @@ class BackupSnapshot {
     for (final m in t['settings']!) {
       _keys(m, {'key', 'value'});
       if (!settingKeys.add(m['key'] as String)) throw const BackupInvalid();
+      if ({'completion_sound', 'completion_haptics'}.contains(m['key']) &&
+          {'on', 'off'}.contains(m['value'])) {
+        continue;
+      }
       if (m['key'] == 'theme' &&
           {'system', 'light', 'dark'}.contains(m['value'])) {
         continue;

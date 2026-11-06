@@ -6,6 +6,7 @@ import 'l10n/app_localizations.dart';
 import 'presentation/home.dart';
 import 'presentation/theme.dart';
 import 'data/reminder_platform.dart';
+import 'data/completion_feedback.dart';
 import 'presentation/habits.dart';
 import 'domain/models.dart';
 
@@ -30,7 +31,11 @@ class _BootstrapState extends State<Bootstrap> {
 
   Future<AppController> initialize() async {
     final store = await AppStore.open();
-    final app = AppController(store, reminderPlatform: AndroidReminders());
+    final app = AppController(
+      store,
+      reminderPlatform: AndroidReminders(),
+      completionFeedback: AndroidCompletionFeedback(),
+    );
     try {
       await app.load();
       await app.syncReminders();

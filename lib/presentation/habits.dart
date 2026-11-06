@@ -8,6 +8,7 @@ import 'theme.dart';
 import 'organization.dart';
 import 'reminders.dart';
 import 'journal.dart';
+import 'card_art.dart';
 
 class HabitTile extends StatelessWidget {
   const HabitTile({
@@ -24,6 +25,7 @@ class HabitTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
+    final epoch = app.generation;
     final display = app.forDay(habit, day);
     final plan = app.planAt(habit, day);
     final amount = app.value(habit, day);
@@ -128,14 +130,21 @@ class HabitTile extends StatelessWidget {
                   ),
                 )
               else
-                AppBadge(
-                  done
-                      ? s.finished
-                      : amount == null
-                      ? s.notRecorded
-                      : s.notCompleted,
-                  tone: done ? tone : UiTone.blue,
-                  icon: done ? Icons.done_rounded : Icons.circle_outlined,
+                AnimatedSwitcher(
+                  duration: MediaQuery.disableAnimationsOf(context)
+                      ? Duration.zero
+                      : const Duration(milliseconds: 220),
+                  transitionBuilder: cardFlipTransition,
+                  child: AppBadge(
+                    done
+                        ? s.finished
+                        : amount == null
+                        ? s.notRecorded
+                        : s.notCompleted,
+                    tone: done ? tone : UiTone.blue,
+                    key: ValueKey(done),
+                    icon: done ? Icons.done_rounded : Icons.circle_outlined,
+                  ),
                 ),
               AppAction(
                 label: isQuantity
@@ -154,13 +163,11 @@ class HabitTile extends StatelessWidget {
                         if (isQuantity) {
                           openQuantity(context, app, habit, day);
                         } else {
-                          app.run(
-                            () => app.store.setRecord(
-                              habit.id,
-                              day,
-                              done ? null : 1000,
-                              today: app.today,
-                            ),
+                          app.recordHabit(
+                            habit,
+                            day,
+                            done ? null : 1000,
+                            epoch,
                           );
                         }
                       }

@@ -60,7 +60,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: path,
       );
-      expect(await migrated.db.getVersion(), 5);
+      expect(await migrated.db.getVersion(), 6);
       final task = (await migrated.tasks()).single;
       expect(task.resident, isFalse);
       expect(task.startDay, isNull);
@@ -317,6 +317,7 @@ void main() {
         final e = jsonDecode(utf8.decode(base.encode())) as Map;
         final p = jsonDecode(e['payload'] as String) as Map;
         p['schema'] = schema;
+        (p['tables'] as Map).remove('cards');
         (p['tables'] as Map).remove('task_entries');
         if (schema == 2) (p['tables'] as Map).remove('reminders');
         for (final row in p['tables']['tasks'] as List) {

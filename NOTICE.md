@@ -5,3 +5,5 @@ DayPanel Flutter is a new implementation authored in this repository. No Loop Ha
 Product and design references: the owner's approved Stitch Luminous Focus direction and the prior competitive research snapshot (2026-11-04). Referenced product names belong to their owners; this project has no affiliation with them.
 
 Flutter and third-party packages retain their own licenses. The app exposes Flutter's package license page. Pin resolved versions in pubspec.lock and audit their notices before release. No root distribution license has been chosen; absence of a LICENSE is not a grant to redistribute this project.
+
+FL14 artwork: the six scenes in `lib/presentation/card_art.dart` are original code-drawn compositions authored for this project. Completion audio `android/app/src/main/res/raw/daypanel_complete.wav` is an original 0.22-second synthesized two-note PCM sound, reproducible with `scripts/generate-feedback.ps1`. Neither uses third-party illustrations, recordings or melodies.

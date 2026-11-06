@@ -5,7 +5,9 @@ import '../domain/models.dart';
 import 'schema.dart';
 import '../domain/backup.dart';
 import '../domain/reminder.dart';
+import '../domain/achievement.dart';
 part 'store_backup.dart';
+part 'store_cards.dart';
 
 class AppStore {
   AppStore._(this.db);
@@ -18,7 +20,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 5,
+        version: 6,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           await db.execute(
@@ -40,12 +42,14 @@ class AppStore {
           await upgradeToV3(db);
           await upgradeToV4(db);
           await upgradeToV5(db);
+          await upgradeToV6(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
           if (oldVersion < 3) await upgradeToV3(db);
           if (oldVersion < 4) await upgradeToV4(db);
           if (oldVersion < 5) await upgradeToV5(db);
+          if (oldVersion < 6) await upgradeToV6(db);
         },
       ),
     );
@@ -277,13 +281,13 @@ class AppStore {
     }
   }
 
-  Future<void> setRecord(
+  Future<bool> setRecord(
     String id,
     Day day,
     int? value, {
     required Day today,
   }) async {
-    await db.transaction((txn) async {
+    return db.transaction((txn) async {
       final rows = await txn.query('habits', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) throw StateError('Habit missing');
       final h = Habit.fromMap(rows.single);
@@ -298,6 +302,24 @@ class AppStore {
                       value != 1000)))) {
         throw ArgumentError('Invalid record');
       }
+      final previous = await txn.query(
+        'entries',
+        where: 'habit_id=? AND day=?',
+        whereArgs: [id, day.key],
+      );
+      final planRows = await txn.query(
+        'plans',
+        where: 'habit_id=? AND effective_day<=?',
+        whereArgs: [id, day.key],
+        orderBy: 'effective_day DESC',
+        limit: 1,
+      );
+      final plan = HabitPlan.fromMap(planRows.single);
+      final becameComplete =
+          day == today &&
+          value != null &&
+          value >= plan.target &&
+          (previous.isEmpty || (previous.single['value'] as int) < plan.target);
       if (value == null) {
         await txn.delete(
           'entries',
@@ -311,6 +333,12 @@ class AppStore {
           'value': value,
         }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
+      if (becameComplete &&
+          plan.schedule != ScheduleKind.weekly &&
+          plan.scheduled(day)) {
+        await earnCardIn(txn, day);
+      }
+      return becameComplete;
     });
   }
 
@@ -467,7 +495,14 @@ class AppStore {
   Future<void> preference(String key, String value) async {
     if (key == 'locale' && !{'system', 'en', 'zh'}.contains(value) ||
         key == 'theme' && !{'system', 'light', 'dark'}.contains(value) ||
-        !{'theme', 'locale'}.contains(key)) {
+        {'completion_sound', 'completion_haptics'}.contains(key) &&
+            !{'on', 'off'}.contains(value) ||
+        !{
+          'theme',
+          'locale',
+          'completion_sound',
+          'completion_haptics',
+        }.contains(key)) {
       throw ArgumentError('Invalid preference');
     }
     await db.insert('settings', {

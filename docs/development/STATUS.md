@@ -2,7 +2,7 @@
 
 更新 2026-11-06。用户选择 Flutter，Android 首发，先基座/UI；随后明确小日常单一对标、排除专注、全功能免费。原生 DayPanel 是独立历史工程，未迁移或删除其内容。
 
-当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史及 FL13 关联日志/月浏览/搜索。最新版本 SQLite v5，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录与可选关联日志；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
+当前已完成基座、UI01 精修、FL09/FL10、FL11 习惯提醒、FL12 常驻小事/完成历史、FL13 关联日志/月浏览/搜索和 FL14 成就卡/收藏/心得/反馈。最新版本 SQLite v6，支持文件备份/恢复、习惯安排历史、提醒配置、独立常驻日记录、关联日志与成就卡；最新验证与限制见文末。此前版本描述和测试数字保留为历史。功能调研基于应用宝 Android 3.1.0 与 Apple 10.4.44 官方说明，原始响应在 ignored .local/research。细节未披露的能力保留待核标记。
 
 ## 已实现基座与 UI
 
@@ -299,3 +299,59 @@ git diff --cached --check
 ### 交接与限制
 
 FL13实现和限定验收通过。未验证厂商真机、实际TalkBack、全部横屏/屏幕阅读器组合、长列表/大文件性能以及API35/36本批完整矩阵；桌面SQLite备份/恢复覆盖不能替代所有Android文件提供器。本轮没有增加图片、附件、云、社交、AI或收费能力。下一批 **FL14 成就卡/收藏/卡背心得/反馈**，先定义解锁与取消/改计划边界、原创资源与声音开关。电脑和可见模拟器保持运行。
+
+## 2026-11-06 FL14 成就卡、收藏、卡背心得与反馈
+
+用户要求继续下一批，执行FL14。规则先落到 [ADR0006](../adr/0006-achievement-cards.md)，视觉与流程见 [ACHIEVEMENTS](../design/ACHIEVEMENTS.md)。全部免费，不增加专注/付费/云/社交；保持开机、不推送。
+
+### 实际交付
+
+- 当天至少一项未归档的每日/星期/间隔习惯，按当天有效计划全部达标后，每个当地日获得一张卡；周目标不算每日必做，分组/情境筛选不改变判定。当天保存从未达标到达标时，在同一事务重新核对并自动发卡；已完成的旧数据可主动领取当天卡，不补造历史卡。历史/未来、空计划和仅周目标不发卡；启动/归档/删除/恢复/改计划不会自动发卡。
+- 已获得卡片永久保留当时完成快照，包括标题、类型、目标/单位、数值和计划生效日。撤销打卡、新增习惯、后续改计划、归档/删除习惯不会抹掉卡片、收藏或心得；删除习惯确认也明确这一点。它记录解锁时刻，不冒充之后持续达标。
+- 我的→卡片册，全部/收藏筛选、日期、真实条数、心得摘要；详情可翻面、收藏/取消收藏、编辑/清空心得、查看完成快照。心得0–10000字，保存才写入；取消/系统返回保持原文。领取、收藏、心得携带generation，恢复后旧页面拒绝写入。日常卡片区放在习惯清单后，优先保留原有打卡操作。
+- 六款原创CustomPainter卡面：晨光、根、河流、阶梯、窗、星群，按日期轮换，没有收费或随机稀有度。习惯完成状态与卡片正反面都有轻量动画，遵守系统减少动画。继续使用既定冷白/蓝/紫/暖橙和共享组件，中英文、明暗、窄屏大字号/键盘均覆盖。
+- 完成声音/触感分别持久化，默认关闭。仅当天真实保存从未达标到达标后触发；重复相同值、清除、取消、补记、恢复、启动、打开卡片都不触发。声音为本地原创0.22秒PCM WAV（scripts/generate-feedback.ps1可复现），原生SoundPool使用系统提示音用途并尊重静音/勿扰/系统音量，触感遵守系统开关。后台不补播；平台失败不撤回保存，初始化失败也不阻止App启动。没有新增权限、第三方播放SDK或远程音频。
+- SQLite6增加cards表；备份schema6包含卡片/收藏/心得/快照和反馈偏好，严格校验字段、枚举/数值、日期、快照重复/完整性；快照允许保留已删除习惯的原始信息。兼容v1–v5旧库及schema2–5/旧恢复副本，旧数据不自动生成卡。ReminderSnapshotReader同步支持3..6，拒绝未知7。
+
+### 工程验证
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 assemble
+./scripts/dev.ps1 native-test
+git diff --check
+git diff --cached --check
+```
+
+`.local/reports/cards-verify.log`：47个Dart文件格式通过，analyze无问题，**125项Dart/Flutter测试通过**，debug构建18.1秒成功，Kotlin JVM **9/9**（原提醒8+新增静音/勿扰/零音量策略1）。新增28项 = 19项领域/SQLite/备份/反馈协调 + 9项UI；原97项继续通过。原生初始化失败保护收尾后单独assemble成功（14.8秒）、native-test成功，见cards-build-final.log / cards-native-final.log；Dart功能代码未再改变。
+
+测试包括非空全部计划、周目标排除、目标版本/历史单位、重复保存/领取幂等、撤销/改名/归档/删除后卡片保留、记录与卡片原子提交（卡片插入失败时打卡回滚）、旧库无虚构卡片、schema2–5备份/旧恢复副本、schema6恢复/回退、三个故障阶段回滚、畸形快照拒绝、显式收藏/心得、平台反馈失败但记录已保存、旧世代拒绝。UI覆盖实际翻面/收藏筛选/心得保存清空取消返回、恢复中旧编辑、中英×明暗320dp/160%字号+280dp键盘、六款卡面、减少动画、反馈开关。首次UI回归因卡片区插在清单前导致原入口移出首屏，已调整到清单后，最终原有测试通过。
+
+原生测试包安装后执行：
+
+```powershell
+& $adb -s emulator-5554 install -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+最终API28 **OK (9 tests)**：提醒7项（含3..6可读/7拒绝），反馈2项（关闭不触发声音/触感，原创PCM资源可读），日志cards-native-api28-final.log。原有Kotlin Gradle插件未来迁移和Gradle弃用提示仍在，未升级全局Java/SDK。没有把API28结果当作本批API35/36验证。
+
+最终APK：`build/app/outputs/flutter-apk/app-debug.apk`，174664595 bytes；SHA-256 `6c5350d2261a9453fd89e9b288f5fc5e5f3d442b6511e038e26b71e5da57fccb`。已覆盖安装到主用户，身份 `app.daypanel.next.debug` 与现有权限保持，非release商店包。
+
+### 设备实测与数据保护
+
+API28 emulator-5554、1080×1920/420dpi、字号1.0。安装前停进程归档主用户完整databases目录为pre-cards-db.tar，覆盖安装和启动成功。主用户原有数据没有用于凑“全完成”。
+
+本次创建临时Android测试用户DayPanelFL14QA（id10），为其安装现有debug包并切换。首次切换尚未解锁时启动失败，不计作成功；解锁后正常打开独立空库。通过真实UI新建Read a page，完成后自动得到“向前一步”卡片；翻面、收藏、键盘输入A small step today.并保存。确认返回后force-stop→重开，卡片、收藏和心得仍在；收藏筛选显示1篇，取消收藏后出现收藏空态。
+
+开启声音和触感后，撤销打卡，卡片与心得仍在，再达标没有多发卡。Android音频日志记录到本应用SoundPool、USAGE_ASSISTANCE_SONIFICATION和播放started事件（cards-audio-state.txt）；这证明系统播放请求执行，不能据此声称模拟器外放听感、真机响度或物理振动已经验收。设备截图覆盖中文浅色、英文深色，以及反馈默认关闭/开启、卡面/卡背/收藏空态/心得键盘；另外两种语言/明暗组合由自动化布局验证，文件为ignored `.local/reports/cards-*.png`。样本由UI创建，安装包不包含预置用户数据。
+
+完成后切回主用户0，停止并删除本轮测试用户10，系统用户列表恢复仅主用户；主用户语言/外观/反馈偏好均未改。最终用户库归档post-cards-db.tar，在全新的本地解压目录比较，运行 `./scripts/dev.ps1 test -Extra '.local/cards_retention.dart'`，额外**1项通过**（不混入125项）。cards-retention.log确认前v5、后v6，habits/plans/entries/tasks/task_entries/notes/settings/habit_groups/reminders/runtime/recovery逐行一致，cards为空、foreign_key_check为空。原生检查使用隔离fixture，未清空用户库，旧原生包/旧项目未触碰。
+
+### 交接与限制
+
+FL14实现及限定验收通过。未完成厂商真机声学/触感体验、真实TalkBack手工、全部横屏/长列表性能、系统声音/勿扰全矩阵和API35/36本批回归；自动化/模拟器不能代表这些范围。原生初始化不可用与后台状态会安全跳过反馈，记录照常保存。下一批 **FL15 打卡表、量化统计、年度日历与时间线**，需要明确历史分母、连续性和单位聚合规则。电脑与可见模拟器保持运行，不关机、不推送远端。

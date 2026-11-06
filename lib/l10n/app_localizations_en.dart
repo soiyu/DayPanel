@@ -9,6 +9,136 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get cardDawn => 'A little dawn';
+
+  @override
+  String get cardRoots => 'Putting down roots';
+
+  @override
+  String get cardRiver => 'Finding a way';
+
+  @override
+  String get cardSteps => 'One small step';
+
+  @override
+  String get cardWindow => 'A window of light';
+
+  @override
+  String get cardStars => 'Small constellations';
+
+  @override
+  String get todayCard => 'Today\'s card';
+
+  @override
+  String get dailyCard => 'Daily card';
+
+  @override
+  String get cardKeptHint =>
+      'A keepsake of the moment you finished. Later changes or undone logs do not remove this card or your words.';
+
+  @override
+  String get cardUnlockHint =>
+      'Finish every habit planned for today to earn one card. Flexible weekly goals are excluded; backdated logs do not earn cards.';
+
+  @override
+  String get viewCard => 'View card';
+
+  @override
+  String get claimCard => 'Collect today\'s card';
+
+  @override
+  String get cardCollection => 'Card collection';
+
+  @override
+  String get cardCollectionHint =>
+      'One day, one keepsake. Open a card to turn it over and keep a few words.';
+
+  @override
+  String get allCards => 'All';
+
+  @override
+  String get favoriteCards => 'Favorites';
+
+  @override
+  String get noFavoriteCards => 'No favorites yet';
+
+  @override
+  String get favoriteHint =>
+      'Open an earned card and tap Favorite to keep it here.';
+
+  @override
+  String get noCards => 'A little collection starts today';
+
+  @override
+  String get cardReflection => 'Words on the back';
+
+  @override
+  String get emptyReflection =>
+      'What would you like to remember about this day?';
+
+  @override
+  String get cardMoment => 'A moment of effort, kept for you.';
+
+  @override
+  String get cardFront => 'Show artwork';
+
+  @override
+  String get cardBack => 'Turn over';
+
+  @override
+  String get unfavoriteCard => 'Remove favorite';
+
+  @override
+  String get favoriteCard => 'Favorite';
+
+  @override
+  String get editReflection => 'Edit reflection';
+
+  @override
+  String get cardEvidence => 'Completed when earned';
+
+  @override
+  String get cardUnavailable => 'This card is no longer in your data';
+
+  @override
+  String get cardRestoreHint =>
+      'Return to the collection to see the cards in your current data.';
+
+  @override
+  String get reflectionHint =>
+      'Save keeps your words. Empty text clears the reflection; Cancel keeps the previous version.';
+
+  @override
+  String get completionFeedback => 'Completion feedback';
+
+  @override
+  String get completionSound => 'Completion sound';
+
+  @override
+  String get completionHaptics => 'Completion haptics';
+
+  @override
+  String get feedbackOn => 'On';
+
+  @override
+  String get feedbackOff => 'Off';
+
+  @override
+  String get feedbackHint =>
+      'An optional soft sound or tap after a habit first reaches its target today. Both start off.';
+
+  @override
+  String get feedbackSystemHint =>
+      'Saved changes, not opening a card, trigger feedback. Silent mode, Do Not Disturb, system volume and haptic settings still apply. Backdated logs, cancellations and repeated values stay quiet.';
+
+  @override
+  String get feedbackFailed =>
+      'Your record was saved. Feedback was unavailable this time.';
+
+  @override
+  String get cardsCount => 'cards';
+
+  @override
   String get noteDate => 'Record date';
 
   @override
@@ -777,7 +907,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteHabitConfirm =>
-      'Delete this habit and its completion records? Linked note text and dates will be kept as independent notes.';
+      'Delete this habit and its completion records? Linked notes will become independent notes. Earned cards, their original snapshots and reflections will be kept.';
 
   @override
   String get storageError => 'Couldn\'t read or save your data. Please retry.';

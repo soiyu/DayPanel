@@ -21,9 +21,17 @@ class MainActivity : FlutterActivity() {
     private var reminderChannel: MethodChannel? = null
     private var permissionReply: MethodChannel.Result? = null
     private var pendingOpen: String? = null
+    private var completionFeedback: CompletionFeedback? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        completionFeedback = try { CompletionFeedback(this) } catch (_: Exception) { null }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.daypanel.next/feedback").setMethodCallHandler { call, reply ->
+            if (call.method != "complete") reply.notImplemented()
+            else try {
+                reply.success(if (hasWindowFocus()) completionFeedback?.play(window.decorView, call.argument<Boolean>("sound") == true, call.argument<Boolean>("haptics") == true) ?: error("Feedback unavailable") else mapOf("sound" to false, "haptics" to false))
+            } catch (_: Exception) { reply.error("feedback", "Feedback unavailable", null) }
+        }
         pendingOpen = intent?.getStringExtra("reminder")
         reminderChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"app.daypanel.next/reminders").also { channel ->
             channel.setMethodCallHandler { call, reply ->
@@ -87,6 +95,11 @@ class MainActivity : FlutterActivity() {
             }
     }
 
+    override fun onDestroy() {
+        completionFeedback?.release()
+        completionFeedback = null
+        super.onDestroy()
+    }
     private fun reminderWork(reply: MethodChannel.Result, work: () -> Any?) {
         ReminderEngine.worker.execute {
             try { val value=work();runOnUiThread { reply.success(value) } }

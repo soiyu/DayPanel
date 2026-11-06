@@ -98,6 +98,246 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @cardDawn.
+  ///
+  /// In en, this message translates to:
+  /// **'A little dawn'**
+  String get cardDawn;
+
+  /// No description provided for @cardRoots.
+  ///
+  /// In en, this message translates to:
+  /// **'Putting down roots'**
+  String get cardRoots;
+
+  /// No description provided for @cardRiver.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding a way'**
+  String get cardRiver;
+
+  /// No description provided for @cardSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'One small step'**
+  String get cardSteps;
+
+  /// No description provided for @cardWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'A window of light'**
+  String get cardWindow;
+
+  /// No description provided for @cardStars.
+  ///
+  /// In en, this message translates to:
+  /// **'Small constellations'**
+  String get cardStars;
+
+  /// No description provided for @todayCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s card'**
+  String get todayCard;
+
+  /// No description provided for @dailyCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily card'**
+  String get dailyCard;
+
+  /// No description provided for @cardKeptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A keepsake of the moment you finished. Later changes or undone logs do not remove this card or your words.'**
+  String get cardKeptHint;
+
+  /// No description provided for @cardUnlockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish every habit planned for today to earn one card. Flexible weekly goals are excluded; backdated logs do not earn cards.'**
+  String get cardUnlockHint;
+
+  /// No description provided for @viewCard.
+  ///
+  /// In en, this message translates to:
+  /// **'View card'**
+  String get viewCard;
+
+  /// No description provided for @claimCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect today\'s card'**
+  String get claimCard;
+
+  /// No description provided for @cardCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Card collection'**
+  String get cardCollection;
+
+  /// No description provided for @cardCollectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One day, one keepsake. Open a card to turn it over and keep a few words.'**
+  String get cardCollectionHint;
+
+  /// No description provided for @allCards.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allCards;
+
+  /// No description provided for @favoriteCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get favoriteCards;
+
+  /// No description provided for @noFavoriteCards.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorites yet'**
+  String get noFavoriteCards;
+
+  /// No description provided for @favoriteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open an earned card and tap Favorite to keep it here.'**
+  String get favoriteHint;
+
+  /// No description provided for @noCards.
+  ///
+  /// In en, this message translates to:
+  /// **'A little collection starts today'**
+  String get noCards;
+
+  /// No description provided for @cardReflection.
+  ///
+  /// In en, this message translates to:
+  /// **'Words on the back'**
+  String get cardReflection;
+
+  /// No description provided for @emptyReflection.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to remember about this day?'**
+  String get emptyReflection;
+
+  /// No description provided for @cardMoment.
+  ///
+  /// In en, this message translates to:
+  /// **'A moment of effort, kept for you.'**
+  String get cardMoment;
+
+  /// No description provided for @cardFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Show artwork'**
+  String get cardFront;
+
+  /// No description provided for @cardBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn over'**
+  String get cardBack;
+
+  /// No description provided for @unfavoriteCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove favorite'**
+  String get unfavoriteCard;
+
+  /// No description provided for @favoriteCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get favoriteCard;
+
+  /// No description provided for @editReflection.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit reflection'**
+  String get editReflection;
+
+  /// No description provided for @cardEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed when earned'**
+  String get cardEvidence;
+
+  /// No description provided for @cardUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This card is no longer in your data'**
+  String get cardUnavailable;
+
+  /// No description provided for @cardRestoreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to the collection to see the cards in your current data.'**
+  String get cardRestoreHint;
+
+  /// No description provided for @reflectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save keeps your words. Empty text clears the reflection; Cancel keeps the previous version.'**
+  String get reflectionHint;
+
+  /// No description provided for @completionFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion feedback'**
+  String get completionFeedback;
+
+  /// No description provided for @completionSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion sound'**
+  String get completionSound;
+
+  /// No description provided for @completionHaptics.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion haptics'**
+  String get completionHaptics;
+
+  /// No description provided for @feedbackOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get feedbackOn;
+
+  /// No description provided for @feedbackOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get feedbackOff;
+
+  /// No description provided for @feedbackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'An optional soft sound or tap after a habit first reaches its target today. Both start off.'**
+  String get feedbackHint;
+
+  /// No description provided for @feedbackSystemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved changes, not opening a card, trigger feedback. Silent mode, Do Not Disturb, system volume and haptic settings still apply. Backdated logs, cancellations and repeated values stay quiet.'**
+  String get feedbackSystemHint;
+
+  /// No description provided for @feedbackFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your record was saved. Feedback was unavailable this time.'**
+  String get feedbackFailed;
+
+  /// No description provided for @cardsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'cards'**
+  String get cardsCount;
+
   /// No description provided for @noteDate.
   ///
   /// In en, this message translates to:
@@ -1541,7 +1781,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteHabitConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Delete this habit and its completion records? Linked note text and dates will be kept as independent notes.'**
+  /// **'Delete this habit and its completion records? Linked notes will become independent notes. Earned cards, their original snapshots and reflections will be kept.'**
   String get deleteHabitConfirm;
 
   /// No description provided for @storageError.

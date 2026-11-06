@@ -1,5 +1,6 @@
 import 'tasks.dart';
 import 'journal.dart';
+import 'achievements.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -440,6 +441,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               child: HabitTile(app: app, habit: h, day: day),
             ),
         ],
+        DailyCardPanel(app: app, day: day),
       ],
     );
   }
@@ -491,6 +493,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   context,
                   MaterialPageRoute<void>(
                     builder: (_) => HabitLibrary(app: app),
+                  ),
+                ),
+              ),
+              SettingRow(
+                icon: Icons.collections_bookmark_outlined,
+                title: s.cardCollection,
+                subtitle: '${app.cards.length} ${s.cardsCount}',
+                tone: UiTone.violet,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => CardCollection(app: app),
                   ),
                 ),
               ),
@@ -547,6 +561,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   'light': s.light,
                   'dark': s.dark,
                 }),
+              ),
+              SettingRow(
+                icon: Icons.touch_app_outlined,
+                title: s.completionFeedback,
+                tone: UiTone.violet,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => FeedbackPage(app: app),
+                  ),
+                ),
               ),
               const Padding(
                 padding: EdgeInsets.only(left: 66, right: 14),

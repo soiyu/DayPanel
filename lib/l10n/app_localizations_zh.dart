@@ -9,6 +9,127 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String get cardDawn => '一点晨光';
+
+  @override
+  String get cardRoots => '慢慢生根';
+
+  @override
+  String get cardRiver => '自有去处';
+
+  @override
+  String get cardSteps => '向前一步';
+
+  @override
+  String get cardWindow => '窗边有光';
+
+  @override
+  String get cardStars => '点点成星';
+
+  @override
+  String get todayCard => '今日成就卡';
+
+  @override
+  String get dailyCard => '日常卡片';
+
+  @override
+  String get cardKeptHint => '留住当时全部完成的这一刻。以后改计划或撤销记录，卡片与心得仍会保留。';
+
+  @override
+  String get cardUnlockHint => '完成今天全部按日安排的习惯，每天可获得一张。周目标不计入，历史补记不发卡。';
+
+  @override
+  String get viewCard => '查看卡片';
+
+  @override
+  String get claimCard => '领取今日卡片';
+
+  @override
+  String get cardCollection => '卡片册';
+
+  @override
+  String get cardCollectionHint => '一天一张，收好生活里的小小进步。打开卡片，翻到背面写下心得。';
+
+  @override
+  String get allCards => '全部';
+
+  @override
+  String get favoriteCards => '收藏';
+
+  @override
+  String get noFavoriteCards => '还没有收藏卡片';
+
+  @override
+  String get favoriteHint => '打开已获得的卡片，点收藏，就能在这里找到。';
+
+  @override
+  String get noCards => '从今天的一张卡开始';
+
+  @override
+  String get cardReflection => '卡背心得';
+
+  @override
+  String get emptyReflection => '这一天，有什么想留给自己？';
+
+  @override
+  String get cardMoment => '认真生活的这一刻，值得留下。';
+
+  @override
+  String get cardFront => '查看正面';
+
+  @override
+  String get cardBack => '翻到背面';
+
+  @override
+  String get unfavoriteCard => '取消收藏';
+
+  @override
+  String get favoriteCard => '收藏卡片';
+
+  @override
+  String get editReflection => '编辑心得';
+
+  @override
+  String get cardEvidence => '解锁时的完成记录';
+
+  @override
+  String get cardUnavailable => '当前数据里已没有这张卡片';
+
+  @override
+  String get cardRestoreHint => '请返回卡片册，查看当前数据里的卡片。';
+
+  @override
+  String get reflectionHint => '保存后留下文字；清空再保存可删除心得，取消保留原文。';
+
+  @override
+  String get completionFeedback => '完成反馈';
+
+  @override
+  String get completionSound => '完成声音';
+
+  @override
+  String get completionHaptics => '完成触感';
+
+  @override
+  String get feedbackOn => '已开启';
+
+  @override
+  String get feedbackOff => '已关闭';
+
+  @override
+  String get feedbackHint => '当天从未达标变为达标后，可以播放轻提示音或触感。两项默认关闭。';
+
+  @override
+  String get feedbackSystemHint =>
+      '保存达标记录后才反馈，打开卡片不会播放。遵循系统静音、勿扰、音量与触感设置；补记、取消和重复保存相同值不反馈。';
+
+  @override
+  String get feedbackFailed => '记录已保存，本次声音或触感暂不可用。';
+
+  @override
+  String get cardsCount => '张卡片';
+
+  @override
   String get noteDate => '记录日期';
 
   @override
@@ -729,7 +850,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deleteConfirm => '删除后无法恢复。要继续吗？';
 
   @override
-  String get deleteHabitConfirm => '将删除这个习惯及其打卡记录。关联手记会解除关联，文字和日期仍保留。要继续吗？';
+  String get deleteHabitConfirm =>
+      '将删除这个习惯及其打卡记录。关联手记解除关联并保留；已获得的卡片、解锁快照和心得也会保留。要继续吗？';
 
   @override
   String get storageError => '暂时无法读取或保存数据，请重试。';

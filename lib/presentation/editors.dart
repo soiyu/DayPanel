@@ -896,14 +896,11 @@ class _QuantityEditorState extends State<QuantityEditor> {
       return;
     }
     setState(() => saving = true);
-    final ok = await widget.app.run(
-      () => widget.app.store.setRecord(
-        widget.habit.id,
-        widget.day,
-        amount,
-        today: widget.app.today,
-      ),
-      expectedGeneration: epoch,
+    final ok = await widget.app.recordHabit(
+      widget.habit,
+      widget.day,
+      amount,
+      epoch,
     );
     if (!mounted) return;
     if (ok) {
