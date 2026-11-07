@@ -5,6 +5,7 @@ import '../domain/reminder.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
+import 'habit_icon.dart';
 import 'refined_components.dart';
 
 String formatReminderTimes(BuildContext context, List<int> minutes) =>
@@ -400,9 +401,9 @@ class _RemindersPageState extends State<RemindersPage>
                   child: SoftPanel(
                     padding: const EdgeInsets.all(4),
                     child: SettingRow(
-                      leading: ToneIcon(
-                        habitIcons[h.icon],
-                        tone: habitTone(h.icon, h.color),
+                      leading: HabitIcon(
+                        h.icon,
+                        color: h.color,
                         frame: h.frame,
                         size: 40,
                       ),

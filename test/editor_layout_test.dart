@@ -37,6 +37,8 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('add-entry')));
         await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('custom-habit')));
+        await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         await tester.enterText(find.byKey(const Key('entry-title')), 'Reading');
         tester.view.viewInsets = const FakeViewPadding(bottom: 280);

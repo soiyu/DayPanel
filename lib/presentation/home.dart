@@ -15,6 +15,7 @@ import 'editors.dart';
 import 'habits.dart';
 import 'review.dart';
 import 'theme.dart';
+import 'habit_icon.dart';
 import 'organization.dart';
 import 'backup_page.dart';
 import 'reminders.dart';
@@ -246,12 +247,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(19),
                               gradient: selected
-                                  ? const LinearGradient(
+                                  ? LinearGradient(
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                       colors: [
-                                        Color(0xFF407BF4),
-                                        Color(0xFF1554DE),
+                                        DayPanelStyle.of(context).actionStart,
+                                        DayPanelStyle.of(context).actionEnd,
                                       ],
                                     )
                                   : null,
@@ -377,13 +378,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               '${s.planned} $summaryDone/$summaryCount',
                         ),
                       ),
-                      Icon(
-                        summaryDone == summaryCount
-                            ? Icons.done_rounded
-                            : Icons.spa_outlined,
-                        color: scheme.primary,
-                        size: 25,
-                      ),
+                      summaryDone == summaryCount
+                          ? Icon(
+                              Icons.done_rounded,
+                              color: UiTone.teal.ink(context),
+                              size: 25,
+                            )
+                          : const HabitIcon(0, size: 42, frame: 'plain'),
                     ],
                   ),
                 ),

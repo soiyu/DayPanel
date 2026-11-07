@@ -1240,13 +1240,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appearancePalette => 'Color theme';
 
   @override
-  String get paletteBlue => 'Clear blue';
+  String get paletteBlue => 'Daylight desk';
 
   @override
-  String get paletteTeal => 'Forest teal';
+  String get paletteTeal => 'Morning grove';
 
   @override
-  String get paletteViolet => 'Evening violet';
+  String get paletteViolet => 'Twilight garden';
 
   @override
   String get appearanceFont => 'Font';
@@ -1277,7 +1277,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get followDefault => 'Use default';
 
   @override
-  String get automaticColor => 'Automatic';
+  String get automaticColor => 'Original colors';
 
   @override
   String get appearanceReset => 'Preview defaults';
@@ -1286,7 +1286,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get habitDecoration => 'Icon and style';
 
   @override
-  String get habitColor => 'Icon color';
+  String get habitColor => 'Frame accent';
 
   @override
   String get habitFrame => 'Icon frame';
@@ -1308,7 +1308,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get decorationHint =>
-      'Style changes keep your schedule, target and records.';
+      'Illustrations keep their original colors. The accent changes the frame and item details; your plan stays the same.';
 
   @override
   String get iconSun => 'Sun';
@@ -1736,4 +1736,48 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get restConfirmUnskip =>
       'This day will follow its original plan again. No completion record will be added.';
+
+  @override
+  String get habitLibrary => 'Habit library';
+
+  @override
+  String get habitLibraryTitle => 'Make room for a little good';
+
+  @override
+  String get habitLibraryHint =>
+      'Start with a familiar habit. Adjust its goal before adding it.';
+
+  @override
+  String get searchHabits => 'Search everyday habits';
+
+  @override
+  String get templateNoMatch => 'No matching template. Create your own below.';
+
+  @override
+  String get customHabit => 'Create your own';
+
+  @override
+  String get templateDailyCheck => 'Every day · check off';
+
+  @override
+  String templateDailyGoal(String amount, String unit) {
+    return '$amount $unit / day';
+  }
+
+  @override
+  String get templateEditable =>
+      'A starting goal, ready to adjust to your day.';
+
+  @override
+  String suggestedIcon(String name) {
+    return 'Suggested icon: $name';
+  }
+
+  @override
+  String get iconSuggestionHint =>
+      'Apply the icon only; keep your goal and schedule.';
+
+  @override
+  String get paletteCompositionHint =>
+      'A coordinated palette for actions, notes and everyday details. Habit illustrations keep their own colors.';
 }

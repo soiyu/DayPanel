@@ -762,3 +762,59 @@ API35先后使用headless+swiftshader、qt隐藏窗口+swangle时发生Windows q
 API28主用户安装前force-stop并归档pre-fl19b-db.tar；最终同样归档post-fl19b-db.tar，`python .local/fl19b_retention.py`通过，fl19b-retention-final.log：**15张表逐行一致**、v9、foreign_key_check为空；原2习惯/1记录/2小事/1手记/设置/历史保持。API28临时用户15/16全部删除；API35第一次删除用户11未完成，重启确认仍存在后用`pm remove-user --wait 11`成功并核对只剩0；API36用户11也成功删除。两辅助模拟器关闭，只保留API28主用户0可见，最终主Activity启动成功。
 
 本批FL19限定矩阵已完成且修复已验证，FL19总任务仍进行中：厂商真机、真正TalkBack手工、长Doze/后台、休假到期跨午夜/时区完整矩阵、API36手动拒绝权限、所有字号/主题/缩放组合、第三方分享实际接收及外部文件提供器、大数据手机性能仍开放。下一步继续这些质量验证；FL20发布未开始。全部APK/数据库/图片/工具/个人路径在ignored目录，不提交、不推送远端。
+
+## 2026-11-07 UI03 常用事项、语义插画与组合主题
+
+用户指出事项与图标脱节、缺少默认事项和数量、图标简陋单色、主题只整体换色。以f880503干净工作区为基线，先记录ADR0012/UI03-LIVING-PALETTE，使用frontend-design指导并按现有项目风格实施。无外部设计写入/无新增审批/未修改旧Loop源码，不扩展专注、收费、云等范围。
+
+### 功能与视觉
+
+- 新建习惯先进入真实常用事项目录，可搜索16项或自定义。模板含名称、对应图标、类型、数量/单位、时段：喝水1500毫升、阅读10页、散步6000步、拉伸10分钟、跑步3公里、骑行5公里、学外语10词、乐器15分钟，及按时睡觉/写日记/吃早餐/整理/植物/绘画/力量/放下手机等布尔项。均为可编辑起点，不是通用健康处方；分钟仅记录总量，无计时器。选中只填草稿，保存才创建；不预塞习惯或演示打卡。
+- 自定义新习惯名称按明确中英文关键词选择对应图标，英文完整词匹配避免art误匹配start，植物优先避免Water plants误作饮水。手选和模板图标不会被后续打字覆盖。已有习惯保留原ID，若标题匹配可主动“应用推荐图标”；仅改变图标，目标/单位/记录/历史计划保持。目录打开前捕获generation，恢复后的旧目录/草稿拒绝写入。
+- 24个原有图标ID和含义保持，替换为原创多色生活物件插画：水杯与水滴、书本、青绿鞋/珊瑚跑鞋、哑铃、自行车、餐盘、花、乐器、画板、日记、地球、存钱罐、扫帚、宠物、杯子、药瓶、睡眠、手机、关心等。assets/habit_icons/00..23.png为256×256透明PNG，scripts/draw_habit_icons.py是可复现绘制源（Python/Pillow），NOTICE注明原创；不是竞品/Loop/第三方素材。App列表、管理、提醒、编辑/数量、装扮选择、桌面配置及原生桌面用同一PNG。手选颜色改变底框与条目强调，不把物件本色染成一种颜色。
+- blue/teal/violet稳定存储值保留，用户主题改为晴日书桌、林间晨光、暮色花园。每组定义中性底/卡片表面/主操作/紫色记录/橙色事项/青色辅助/玫瑰条目等协调颜色；深色有三套底色和色组。移除整页强主色晕染，卡片细边和轻投影，导航按栏目颜色，日期选择跟主题主动作。主题预览显示组合色条及栏目角色，插画独立本色。没有批量修改用户既有主题偏好值或事项图标。
+- 实际设备检查发现1500毫升按旧四等分产生375毫升不自然，补改数量快速填写：毫升250/500/1000及目标、页1/5/10、步1000/3000/6000、分钟5/10/15、公里1/3/5、词5/10/20，按当前所选日期的目标/单位过滤去重，不超过目标，未知单位沿用分数并过滤零。点击只填总量，取消不写，确认保存不累加。桌面也复用该界面。
+- SQLite9/schema9不变，无表/字段迁移；模板保存后是原模型普通习惯，完整备份导出/恢复包含实际名称、目标、单位、图标、装扮。ReminderSnapshot3..9/WidgetSnapshot7..9保持。
+
+### 工程验证
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 test -Extra '--concurrency=2'
+./scripts/dev.ps1 test -Extra '--concurrency=2','test/habit_templates_test.dart','test/editor_layout_test.dart','test/home_widgets_ui_test.dart'
+./scripts/dev.ps1 assemble
+./scripts/dev.ps1 analyze
+git diff --check
+git diff --cached --check
+```
+
+ui03-verified.log完整verify：analyze无问题，初版新增10项后259测试通过，构建95.8秒、Kotlin JVM13/13。新增已有事项主动应用建议保护后再完整Flutter测试 **260项通过**，2:36，ui03-tests-final.log；目录/语义/目标/取消/旧世代/模板备份/手选保护与中英320dp/160%/键盘均覆盖。最后新增1项按单位常用总量规则，并对模板/数量/桌面受影响文件共 **24项通过**（ui03-totals-final.log），不把最后针对性运行称为全261项再次执行。外观/模板33项针对性通过ui03-focused-final.log。
+
+原24图标命名测试改为真实有标签/有点击的插画选项；新目录入口更新原创建用例，没有删保存/取消安全断言。最初失败分别为旧用例未经过新目录、英文植物复数未识别、Care预览标题与语义选项同名，以及测试语义句柄释放时机；修复后上述完整测试通过，未把失败当通过。主题三组×明暗主动作白字及正文对比测试继续通过。
+
+原生native-test成功10秒，ui03-native-final.log。WidgetSnapshotTest同时检查24张原图加载和可见多色像素，不再按Material字形测试。最终APK原生API28用户17 **OK(25 tests)**，14.831秒，ui03-api28-delivery.log；提醒/组件/旧库/分享回归继续通过。准确命令：
+
+```powershell
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument --user 17 -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest,app.daypanel.next.CardImageDeviceTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+最终assemble成功58.5秒（ui03-build-delivery.log）、analyze无问题17.3秒（ui03-analyze-final.log）。最终APK **174925703 bytes**，SHA-256 **cb471c54412e06d7a8aa83f6acea761e870254e54202dec50547ba33f2dc2647**，位于build/app/outputs/flutter-apk/app-debug.apk，已覆盖安装，非商店release包。现有Gradle/Kotlin迁移提示未在本轮处理。
+
+### 真实设备与截图
+
+API28 emulator-5554新临时用户17。实际新建喝水模板先取消确认无创建，再创建喝水/阅读/散步，显示1500毫升/10页/6000步与对应插画。晴日/林间/暮色三主题实际预览保存并回首页；物件本色保持。中文浅色、中文深色160%、英文深色160%目录截图；按系统字体放大仍能滚动，底部自定义/保存可达。
+
+Launcher实际长按→微件→DayPanel习惯→选择喝水→保存；桌面出现同一蓝色水杯、真实1500毫升目标，点击输入总量直接开确认页。最终250/500/1000/1500选项可用，选250再保存后桌面显示 **250 / 1500 毫升**，App同样显示250，无多次累加；取消路径由前述设备/工程验证。其余测试数据均在用户17，没有写入主用户。
+
+截图ignored .local/reports：ui03-catalog-final.png、ui03-water-editor.png、ui03-home-final.png、ui03-palette-final.png；三主题ui03-appearance-blue/teal/violet.png，深色/大字ui03-catalog-dark-large.png与ui03-catalog-en-dark-large.png（投影随后调淡），桌面ui03-widget-config.png、ui03-widget-final.png，最终总量ui03-quantity-final.png。图标总览ui03-icons.png；交付总览ui03-overview.png由真实设备三页拼接，未伪造状态。ui03-device-errors.log无AndroidRuntime/flutter错误。偶发uiautomator空root/一次启动超时均等待重新读取成功，未算作首次成功。
+
+### 数据与下一步
+
+主用户安装前停止进程归档pre-ui03-db.tar，结束停止主进程归档post-ui03-db.tar。`python .local/ui03_retention.py`逐表比较 **15张表完全一致**，v9与外键检查正常（ui03-retention-final.log）。原2习惯/1记录/2小事/1手记/偏好/计划/履历保持；测试用户17已停止删除，系统只剩用户0，主Activity启动Status: ok。电脑与可见API28保持运行，不推送。
+
+本批实现与限定检查完成；API35/36本批插画/目录全矩阵、厂商真机、真正TalkBack手工、全部主题字号组合仍未全部验收，视觉是否符合负责人审美需看实际结果，不称完美。后续继续FL19质量与设备回归，按用户视觉反馈迭代，FL20发布保持待开始。

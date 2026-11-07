@@ -27,6 +27,7 @@ flutter:
   generate: true
   assets:
     - assets/fonts/OFL-NotoSerifSC.txt
+    - assets/habit_icons/
   fonts:
     - family: NotoSerifSC
       fonts:

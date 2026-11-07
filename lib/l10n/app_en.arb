@@ -384,9 +384,9 @@
   "appearanceSampleText": "Make room for the little things you enjoy.",
   "appearanceMode": "Display mode",
   "appearancePalette": "Color theme",
-  "paletteBlue": "Clear blue",
-  "paletteTeal": "Forest teal",
-  "paletteViolet": "Evening violet",
+  "paletteBlue": "Daylight desk",
+  "paletteTeal": "Morning grove",
+  "paletteViolet": "Twilight garden",
   "appearanceFont": "Font",
   "fontSystem": "System font",
   "fontSerif": "Book serif",
@@ -396,17 +396,17 @@
   "frameRing": "Ring",
   "framePlain": "Plain",
   "followDefault": "Use default",
-  "automaticColor": "Automatic",
+  "automaticColor": "Original colors",
   "appearanceReset": "Preview defaults",
   "habitDecoration": "Icon and style",
-  "habitColor": "Icon color",
+  "habitColor": "Frame accent",
   "habitFrame": "Icon frame",
   "colorBlue": "Blue",
   "colorViolet": "Violet",
   "colorPeach": "Orange",
   "colorTeal": "Teal",
   "colorRose": "Rose",
-  "decorationHint": "Style changes keep your schedule, target and records.",
+  "decorationHint": "Illustrations keep their original colors. The accent changes the frame and item details; your plan stays the same.",
   "iconSun": "Sun",
   "iconWater": "Water",
   "iconBook": "Reading",
@@ -561,5 +561,34 @@
   "restRangeLimit": "Choose up to 365 days",
   "restSchedule": "Breaks and history",
   "restStale": "This habit changed. Reopen its rest days to continue.",
-  "restConfirmUnskip": "This day will follow its original plan again. No completion record will be added."
+  "restConfirmUnskip": "This day will follow its original plan again. No completion record will be added.",
+  "habitLibrary": "Habit library",
+  "habitLibraryTitle": "Make room for a little good",
+  "habitLibraryHint": "Start with a familiar habit. Adjust its goal before adding it.",
+  "searchHabits": "Search everyday habits",
+  "templateNoMatch": "No matching template. Create your own below.",
+  "customHabit": "Create your own",
+  "templateDailyCheck": "Every day · check off",
+  "templateDailyGoal": "{amount} {unit} / day",
+  "templateEditable": "A starting goal, ready to adjust to your day.",
+  "suggestedIcon": "Suggested icon: {name}",
+  "iconSuggestionHint": "Apply the icon only; keep your goal and schedule.",
+  "paletteCompositionHint": "A coordinated palette for actions, notes and everyday details. Habit illustrations keep their own colors.",
+  "@templateDailyGoal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@suggestedIcon": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

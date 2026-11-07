@@ -5,6 +5,7 @@ import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'editors.dart';
 import 'theme.dart';
+import 'habit_icon.dart';
 import 'organization.dart';
 import 'reminders.dart';
 import 'journal.dart';
@@ -53,9 +54,9 @@ class HabitTile extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ToneIcon(
-                habitIcons[habit.icon],
-                tone: tone,
+              HabitIcon(
+                habit.icon,
+                color: habit.color,
                 size: 46,
                 frame: habit.frame,
               ),
@@ -320,9 +321,9 @@ class HabitLibrary extends StatelessWidget {
                       child: SoftPanel(
                         padding: const EdgeInsets.all(2),
                         child: SettingRow(
-                          leading: ToneIcon(
-                            habitIcons[h.icon],
-                            tone: habitTone(h.icon, h.color),
+                          leading: HabitIcon(
+                            h.icon,
+                            color: h.color,
                             frame: h.frame,
                             size: 40,
                           ),

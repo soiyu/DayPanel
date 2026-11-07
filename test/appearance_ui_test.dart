@@ -70,6 +70,10 @@ void main() {
     await tester.pumpWidget(shell(locale: locale, dark: dark, editor: editor));
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
+    if (editor) {
+      await tester.tap(find.byKey(const Key('custom-habit')));
+      await tester.pumpAndSettle();
+    }
   }
 
   Future<void> pick(WidgetTester tester, String key) async {
@@ -193,6 +197,7 @@ void main() {
   testWidgets('24 icon choices keep semantic names and selected state', (
     tester,
   ) async {
+    final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
       MaterialApp(
         theme: dayPanelTheme(Brightness.light),
@@ -214,8 +219,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byTooltip('Care'), findsOneWidget);
-    expect(find.byTooltip('Water'), findsOneWidget);
+    expect(find.bySemanticsLabel('Care'), findsWidgets);
+    expect(find.bySemanticsLabel('Water'), findsOneWidget);
     expect(find.byKey(const Key('habit-icon-23')), findsOneWidget);
+    semantics.dispose();
   });
 }

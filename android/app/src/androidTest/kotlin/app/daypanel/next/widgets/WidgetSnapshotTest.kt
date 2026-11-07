@@ -75,7 +75,7 @@ class WidgetSnapshotTest {
         assertNotEquals(first,WidgetEngine.pending(c,101,"complete",a.copy(token="new"),day))
         assertNotEquals(first,WidgetEngine.pending(c,101,"complete",a.copy(generation=1),day))
     }
-    @Test fun versionEightDecorationAndThemeReadWithMaterialGlyphs() {
+    @Test fun versionEightDecorationAndThemeReadWithOriginalIllustrations() {
         db.execSQL("ALTER TABLE habits ADD COLUMN icon INTEGER NOT NULL DEFAULT 23")
         db.execSQL("ALTER TABLE habits ADD COLUMN color TEXT NOT NULL DEFAULT 'rose'")
         db.execSQL("ALTER TABLE habits ADD COLUMN frame TEXT NOT NULL DEFAULT 'ring'")
@@ -88,7 +88,10 @@ class WidgetSnapshotTest {
         assertEquals(23,h.icon);assertEquals("rose",h.color);assertEquals("ring",h.frame)
         for(index in 0..23) {
             val bitmap=WidgetAppearance.icon(c,h.copy(icon=index),snapshot)
-            assertTrue(bitmap.width>0);bitmap.recycle()
+            assertTrue(bitmap.width>0)
+            val pixels=IntArray(bitmap.width*bitmap.height);bitmap.getPixels(pixels,0,bitmap.width,0,0,bitmap.width,bitmap.height)
+            assertTrue("Original art must have several visible colors",pixels.filter { android.graphics.Color.alpha(it)>200 }.toSet().size>12)
+            bitmap.recycle()
         }
         assertEquals(8,db.version)
     }

@@ -4,6 +4,7 @@ import '../domain/appearance.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
+import 'habit_icon.dart';
 import 'refined_components.dart';
 
 String frameLabel(AppLocalizations s, String frame) => switch (frame) {
@@ -188,12 +189,9 @@ class _AppearancePageState extends State<AppearancePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      ToneIcon(
-                                        habitIcons[h?.icon ?? 2],
-                                        tone: habitTone(
-                                          h?.icon ?? 2,
-                                          h?.color ?? 'auto',
-                                        ),
+                                      HabitIcon(
+                                        h?.icon ?? 2,
+                                        color: h?.color ?? 'auto',
                                         frame: h?.frame ?? 'auto',
                                         size: 48,
                                       ),
@@ -252,6 +250,22 @@ class _AppearancePageState extends State<AppearancePage> {
                                   ),
                                 ],
                               ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              s.paletteCompositionHint,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                AppBadge(s.today, tone: UiTone.blue),
+                                AppBadge(s.tasks, tone: UiTone.peach),
+                                AppBadge(s.notes, tone: UiTone.violet),
+                                AppBadge(s.mine, tone: UiTone.teal),
+                              ],
                             ),
                             if (failed)
                               Padding(
@@ -413,57 +427,78 @@ class _PaletteSample extends StatelessWidget {
   final bool dark;
   @override
   Widget build(BuildContext context) {
-    final scheme = dayPanelTheme(
+    final theme = dayPanelTheme(
       dark ? Brightness.dark : Brightness.light,
       appearance: Appearance(palette: palette),
-    ).colorScheme;
-    return Container(
-      height: 54,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              color: scheme.primaryContainer,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.spa_outlined, size: 15, color: scheme.primary),
+    );
+    return Theme(
+      data: theme,
+      child: Builder(
+        builder: (ctx) => Container(
+          height: 76,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: scheme.primary,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-                const SizedBox(height: 5),
-                FractionallySizedBox(
-                  widthFactor: .65,
-                  child: Container(
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: scheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(3),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  for (final tone in [
+                    UiTone.blue,
+                    UiTone.violet,
+                    UiTone.peach,
+                    UiTone.teal,
+                  ])
+                    Expanded(
+                      child: Container(
+                        height: 10,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: BoxDecoration(
+                          color: tone.ink(ctx),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
                     ),
-                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: Row(
+                  children: [
+                    const HabitIcon(1, size: 32, frame: 'plain'),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Container(
+                            height: 5,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: .5,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          FractionallySizedBox(
+                            widthFactor: .7,
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              height: 5,
+                              color: UiTone.violet.wash(ctx),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -497,12 +532,7 @@ class HabitStylePicker extends StatelessWidget {
           tone: habitTone(icon, color),
           child: Row(
             children: [
-              ToneIcon(
-                habitIcons[icon],
-                tone: habitTone(icon, color),
-                frame: frame,
-                size: 56,
-              ),
+              HabitIcon(icon, color: color, frame: frame, size: 56),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
@@ -514,33 +544,66 @@ class HabitStylePicker extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var i = 0; i < habitIcons.length; i++)
-              Semantics(
-                selected: icon == i,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(17),
-                    border: Border.all(
-                      color: icon == i
-                          ? habitTone(i, color).ink(context)
-                          : Colors.transparent,
-                      width: 2,
+        LayoutBuilder(
+          builder: (context, c) {
+            final scale = MediaQuery.textScalerOf(context).scale(1);
+            final columns = (c.maxWidth / (scale > 1.3 ? 104 : 82))
+                .floor()
+                .clamp(2, 5);
+            final width = (c.maxWidth - (columns - 1) * 8) / columns;
+            return Wrap(
+              spacing: 8,
+              runSpacing: 10,
+              children: [
+                for (var i = 0; i < habitIcons.length; i++)
+                  SizedBox(
+                    width: width,
+                    child: Semantics(
+                      button: true,
+                      selected: icon == i,
+                      label: names[i],
+                      excludeSemantics: true,
+                      onTap: onIcon == null ? null : () => onIcon!(i),
+                      child: Material(
+                        color: icon == i
+                            ? habitTone(i).wash(context)
+                            : Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: icon == i
+                                ? habitTone(i).ink(context)
+                                : Theme.of(context).colorScheme.outlineVariant,
+                          ),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          key: Key('habit-icon-$i'),
+                          onTap: onIcon == null ? null : () => onIcon!(i),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 4,
+                            ),
+                            child: Column(
+                              children: [
+                                HabitIcon(i, size: 52, frame: 'plain'),
+                                const SizedBox(height: 6),
+                                Text(
+                                  names[i],
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  child: AppIconAction(
-                    key: Key('habit-icon-$i'),
-                    icon: habitIcons[i],
-                    label: names[i],
-                    tone: habitTone(i, color),
-                    onTap: onIcon == null ? null : () => onIcon!(i),
-                  ),
-                ),
-              ),
-          ],
+              ],
+            );
+          },
         ),
         SectionHeading(s.habitColor),
         Wrap(
@@ -606,12 +669,7 @@ class HabitStylePicker extends StatelessWidget {
                 label: frameLabel(s, f),
                 selected: frame == f,
                 onTap: onFrame == null ? null : () => onFrame!(f),
-                visual: ToneIcon(
-                  habitIcons[icon],
-                  tone: habitTone(icon, color),
-                  frame: f,
-                  size: 36,
-                ),
+                visual: HabitIcon(icon, color: color, frame: f, size: 36),
               ),
           ],
         ),

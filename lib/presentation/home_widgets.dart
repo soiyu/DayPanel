@@ -4,6 +4,7 @@ import '../domain/models.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
+import 'habit_icon.dart';
 import 'editors.dart';
 import 'habits.dart';
 import 'tasks.dart';
@@ -211,11 +212,25 @@ class _WidgetFlowState extends State<WidgetFlow> {
                             padding: const EdgeInsets.all(16),
                             child: Row(
                               children: [
-                                const ToneIcon(
-                                  Icons.widgets_outlined,
-                                  tone: UiTone.violet,
-                                  size: 42,
-                                ),
+                                if (widget.request['kind'] == 'habit')
+                                  HabitIcon(
+                                    app.habits
+                                        .firstWhere((h) => h.id == selected)
+                                        .icon,
+                                    size: 48,
+                                    color: app.habits
+                                        .firstWhere((h) => h.id == selected)
+                                        .color,
+                                    frame: app.habits
+                                        .firstWhere((h) => h.id == selected)
+                                        .frame,
+                                  )
+                                else
+                                  const ToneIcon(
+                                    Icons.checklist_rounded,
+                                    tone: UiTone.peach,
+                                    size: 42,
+                                  ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(

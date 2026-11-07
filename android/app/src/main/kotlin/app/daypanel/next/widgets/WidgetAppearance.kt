@@ -5,16 +5,13 @@ import android.graphics.*
 import app.daypanel.next.R
 
 object WidgetAppearance {
-    // Material Icons codepoints used by the same constant Flutter icon list.
-    // The font ships with Flutter; all these glyphs are referenced and retained.
-    private val icons = intArrayOf(0xf4bc, 0xf0695, 0xf8b4, 0xf6bd, 0xf737, 0xf216, 0xf767, 0xf0144, 0xf6b8, 0xf0059, 0xf316, 0xf17b, 0xf1fb, 0xef02, 0xf00d, 0xf83f, 0xf336, 0xef56, 0xf285, 0xef68, 0xf1bf, 0xeecb, 0xf289, 0xf4a9)
     fun icon(c: Context, item: WidgetItem, snapshot: WidgetSnapshot): Bitmap {
         val size = (48 * c.resources.displayMetrics.density).toInt()
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         val dark = snapshot.dark
-        val name = if (item.color == "auto") when(item.icon % 6) { 0,3 -> "peach"; 2,5 -> "violet"; else -> "blue" } else item.color
+        val name = if (item.color == "auto") when(item.icon) { 0,10,16,18 -> "peach"; 2,4,13,19,23 -> "rose"; 5,7,12,21 -> "violet"; 3,9,11,17,20 -> "teal"; else -> "blue" } else item.color
         val color = Color.parseColor(when(name) {
             "teal" -> if(dark) "#9DDACD" else "#146A5B"
             "rose" -> if(dark) "#F5B8CF" else "#9D365D"
@@ -32,10 +29,13 @@ object WidgetAppearance {
             paint.alpha=if(dark) 36 else 22
             canvas.drawRoundRect(rect,size*.32f,size*.32f,paint)
         }
-        paint.style=Paint.Style.FILL;paint.color=color;paint.textSize=size*.52f;paint.textAlign=Paint.Align.CENTER
-        paint.typeface=Typeface.createFromAsset(c.assets,"flutter_assets/fonts/MaterialIcons-Regular.otf")
-        val glyph=String(Character.toChars(icons.getOrElse(item.icon){icons[0]}))
-        canvas.drawText(glyph,size/2f,size/2f-(paint.ascent()+paint.descent())/2f,paint)
+        val asset="flutter_assets/assets/habit_icons/%02d.png".format(java.util.Locale.ROOT,item.icon.coerceIn(0,23))
+        c.assets.open(asset).use { stream ->
+            val art=BitmapFactory.decodeStream(stream) ?: error("Missing habit artwork")
+            paint.reset();paint.isAntiAlias=true;paint.isFilterBitmap=true
+            canvas.drawBitmap(art,null,RectF(0f,0f,size.toFloat(),size.toFloat()),paint)
+            art.recycle()
+        }
         return bitmap
     }
     fun action(palette:String):Int = when(palette) {

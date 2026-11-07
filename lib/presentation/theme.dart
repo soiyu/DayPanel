@@ -34,29 +34,107 @@ class DayPanelStyle extends ThemeExtension<DayPanelStyle> {
         );
 }
 
+/// Each theme is a balanced set of role colors, not a single tinted seed.
+const harmonyInks = <String, List<int>>{
+  'blue': [
+    0xFF2459CC,
+    0xFF7956B4,
+    0xFFA65B2B,
+    0xFF247365,
+    0xFFA04E69,
+    0xFF316CB0,
+  ],
+  'teal': [
+    0xFF226B62,
+    0xFF75629B,
+    0xFFA15C37,
+    0xFF35755A,
+    0xFF9A5463,
+    0xFF366BA3,
+  ],
+  'violet': [
+    0xFF6650A2,
+    0xFF80619F,
+    0xFF946128,
+    0xFF347568,
+    0xFF99566D,
+    0xFF4267A8,
+  ],
+};
+const harmonyWashes = <String, List<int>>{
+  'blue': [
+    0xFFEAF0FD,
+    0xFFF0EBF8,
+    0xFFFBF0E4,
+    0xFFE7F3EE,
+    0xFFF9EBF0,
+    0xFFE9F1F8,
+  ],
+  'teal': [
+    0xFFE5F0EB,
+    0xFFEEEBF4,
+    0xFFF6ECE2,
+    0xFFEAF1E6,
+    0xFFF5EAEC,
+    0xFFE7EEF6,
+  ],
+  'violet': [
+    0xFFEDEAF7,
+    0xFFF1ECF7,
+    0xFFF6F0DE,
+    0xFFE9F2ED,
+    0xFFF7EAEF,
+    0xFFEAF0F8,
+  ],
+};
+const harmonyNights = <String, List<int>>{
+  'blue': [
+    0xFFADC4FF,
+    0xFFD1BEF2,
+    0xFFF3C99B,
+    0xFFA5DACE,
+    0xFFF0BCD0,
+    0xFFA9C9EF,
+  ],
+  'teal': [
+    0xFFA2D7CB,
+    0xFFC7BBDD,
+    0xFFF2C29D,
+    0xFFBAD7B4,
+    0xFFE2B9C4,
+    0xFFAACBEF,
+  ],
+  'violet': [
+    0xFFC9BCED,
+    0xFFD7BCE9,
+    0xFFE4CA91,
+    0xFFADD6C6,
+    0xFFE6B9CD,
+    0xFFBCCCF0,
+  ],
+};
+
 extension ToneColors on UiTone {
   Color ink(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return switch (this) {
-      UiTone.blue => Theme.of(context).colorScheme.primary,
-      UiTone.sky => dark ? const Color(0xFFAFC5FF) : const Color(0xFF1656DF),
-      UiTone.teal => dark ? const Color(0xFF9DDACD) : const Color(0xFF146A5B),
-      UiTone.rose => dark ? const Color(0xFFF5B8CF) : const Color(0xFF9D365D),
-      UiTone.violet => dark ? const Color(0xFFD1BEFF) : const Color(0xFF7252BE),
-      UiTone.peach => dark ? const Color(0xFFFFC395) : const Color(0xFFA95824),
-    };
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return Color(
+        harmonyNights[DayPanelStyle.of(context).appearance.palette]![index],
+      );
+    }
+    return Color(
+      harmonyInks[DayPanelStyle.of(context).appearance.palette]![index],
+    );
   }
 
   Color wash(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return switch (this) {
-      UiTone.blue => Theme.of(context).colorScheme.primaryContainer,
-      UiTone.sky => dark ? const Color(0xFF263957) : const Color(0xFFEAF0FF),
-      UiTone.teal => dark ? const Color(0xFF203D38) : const Color(0xFFE5F4F0),
-      UiTone.rose => dark ? const Color(0xFF452A38) : const Color(0xFFFFEAF1),
-      UiTone.violet => dark ? const Color(0xFF36304C) : const Color(0xFFF0EBFF),
-      UiTone.peach => dark ? const Color(0xFF48352D) : const Color(0xFFFFEEE1),
-    };
+    final palette = DayPanelStyle.of(context).appearance.palette;
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return Color.alphaBlend(
+        ink(context).withValues(alpha: .12),
+        Theme.of(context).colorScheme.surfaceContainerLowest,
+      );
+    }
+    return Color(harmonyWashes[palette]![index]);
   }
 }
 
@@ -65,49 +143,69 @@ ThemeData dayPanelTheme(
   Appearance appearance = const Appearance(),
 }) {
   final palette = appearance.palette;
-  final accent = Color(switch (palette) {
-    'teal' => 0xFF146A5B,
-    'violet' => 0xFF6843AB,
-    _ => 0xFF1656DF,
-  });
-  final pale = Color(switch (palette) {
-    'teal' => 0xFFE5F4F0,
-    'violet' => 0xFFF0EBFF,
-    _ => 0xFFEAF0FF,
-  });
-  final night = Color(switch (palette) {
-    'teal' => 0xFF203D38,
-    'violet' => 0xFF36304C,
-    _ => 0xFF263957,
-  });
-  final lightInk = Color(switch (palette) {
-    'teal' => 0xFF9DDACD,
-    'violet' => 0xFFD1BEFF,
-    _ => 0xFFAFC5FF,
-  });
+  final accent = Color(harmonyInks[palette]![0]);
+  final pale = Color(harmonyWashes[palette]![0]);
   final family = appearance.font == 'serif' ? 'NotoSerifSC' : null;
-  final actionStart = Color(switch (palette) {
-    'teal' => 0xFF167564,
-    'violet' => 0xFF7953B7,
-    _ => 0xFF2864D4,
-  });
   final dark = brightness == Brightness.dark;
+  final base = Color(
+    dark
+        ? switch (palette) {
+            'teal' => 0xFF172320,
+            'violet' => 0xFF211E2B,
+            _ => 0xFF192231,
+          }
+        : switch (palette) {
+            'teal' => 0xFFF4F7F5,
+            'violet' => 0xFFF8F6FA,
+            _ => 0xFFF7F8FC,
+          },
+  );
+  final paper = Color(
+    dark
+        ? switch (palette) {
+            'teal' => 0xFF24322D,
+            'violet' => 0xFF302A3B,
+            _ => 0xFF273244,
+          }
+        : 0xFFFFFFFF,
+  );
+  final actionStart = accent;
   final scheme = ColorScheme.fromSeed(seedColor: accent, brightness: brightness)
       .copyWith(
-        surface: dark ? const Color(0xFF151C2B) : const Color(0xFFF6F8FE),
-        onSurface: dark ? const Color(0xFFEEF2FF) : const Color(0xFF18223B),
+        surface: base,
+        surfaceContainerLowest: paper,
+        surfaceContainerLow: Color.lerp(base, paper, .45),
+        surfaceContainer: Color.lerp(base, paper, .65),
+        surfaceContainerHigh: dark
+            ? const Color(0xFF384251)
+            : const Color(0xFFEDF0F5),
+        onSurface: dark ? const Color(0xFFEDF1F7) : const Color(0xFF26324A),
         onSurfaceVariant: dark
-            ? const Color(0xFFB3BFD6)
-            : const Color(0xFF637089),
-        primary: dark ? lightInk : accent,
-        onPrimary: dark ? const Color(0xFF10234A) : Colors.white,
-        primaryContainer: dark ? night : pale,
+            ? const Color(0xFFB8C4D4)
+            : const Color(0xFF647188),
+        primary: dark ? Color(harmonyNights[palette]![0]) : accent,
+        onPrimary: dark ? const Color(0xFF162542) : Colors.white,
+        primaryContainer: dark
+            ? Color.alphaBlend(
+                Color(harmonyNights[palette]![0]).withValues(alpha: .12),
+                paper,
+              )
+            : pale,
+        secondary: dark
+            ? Color(harmonyNights[palette]![1])
+            : Color(harmonyInks[palette]![1]),
         secondaryContainer: dark
-            ? const Color(0xFF36304C)
-            : const Color(0xFFF0EBFF),
+            ? const Color(0xFF383247)
+            : Color(harmonyWashes[palette]![1]),
+        tertiary: dark
+            ? Color(harmonyNights[palette]![2])
+            : Color(harmonyInks[palette]![2]),
+        tertiaryContainer: dark
+            ? const Color(0xFF443B30)
+            : Color(harmonyWashes[palette]![2]),
         outlineVariant: dark
-            ? const Color(0xFF354157)
-            : const Color(0xFFE1E7F2),
+            ? const Color(0xFF424B59)
+            : const Color(0xFFE1E6ED),
       );
   final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(24));
   return ThemeData(
@@ -177,7 +275,7 @@ ThemeData dayPanelTheme(
     ).apply(fontFamily: family),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: dark ? const Color(0xFF171F30) : const Color(0xFFF3F6FC),
+      fillColor: scheme.surfaceContainerLow,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       hintStyle: TextStyle(
         color: scheme.onSurfaceVariant.withValues(alpha: 0.85),
@@ -214,13 +312,13 @@ ThemeData dayPanelTheme(
       style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: dark ? const Color(0xFF222B3D) : const Color(0xFFFBFCFF),
+      backgroundColor: scheme.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
       shape: shape,
       elevation: 4,
     ),
     datePickerTheme: DatePickerThemeData(
-      backgroundColor: dark ? const Color(0xFF222B3D) : const Color(0xFFFBFCFF),
+      backgroundColor: scheme.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
       shape: shape,
       headerBackgroundColor: scheme.primaryContainer,
@@ -237,7 +335,7 @@ ThemeData dayPanelTheme(
       dividerColor: scheme.outlineVariant,
     ),
     timePickerTheme: TimePickerThemeData(
-      backgroundColor: dark ? const Color(0xFF222B3D) : const Color(0xFFFBFCFF),
+      backgroundColor: scheme.surfaceContainerLowest,
       shape: shape,
       hourMinuteShape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
@@ -300,9 +398,11 @@ UiTone habitTone(int icon, [String color = 'auto']) => switch (color) {
   'peach' => UiTone.peach,
   'teal' => UiTone.teal,
   'rose' => UiTone.rose,
-  _ => switch (icon % 6) {
-    0 || 3 => UiTone.peach,
-    2 || 5 => UiTone.violet,
+  _ => switch (icon) {
+    0 || 10 || 16 || 18 => UiTone.peach,
+    2 || 4 || 13 || 19 || 23 => UiTone.rose,
+    5 || 7 || 12 || 21 => UiTone.violet,
+    3 || 9 || 11 || 17 || 20 => UiTone.teal,
     _ => UiTone.sky,
   },
 };
@@ -320,8 +420,8 @@ class AppCanvas extends StatelessWidget {
           Theme.of(context).colorScheme.surface,
           Color.lerp(
             Theme.of(context).colorScheme.surface,
-            Theme.of(context).colorScheme.primaryContainer,
-            .34,
+            UiTone.violet.wash(context),
+            .14,
           )!,
           Theme.of(context).colorScheme.surface,
         ],
@@ -348,7 +448,7 @@ class SoftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final surface = dark ? const Color(0xFF232C3F) : Colors.white;
+    final surface = Theme.of(context).colorScheme.surfaceContainerLowest;
     return Container(
       padding: padding,
       decoration: BoxDecoration(
@@ -357,22 +457,22 @@ class SoftPanel extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             surface.withValues(alpha: dark ? 0.95 : 0.98),
-            tinted ? tone.wash(context) : surface.withValues(alpha: 0.83),
+            tinted ? Color.lerp(surface, tone.wash(context), .65)! : surface,
           ],
         ),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: dark
-              ? Colors.white.withValues(alpha: 0.07)
-              : Colors.white.withValues(alpha: 0.95),
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: .55),
         ),
         boxShadow: [
           BoxShadow(
             color: (dark ? Colors.black : const Color(0xFF425E9A)).withValues(
               alpha: dark ? 0.12 : 0.045,
             ),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            blurRadius: 18,
+            offset: const Offset(0, 5),
           ),
         ],
       ),

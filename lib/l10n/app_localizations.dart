@@ -2405,19 +2405,19 @@ abstract class AppLocalizations {
   /// No description provided for @paletteBlue.
   ///
   /// In en, this message translates to:
-  /// **'Clear blue'**
+  /// **'Daylight desk'**
   String get paletteBlue;
 
   /// No description provided for @paletteTeal.
   ///
   /// In en, this message translates to:
-  /// **'Forest teal'**
+  /// **'Morning grove'**
   String get paletteTeal;
 
   /// No description provided for @paletteViolet.
   ///
   /// In en, this message translates to:
-  /// **'Evening violet'**
+  /// **'Twilight garden'**
   String get paletteViolet;
 
   /// No description provided for @appearanceFont.
@@ -2477,7 +2477,7 @@ abstract class AppLocalizations {
   /// No description provided for @automaticColor.
   ///
   /// In en, this message translates to:
-  /// **'Automatic'**
+  /// **'Original colors'**
   String get automaticColor;
 
   /// No description provided for @appearanceReset.
@@ -2495,7 +2495,7 @@ abstract class AppLocalizations {
   /// No description provided for @habitColor.
   ///
   /// In en, this message translates to:
-  /// **'Icon color'**
+  /// **'Frame accent'**
   String get habitColor;
 
   /// No description provided for @habitFrame.
@@ -2537,7 +2537,7 @@ abstract class AppLocalizations {
   /// No description provided for @decorationHint.
   ///
   /// In en, this message translates to:
-  /// **'Style changes keep your schedule, target and records.'**
+  /// **'Illustrations keep their original colors. The accent changes the frame and item details; your plan stays the same.'**
   String get decorationHint;
 
   /// No description provided for @iconSun.
@@ -3301,6 +3301,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This day will follow its original plan again. No completion record will be added.'**
   String get restConfirmUnskip;
+
+  /// No description provided for @habitLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit library'**
+  String get habitLibrary;
+
+  /// No description provided for @habitLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make room for a little good'**
+  String get habitLibraryTitle;
+
+  /// No description provided for @habitLibraryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with a familiar habit. Adjust its goal before adding it.'**
+  String get habitLibraryHint;
+
+  /// No description provided for @searchHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Search everyday habits'**
+  String get searchHabits;
+
+  /// No description provided for @templateNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching template. Create your own below.'**
+  String get templateNoMatch;
+
+  /// No description provided for @customHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your own'**
+  String get customHabit;
+
+  /// No description provided for @templateDailyCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day · check off'**
+  String get templateDailyCheck;
+
+  /// No description provided for @templateDailyGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} {unit} / day'**
+  String templateDailyGoal(String amount, String unit);
+
+  /// No description provided for @templateEditable.
+  ///
+  /// In en, this message translates to:
+  /// **'A starting goal, ready to adjust to your day.'**
+  String get templateEditable;
+
+  /// No description provided for @suggestedIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested icon: {name}'**
+  String suggestedIcon(String name);
+
+  /// No description provided for @iconSuggestionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply the icon only; keep your goal and schedule.'**
+  String get iconSuggestionHint;
+
+  /// No description provided for @paletteCompositionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A coordinated palette for actions, notes and everyday details. Habit illustrations keep their own colors.'**
+  String get paletteCompositionHint;
 }
 
 class _AppLocalizationsDelegate

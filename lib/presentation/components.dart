@@ -402,7 +402,12 @@ class GlassNavigation extends StatelessWidget {
                                   ),
                                   decoration: BoxDecoration(
                                     color: index == i
-                                        ? UiTone.blue.wash(context)
+                                        ? [
+                                            UiTone.blue,
+                                            UiTone.peach,
+                                            UiTone.violet,
+                                            UiTone.teal,
+                                          ][i].wash(context)
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(19),
                                   ),
@@ -413,7 +418,12 @@ class GlassNavigation extends StatelessWidget {
                                         icons[i],
                                         size: 22,
                                         color: index == i
-                                            ? UiTone.blue.ink(context)
+                                            ? [
+                                                UiTone.blue,
+                                                UiTone.peach,
+                                                UiTone.violet,
+                                                UiTone.teal,
+                                              ][i].ink(context)
                                             : Theme.of(
                                                 context,
                                               ).colorScheme.onSurfaceVariant,
@@ -428,7 +438,12 @@ class GlassNavigation extends StatelessWidget {
                                               ? FontWeight.w700
                                               : FontWeight.w500,
                                           color: index == i
-                                              ? UiTone.blue.ink(context)
+                                              ? [
+                                                  UiTone.blue,
+                                                  UiTone.peach,
+                                                  UiTone.violet,
+                                                  UiTone.teal,
+                                                ][i].ink(context)
                                               : Theme.of(
                                                   context,
                                                 ).colorScheme.onSurfaceVariant,
@@ -458,6 +473,7 @@ class SheetFrame extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.leading,
     required this.icon,
     required this.body,
     required this.footer,
@@ -466,6 +482,7 @@ class SheetFrame extends StatelessWidget {
   });
   final String title;
   final String? subtitle;
+  final Widget? leading;
   final IconData icon;
   final Widget body, footer;
   final UiTone tone;
@@ -483,9 +500,7 @@ class SheetFrame extends StatelessWidget {
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF20293B)
-                : const Color(0xFFFBFCFF),
+            color: Theme.of(context).colorScheme.surfaceContainerLowest,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           ),
           child: Column(
@@ -509,7 +524,7 @@ class SheetFrame extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
                         child: Row(
                           children: [
-                            ToneIcon(icon, tone: tone),
+                            leading ?? ToneIcon(icon, tone: tone),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(

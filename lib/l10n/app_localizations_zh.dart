@@ -1166,13 +1166,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appearancePalette => '主题配色';
 
   @override
-  String get paletteBlue => '晴空蓝';
+  String get paletteBlue => '晴日书桌';
 
   @override
-  String get paletteTeal => '林间青';
+  String get paletteTeal => '林间晨光';
 
   @override
-  String get paletteViolet => '暮色紫';
+  String get paletteViolet => '暮色花园';
 
   @override
   String get appearanceFont => '字体';
@@ -1202,7 +1202,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get followDefault => '跟随默认';
 
   @override
-  String get automaticColor => '自动配色';
+  String get automaticColor => '物件本色';
 
   @override
   String get appearanceReset => '恢复默认预览';
@@ -1211,7 +1211,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get habitDecoration => '图标与装扮';
 
   @override
-  String get habitColor => '图标配色';
+  String get habitColor => '底框强调色';
 
   @override
   String get habitFrame => '图标边框';
@@ -1232,7 +1232,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get colorRose => '玫瑰';
 
   @override
-  String get decorationHint => '装扮不改变安排、目标或完成记录。';
+  String get decorationHint => '插画保留物件本色，强调色用于底框和条目细节，不改变目标和安排。';
 
   @override
   String get iconSun => '阳光';
@@ -1627,4 +1627,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get restConfirmUnskip => '这天将重新按原计划统计，不会添加完成记录。';
+
+  @override
+  String get habitLibrary => '常用事项';
+
+  @override
+  String get habitLibraryTitle => '从一件熟悉的小事开始';
+
+  @override
+  String get habitLibraryHint => '选好事项和起始目标，再按自己的节奏调整。';
+
+  @override
+  String get searchHabits => '搜索日常事项';
+
+  @override
+  String get templateNoMatch => '还没有匹配的模板，可以在下方自定义。';
+
+  @override
+  String get customHabit => '自定义事项';
+
+  @override
+  String get templateDailyCheck => '每天 · 完成打卡';
+
+  @override
+  String templateDailyGoal(String amount, String unit) {
+    return '每天 $amount $unit';
+  }
+
+  @override
+  String get templateEditable => '这是起始目标，可按自己的情况调整。';
+
+  @override
+  String suggestedIcon(String name) {
+    return '推荐图标：$name';
+  }
+
+  @override
+  String get iconSuggestionHint => '只应用图标，保留目标与安排。';
+
+  @override
+  String get paletteCompositionHint => '主操作、手记与日常细节各有配色，相互协调。事项插画保留自己的颜色。';
 }

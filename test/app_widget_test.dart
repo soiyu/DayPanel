@@ -31,6 +31,8 @@ void main() {
     expect(find.text('Make room for a small habit'), findsOneWidget);
     await tester.tap(find.widgetWithIcon(IconButton, Icons.add));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('custom-habit')));
+    await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('entry-title')), 'Read a page');
     await tester.ensureVisible(find.byKey(const Key('save-entry')));
     await tester.pumpAndSettle();

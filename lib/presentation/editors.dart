@@ -8,6 +8,9 @@ import 'components.dart';
 import 'theme.dart';
 import 'organization.dart';
 import 'appearance.dart';
+import 'habit_catalog.dart';
+import 'habit_icon.dart';
+import '../domain/habit_templates.dart';
 
 String noteHabitLabel(BuildContext context, AppController app, String? id) {
   final s = AppLocalizations.of(context);
@@ -89,21 +92,36 @@ Future<void> openEditor(
   String? noteHabitId,
   Day? noteDay,
   int? expectedGeneration,
-}) => showModalBottomSheet<void>(
-  context: context,
-  isScrollControlled: true,
-  useSafeArea: true,
-  builder: (_) => EntryEditor(
-    app: app,
-    type: type,
-    habit: habit,
-    task: task,
-    note: note,
-    noteHabitId: noteHabitId,
-    noteDay: noteDay,
-    expectedGeneration: expectedGeneration,
-  ),
-);
+}) async {
+  final epoch = expectedGeneration ?? app.generation;
+  HabitTemplate? template;
+  if (type == 'habit' && habit == null) {
+    final choice = await Navigator.push<HabitStarter>(
+      context,
+      MaterialPageRoute(builder: (_) => const HabitCatalog()),
+    );
+    if (choice == null || !context.mounted) return;
+    template = choice.template;
+  }
+  if (!context.mounted) return;
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (_) => EntryEditor(
+      app: app,
+      type: type,
+      habit: habit,
+      task: task,
+      note: note,
+      noteHabitId: noteHabitId,
+      noteDay: noteDay,
+      expectedGeneration: epoch,
+      template: template,
+      chinese: Localizations.localeOf(context).languageCode == 'zh',
+    ),
+  );
+}
 
 class EntryEditor extends StatefulWidget {
   const EntryEditor({
@@ -116,6 +134,8 @@ class EntryEditor extends StatefulWidget {
     this.noteHabitId,
     this.noteDay,
     this.expectedGeneration,
+    this.template,
+    this.chinese = false,
   });
   final AppController app;
   final String type;
@@ -125,6 +145,8 @@ class EntryEditor extends StatefulWidget {
   final String? noteHabitId;
   final Day? noteDay;
   final int? expectedGeneration;
+  final HabitTemplate? template;
+  final bool chinese;
   @override
   State<EntryEditor> createState() => _EntryEditorState();
 }
@@ -145,6 +167,7 @@ class _EntryEditorState extends State<EntryEditor> {
   Day? due;
   bool saving = false;
   bool resident = false;
+  bool iconManuallyPicked = false;
   String? error;
   bool get isHabit => widget.type == 'habit';
   bool get isNote => widget.type == 'note';
@@ -153,21 +176,33 @@ class _EntryEditorState extends State<EntryEditor> {
     super.initState();
     title = TextEditingController(
       text:
-          widget.habit?.title ?? widget.task?.title ?? widget.note?.body ?? '',
+          widget.habit?.title ??
+          widget.task?.title ??
+          widget.note?.body ??
+          widget.template?.title(widget.chinese) ??
+          '',
     );
     target = TextEditingController(
-      text: quantityText(widget.habit?.target ?? 1000),
+      text: quantityText(
+        widget.habit?.target ?? widget.template?.target ?? 1000,
+      ),
     );
-    unit = TextEditingController(text: widget.habit?.unit ?? '');
-    kind = widget.habit?.kind ?? HabitKind.check;
+    unit = TextEditingController(
+      text: widget.habit?.unit ?? widget.template?.unit(widget.chinese) ?? '',
+    );
+    kind = widget.habit?.kind ?? widget.template?.kind ?? HabitKind.check;
     weekdays = widget.habit?.weekdays ?? 127;
-    icon = widget.habit?.icon ?? 0;
+    icon = widget.habit?.icon ?? widget.template?.icon ?? 0;
+    iconManuallyPicked = widget.habit != null || widget.template != null;
     decorationColor = widget.habit?.color ?? 'auto';
     decorationFrame = widget.habit?.frame ?? 'auto';
     due = widget.task?.dueDay;
     resident = widget.task?.resident ?? false;
     schedule = widget.habit?.schedule ?? ScheduleKind.weekdays;
-    habitContext = widget.habit?.context ?? HabitContext.anytime;
+    habitContext =
+        widget.habit?.context ??
+        widget.template?.context ??
+        HabitContext.anytime;
     groupId = widget.habit?.groupId;
     scheduleNumber = TextEditingController(
       text:
@@ -319,6 +354,9 @@ class _EntryEditorState extends State<EntryEditor> {
           ? Icons.edit_note_rounded
           : Icons.checklist_rounded,
       tone: tone,
+      leading: isHabit
+          ? HabitIcon(icon, color: decorationColor, frame: decorationFrame)
+          : null,
       busy: saving,
       body: Form(
         key: form,
@@ -389,7 +427,16 @@ class _EntryEditorState extends State<EntryEditor> {
             TextFormField(
               key: const Key('entry-title'),
               controller: title,
-              onChanged: isHabit ? (_) => setState(() {}) : null,
+              onChanged: isHabit
+                  ? (value) => setState(() {
+                      if (widget.habit == null && !iconManuallyPicked) {
+                        icon =
+                            suggestedHabitIcon(value) ??
+                            widget.template?.icon ??
+                            0;
+                      }
+                    })
+                  : null,
               enabled: !saving,
               maxLength: isNote ? 10000 : 100,
               minLines: isNote ? 5 : 1,
@@ -407,6 +454,32 @@ class _EntryEditorState extends State<EntryEditor> {
                   : null,
             ),
             if (isHabit) ...[
+              if (widget.template != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Text(
+                    s.templateEditable,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              if (suggestedHabitIcon(title.text) case final int suggestion
+                  when suggestion != icon)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: SettingRow(
+                    key: const Key('apply-suggested-icon'),
+                    leading: HabitIcon(suggestion, size: 42),
+                    icon: habitIcons[suggestion],
+                    title: s.suggestedIcon(iconLabels(s)[suggestion]),
+                    subtitle: s.iconSuggestionHint,
+                    onTap: saving
+                        ? null
+                        : () => setState(() {
+                            icon = suggestion;
+                            iconManuallyPicked = true;
+                          }),
+                  ),
+                ),
               const SizedBox(height: 22),
               fieldLabel(s.type),
               LayoutBuilder(
@@ -453,6 +526,7 @@ class _EntryEditorState extends State<EntryEditor> {
                 const SizedBox(height: 14),
                 fieldLabel(s.unit),
                 TextFormField(
+                  key: const Key('habit-unit'),
                   controller: unit,
                   enabled: !saving,
                   maxLength: 12,
@@ -639,7 +713,12 @@ class _EntryEditorState extends State<EntryEditor> {
                 color: decorationColor,
                 frame: decorationFrame,
                 title: title.text,
-                onIcon: saving ? null : (v) => setState(() => icon = v),
+                onIcon: saving
+                    ? null
+                    : (v) => setState(() {
+                        icon = v;
+                        iconManuallyPicked = true;
+                      }),
                 onColor: saving
                     ? null
                     : (v) => setState(() => decorationColor = v),
@@ -916,6 +995,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
         context,
       ).formatFullDate(widget.day.date),
       icon: habitIcons[h.icon],
+      leading: HabitIcon(h.icon, color: h.color, frame: h.frame),
       tone: tone,
       busy: saving,
       body: Column(
@@ -1001,19 +1081,16 @@ class _QuantityEditorState extends State<QuantityEditor> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final fraction in [.25, .5, .75, 1.0])
+                for (final total in quantitySuggestions(h.target, h.unit))
                   SizedBox(
                     width: (constraints.maxWidth - 8) / 2,
                     child: AppAction(
-                      label:
-                          '${quantityText((h.target * fraction).round())} ${h.unit}',
+                      label: '${quantityText(total)} ${h.unit}',
                       tone: tone,
                       onTap: saving
                           ? null
                           : () => setState(() {
-                              value.text = quantityText(
-                                (h.target * fraction).round(),
-                              );
+                              value.text = quantityText(total);
                               error = null;
                             }),
                     ),

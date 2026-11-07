@@ -159,6 +159,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('add-entry')));
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('custom-habit')));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('entry-title')), 'Walk');
       await tester.ensureVisible(find.text('Weekly target'));
       await tester.pumpAndSettle();
