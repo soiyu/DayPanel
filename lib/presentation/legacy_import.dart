@@ -175,7 +175,7 @@ class _LegacyImportPageState extends State<LegacyImportPage> {
                     children: [
                       if (stage < 3)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 22),
+                          padding: const EdgeInsets.only(bottom: 12),
                           child: Row(
                             children: [
                               for (var i = 0; i < 3; i++) ...[
@@ -230,26 +230,16 @@ class _LegacyImportPageState extends State<LegacyImportPage> {
                           ),
                         ),
                       if (stage == 0) ...[
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            child: ToneIcon(
-                              Icons.drive_file_move_outline,
-                              tone: UiTone.violet,
-                              size: 72,
-                            ),
-                          ),
-                        ),
                         Text(
                           s.uiChooseFile,
-                          style: Theme.of(context).textTheme.headlineMedium,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 10),
                         Text(
                           s.legacyIntro,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 12),
                         AppAction(
                           key: const Key('legacy-pick'),
                           label: s.legacyPick,
@@ -312,7 +302,7 @@ class _LegacyImportPageState extends State<LegacyImportPage> {
                       if (source != null && stage == 1) ...[
                         Text(
                           s.uiChooseItems,
-                          style: Theme.of(context).textTheme.headlineMedium,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 6),
                         Text(
@@ -332,7 +322,7 @@ class _LegacyImportPageState extends State<LegacyImportPage> {
                       if (source != null && stage == 2) ...[
                         Text(
                           s.uiReviewImport,
-                          style: Theme.of(context).textTheme.headlineMedium,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 6),
                         Text(

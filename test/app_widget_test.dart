@@ -206,9 +206,17 @@ void main() {
             await tester.pumpAndSettle();
             expect(tester.takeException(), isNull);
           }
-          await tester.ensureVisible(
-            find.text(locale == 'zh' ? '七日回顾' : 'Seven-day review'),
+          final review = find.text(
+            locale == 'zh' ? '七日回顾' : 'Seven-day review',
           );
+          if (review.evaluate().isEmpty) {
+            await tester.scrollUntilVisible(
+              review,
+              180,
+              scrollable: find.byType(Scrollable).first,
+            );
+          }
+          await tester.ensureVisible(review);
           await tester.pumpAndSettle();
           await tester.tap(
             find.text(locale == 'zh' ? '七日回顾' : 'Seven-day review'),
@@ -217,9 +225,15 @@ void main() {
           expect(tester.takeException(), isNull);
           await tester.tap(find.byType(BackButton));
           await tester.pumpAndSettle();
-          await tester.ensureVisible(
-            find.text(locale == 'zh' ? '外观' : 'Appearance'),
-          );
+          final appearance = find.text(locale == 'zh' ? '外观' : 'Appearance');
+          if (appearance.evaluate().isEmpty) {
+            await tester.scrollUntilVisible(
+              appearance,
+              -180,
+              scrollable: find.byType(Scrollable).first,
+            );
+          }
+          await tester.ensureVisible(appearance);
           await tester.pumpAndSettle();
           await tester.tap(find.text(locale == 'zh' ? '外观' : 'Appearance'));
           await tester.pumpAndSettle();

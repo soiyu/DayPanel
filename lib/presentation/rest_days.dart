@@ -189,8 +189,7 @@ class _RestDaysPageState extends State<RestDaysPage> {
               if (h != null)
                 Text(h.title, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 10),
-              Text(s.restHint),
-              const SizedBox(height: 20),
+
               if (h == null || epoch != app.generation)
                 Text(s.restStale)
               else if (!h.archived && current == null) ...[
@@ -275,7 +274,7 @@ class _RestDaysPageState extends State<RestDaysPage> {
                 ),
               DetailDisclosure(
                 title: s.uiMoreDetails,
-                child: Text(s.restRules),
+                child: Text('${s.restHint}\n\n${s.restRules}'),
               ),
             ],
           ),

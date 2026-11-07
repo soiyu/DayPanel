@@ -253,7 +253,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           backgroundColor: Colors.transparent,
           appBar: AppBar(title: Text(s.statisticsTitle)),
           body: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
             children: [
               IntrinsicHeight(
                 child: Row(
@@ -333,7 +333,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 8),
               if (tab != 3) ...[
                 AppAction(
                   key: const Key('statistics-habit-filter'),
@@ -353,7 +353,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     }
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
               ],
               if (tab == 0) ...matrix(context, habits),
               if (tab == 1) ...summary(context, selected),

@@ -868,3 +868,57 @@ API28用户18真实创建Read a page（布尔）与喝水1500毫升，通过Laun
 安装前主用户进程停止归档pre-widget-direct-db.tar；升级后停止归档post-widget-direct-db.tar。`python .local/widget_direct_retention.py`通过：15张原表的全部原字段逐行一致、SQLite9→10、新revision为0、外键检查空；原2习惯/1记录/2小事/1手记/设置/计划/归档历史保持（widget-direct-retention.log）。API28测试用户18删除，API35用户10切回0后停止/删除并核对只剩主用户，辅助模拟器关闭；API28主用户0最终启动Status: ok、保持可见运行。只提交源码/测试/文档，APK/DB/截图/工具均ignored，不推送、不关机。
 
 本批直接操作可用并完成上述限定验收。API36新Job路径、厂商真机长Doze/后台限制、手工TalkBack、重启中任务中断及所有多实例/字号尺寸组合仍待完整验证，不称全设备无BUG。下一步继续FL19系统边界回归，不自动开始发布。
+
+## 2026-11-07 UI04 首屏操作与页面重心
+
+用户指出习惯等操作被大展示区挤到底部，按UI04-ACTION-FIRST先明确每页重心，再重排实际页面。基线c377b9d干净，沿用UI03颜色与原创插画，没有重写业务规则/SQLite10/schema10/Android后台动作。不修改旧原生工程、不推送、不关机。
+
+### 页面调整
+
+- 日常移除顶部口号、独立月份大区/整行筛选按钮/大进度面板。完整日期与筛选同行，常规字号紧凑周条；超过130%字号用日期选择器优先，不强占周条高度。进度/当日标题/数量一行；习惯图标、名称、真实值/目标、完成/记录同卡同行，窄屏/大字号动作换到下一行。数量细进度保留，周目标仍显示本周达标日/目标。详情页保留完整操作，不删除历史/纠正/休息入口。
+- 小事去掉开场介绍与大数字卡，历史为工具入口，待处理数一行；今天/逾期/收件箱/未来一次性待办优先，随后常驻和已完成。完成/重开仍为原显式规则，按日常驻/无欠账保持。
+- 手记去掉筛选外层大卡和冗余留白，搜索、月份、过滤之后即正文列表；正文预览5行，点击可编辑全文。编辑页正文输入前置，日期和关联习惯后移，保存/取消固定。日期/关联/搜索组合规则不变。
+- 我的直接列管理习惯、外观、提醒、数据备份和桌面组件，再列卡片/统计/回顾；免费说明移到末尾折叠，不占首屏。保留语言/反馈/开源许可全部入口。
+- 模板目录删除二次大标题/介绍，48dp插画与名称目标组成紧凑选择卡；外观真实预览一行，首屏可选明暗/组合主题/字体。备份直接导出/恢复/旧习惯导入，说明后移，危险恢复确认步骤保持。提醒先权限状态/授权入口和习惯列表，详细权限/准时设置及说明折叠。旧导入删除装饰大图，选择文件动作上移；组件配置移除重复选中预览，保留选择/保存/取消与世代保护。
+- 统计导航/间距压缩，真实图表仍为重点；回顾保留自身统计目的，不把数据图表当无关装饰删除。卡片册筛选前不再放大介绍，卡片详情略收紧；分享页先选名称/心得，预览后固定保存/分享，避免隐私选项藏在大图下面。休息安排将可执行动作放说明前。
+- 底部导航减少装饰留白，保留四标签及48dp点击区、各栏目色。SectionTitle/SectionHeading间距压缩。折叠说明新增独立PageStorageKey，防止与父列表滚动double状态冲突；页面间滚动位置继续独立。
+
+### 验证
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 test -Extra '--concurrency=2','test/action_first_layout_test.dart','test/m2_widget_test.dart','test/journal_ui_test.dart','test/editor_layout_test.dart'
+./scripts/dev.ps1 assemble
+./scripts/dev.ps1 analyze
+git diff --check
+git diff --cached --check
+```
+
+完整ui04-final.log：analyze无问题10.0秒，**275 Flutter/Dart通过**（2:17），debug68.8秒、Kotlin13/13。新增4项中英×普通/160%深色布局测试，360×800常规首屏前两项习惯可点、320×800/160%至少首项完整操作；明确坐标上限、实际完成写入、小事首完成按钮、手记首条正文、我的管理/外观/备份、外观主题与保存、模板前两项都断言命中，不仅检查无溢出。
+
+初次英文大字首项操作过低，改为大字不常驻周条；发现PageStorage bool/double冲突，补独立Key；旧布局测试按新列表懒加载先滚动到目标，中文返回不再依赖英文Back提示。失败运行ui04-verify2.log不计通过。后续最后合并重复标题时英文大字行溢出，Flexible布局修复；手记正文前置和周进度补全后，上述受影响文件 **24项通过**（ui04-layout-final2.log），不把这次针对性运行说成完整275再次运行。
+
+最后format83文件，assemble47.8秒（ui04-build-final.log），analyze无问题10.1秒（ui04-analyze-final.log）。native-test7秒成功。最终API28原生 **OK(28 tests)**，38.383秒，ui04-api28.log，含提醒/组件快照/真实后台完成取消/小事/ABA/旧库/图片；本批没有原生业务改动。现有Kotlin/Gradle迁移提示仍保留。
+
+最终APK build/app/outputs/flutter-apk/app-debug.apk，**174926235 bytes**，SHA-256 **6331dac1f766a813d2acee85b733f403b8fe6c2e9659a25d64d00212617f564e**，已覆盖安装。设备命令：
+
+```powershell
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument --user 19 -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest,app.daypanel.next.CardImageDeviceTest,app.daypanel.next.widgets.WidgetDirectActionDeviceTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+### 设备与交接
+
+API28可见emulator-5554，隔离用户19 DayPanelUI04QA。UI创建喝水1500毫升、阅读10页、散步6000步、按时睡觉；默认字号最终首屏四张卡和四个操作完整可见，首个记录按钮y606..732px，第四操作y1370..1496px，底栏从1631px起。实际不滚动完成按时睡觉成功，进度1/4。任务创建Post the parcel一次性、Water the plants常驻，首屏完成按钮可见。手记通过真实表单保存正文，列表直接可见；最终正文编辑前置已截图，取消不添加。外观主题/字体、我的前五管理入口、数据备份和提醒列表均实际打开并截图核对。
+
+中文深色160%日常首屏两张完整卡/记录动作可见，日期选择器保留，手记正文可见。调整系统字号后一次回到Launcher，重新启动Status: ok，数据保持且本批时间窗口无AndroidRuntime/flutter错误；不声称已定位平台重建原因。原始log缓冲含上一批04:01 adb input INJECT_EVENTS错误，按本批04:45后过滤的ui04-device-errors-current.log为空，不把历史系统命令错误称为本批App异常。
+
+截图ignored .local/reports：ui04-daily-final/tasks-final/journal-final/settings-final.png（四主页真实首屏）、ui04-catalog.png、ui04-appearance-first.png、ui04-backup-final.png、ui04-reminders-final.png、ui04-note-editor-final.png、ui04-daily-dark-large/journal-dark-large.png；汇总ui04-overview.png为四张真实设备截图拼接。截图内容为测试用户实际保存，不含产品演示数据。
+
+主用户安装前关闭进程归档pre-ui04-db.tar，结束切回0/关闭进程归档post-ui04-db.tar。`python .local/ui04_retention.py`逐表核对 **15张表完全一致**，包括runtime/generation/revision，SQLite10与foreign_key_check正常（ui04-retention-final.log）；原2习惯/1记录/2小事/1手记/偏好/计划/履历保留。用户19已停止删除，主用户最终启动成功，仅主可见模拟器运行。APK/数据库/截图/本机路径不提交。
+
+本批布局和上述范围验收完成，不宣称所有页面在所有屏幕/语言/字体下已完整手工验收。API35/36本批完整布局、厂商真机、手工TalkBack与极长列表仍开放；下一步按真实视觉反馈继续精修与FL19设备回归，FL20发布保持待开始。电脑与模拟器保持开机、不推送。

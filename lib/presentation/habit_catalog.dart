@@ -42,16 +42,6 @@ class _HabitCatalogState extends State<HabitCatalog> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                   children: [
-                    Text(
-                      s.habitLibraryTitle,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      s.habitLibraryHint,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 20),
                     TextField(
                       key: const Key('template-search'),
                       onChanged: (v) => setState(() => query = v),
@@ -60,7 +50,7 @@ class _HabitCatalogState extends State<HabitCatalog> {
                         prefixIcon: const Icon(Icons.search_rounded),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
                     if (items.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
@@ -92,17 +82,17 @@ class _HabitCatalogState extends State<HabitCatalog> {
                                 onTap: () =>
                                     Navigator.pop(context, HabitStarter(t)),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(12),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       HabitIcon(
                                         t.icon,
-                                        size: 72,
+                                        size: 48,
                                         frame: 'plain',
                                       ),
-                                      const SizedBox(height: 12),
+                                      const SizedBox(height: 6),
                                       Text(
                                         t.title(zh),
                                         style: Theme.of(

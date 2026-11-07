@@ -290,88 +290,39 @@ class _RemindersPageState extends State<RemindersPage>
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              Text(
-                s.uiReminderIntro,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              DetailDisclosure(
-                title: s.uiReminderRules,
-                child: Text('${s.remindersIntro}\n\n${s.snoozeHint}'),
-              ),
-              const SizedBox(height: 8),
-              SectionTitle(s.notificationSettings),
-              SoftPanel(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AppBadge(
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
                       status.notifications
                           ? s.notificationAllowed
                           : s.notificationBlocked,
-                      tone: status.notifications ? UiTone.blue : UiTone.peach,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                    const SizedBox(height: 14),
-                    if (!status.notifications)
-                      AppAction(
-                        label: s.enableNotifications,
-                        primary: true,
-                        onTap: working
-                            ? null
-                            : () => systemAction(() async {
-                                await app.reminderPlatform?.requestPermission();
-                              }),
-                      ),
-                    const SizedBox(height: 8),
-                    AppAction(
-                      label: s.notificationSettings,
-                      icon: Icons.settings_outlined,
-                      onTap: working
-                          ? null
-                          : () => systemAction(() async {
-                              await app.reminderPlatform?.openSettings();
-                            }),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      s.reminderChannelHint,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    tooltip: s.notificationSettings,
+                    icon: const Icon(Icons.settings_outlined),
+                    onPressed: working
+                        ? null
+                        : () => systemAction(() async {
+                            await app.reminderPlatform?.openSettings();
+                          }),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              SoftPanel(
-                tinted: true,
-                tone: UiTone.violet,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      s.exactReminder,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(status.exact ? s.exactAvailable : s.exactUnavailable),
-                    if (!status.exact) ...[
-                      const SizedBox(height: 12),
-                      AppAction(
-                        label: s.requestExact,
-                        icon: Icons.alarm_rounded,
-                        tone: UiTone.violet,
-                        onTap: working
-                            ? null
-                            : () => systemAction(() async {
-                                await app.reminderPlatform?.openSettings(
-                                  exact: true,
-                                );
-                              }),
-                      ),
-                    ],
-                  ],
+              if (!status.notifications)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: working
+                        ? null
+                        : () => systemAction(() async {
+                            await app.reminderPlatform?.requestPermission();
+                          }),
+                    child: Text(s.enableNotifications),
+                  ),
                 ),
-              ),
               if (app.reminderSyncFailed || error != null) ...[
                 const SizedBox(height: 16),
                 Text(error ?? s.reminderSyncFailed),
@@ -382,7 +333,7 @@ class _RemindersPageState extends State<RemindersPage>
                   child: Text(s.retry),
                 ),
               ],
-              const SizedBox(height: 20),
+              const SizedBox(height: 6),
               SectionTitle(
                 s.manageHabits,
                 count: app.habits.length,
@@ -424,6 +375,97 @@ class _RemindersPageState extends State<RemindersPage>
                     ),
                   ),
                 ),
+              DetailDisclosure(
+                title: s.notificationSettings,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SectionTitle(s.notificationSettings),
+                    SoftPanel(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          AppBadge(
+                            status.notifications
+                                ? s.notificationAllowed
+                                : s.notificationBlocked,
+                            tone: status.notifications
+                                ? UiTone.blue
+                                : UiTone.peach,
+                          ),
+                          const SizedBox(height: 14),
+                          if (!status.notifications)
+                            AppAction(
+                              label: s.enableNotifications,
+                              primary: true,
+                              onTap: working
+                                  ? null
+                                  : () => systemAction(() async {
+                                      await app.reminderPlatform
+                                          ?.requestPermission();
+                                    }),
+                            ),
+                          const SizedBox(height: 8),
+                          AppAction(
+                            label: s.notificationSettings,
+                            icon: Icons.settings_outlined,
+                            onTap: working
+                                ? null
+                                : () => systemAction(() async {
+                                    await app.reminderPlatform?.openSettings();
+                                  }),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            s.reminderChannelHint,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SoftPanel(
+                      tinted: true,
+                      tone: UiTone.violet,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            s.exactReminder,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            status.exact
+                                ? s.exactAvailable
+                                : s.exactUnavailable,
+                          ),
+                          if (!status.exact) ...[
+                            const SizedBox(height: 12),
+                            AppAction(
+                              label: s.requestExact,
+                              icon: Icons.alarm_rounded,
+                              tone: UiTone.violet,
+                              onTap: working
+                                  ? null
+                                  : () => systemAction(() async {
+                                      await app.reminderPlatform?.openSettings(
+                                        exact: true,
+                                      );
+                                    }),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              DetailDisclosure(
+                title: s.uiReminderRules,
+                child: Text('${s.remindersIntro}\n\n${s.snoozeHint}'),
+              ),
               const SizedBox(height: 14),
               Text(
                 s.reminderSystemHint,

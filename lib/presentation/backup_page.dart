@@ -217,13 +217,6 @@ class _BackupPageState extends State<BackupPage> {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
             children: [
-              Text(
-                s.uiBackupHint,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(s.backupBody, style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: 24),
               ActionTile(
                 key: const Key('export-backup'),
                 title: s.exportBackup,
@@ -322,7 +315,7 @@ class _BackupPageState extends State<BackupPage> {
                 title: s.uiFileScope,
                 icon: Icons.shield_outlined,
                 child: Text(
-                  '${s.exportHint}\n\n${s.restoreHint}',
+                  '${s.backupBody}\n\n${s.exportHint}\n\n${s.restoreHint}',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),

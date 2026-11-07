@@ -4,7 +4,6 @@ import '../domain/models.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
-import 'habit_icon.dart';
 import 'editors.dart';
 import 'habits.dart';
 import 'tasks.dart';
@@ -197,68 +196,9 @@ class _WidgetFlowState extends State<WidgetFlow> {
                       if (configuring) ...[
                         Text(
                           s.widgetChoose,
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: Theme.of(context).textTheme.titleSmall,
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          s.uiWidgetChooseHint,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        if (selected != null &&
-                            choices.any((c) => c.$1 == selected)) ...[
-                          const SizedBox(height: 18),
-                          SoftPanel(
-                            tinted: true,
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                if (widget.request['kind'] == 'habit')
-                                  HabitIcon(
-                                    app.habits
-                                        .firstWhere((h) => h.id == selected)
-                                        .icon,
-                                    size: 48,
-                                    color: app.habits
-                                        .firstWhere((h) => h.id == selected)
-                                        .color,
-                                    frame: app.habits
-                                        .firstWhere((h) => h.id == selected)
-                                        .frame,
-                                  )
-                                else
-                                  const ToneIcon(
-                                    Icons.checklist_rounded,
-                                    tone: UiTone.peach,
-                                    size: 42,
-                                  ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        choices
-                                            .firstWhere((c) => c.$1 == selected)
-                                            .$2,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleMedium,
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        s.widgetConfigHint,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
                       ] else
                         SoftPanel(
                           tinted: true,

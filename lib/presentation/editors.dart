@@ -343,11 +343,6 @@ class _EntryEditorState extends State<EntryEditor> {
         : UiTone.peach;
     return SheetFrame(
       title: heading,
-      subtitle: isHabit
-          ? s.habitEditorHint
-          : isNote
-          ? s.noteEditorHint
-          : s.taskEditorHint,
       icon: isHabit
           ? habitIcons[icon]
           : isNote
@@ -363,7 +358,38 @@ class _EntryEditorState extends State<EntryEditor> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            fieldLabel(isNote ? s.noteBody : s.title),
+            TextFormField(
+              key: const Key('entry-title'),
+              controller: title,
+              onChanged: isHabit
+                  ? (value) => setState(() {
+                      if (widget.habit == null && !iconManuallyPicked) {
+                        icon =
+                            suggestedHabitIcon(value) ??
+                            widget.template?.icon ??
+                            0;
+                      }
+                    })
+                  : null,
+              enabled: !saving,
+              maxLength: isNote ? 10000 : 100,
+              minLines: isNote ? 4 : 1,
+              maxLines: isNote ? 12 : 2,
+              decoration: InputDecoration(
+                hintText: isNote
+                    ? s.notePlaceholder
+                    : isHabit
+                    ? s.habitPlaceholder
+                    : s.taskPlaceholder,
+                counterText: '',
+              ),
+              validator: (v) => v == null || v.trim().isEmpty
+                  ? (isNote ? s.noteRequired : s.invalidTitle)
+                  : null,
+            ),
             if (isNote) ...[
+              const SizedBox(height: 16),
               fieldLabel(s.noteDate),
               SoftPanel(
                 tone: UiTone.peach,
@@ -423,36 +449,6 @@ class _EntryEditorState extends State<EntryEditor> {
               ),
               const SizedBox(height: 20),
             ],
-            fieldLabel(isNote ? s.noteBody : s.title),
-            TextFormField(
-              key: const Key('entry-title'),
-              controller: title,
-              onChanged: isHabit
-                  ? (value) => setState(() {
-                      if (widget.habit == null && !iconManuallyPicked) {
-                        icon =
-                            suggestedHabitIcon(value) ??
-                            widget.template?.icon ??
-                            0;
-                      }
-                    })
-                  : null,
-              enabled: !saving,
-              maxLength: isNote ? 10000 : 100,
-              minLines: isNote ? 5 : 1,
-              maxLines: isNote ? 12 : 2,
-              decoration: InputDecoration(
-                hintText: isNote
-                    ? s.notePlaceholder
-                    : isHabit
-                    ? s.habitPlaceholder
-                    : s.taskPlaceholder,
-                counterText: '',
-              ),
-              validator: (v) => v == null || v.trim().isEmpty
-                  ? (isNote ? s.noteRequired : s.invalidTitle)
-                  : null,
-            ),
             if (isHabit) ...[
               if (widget.template != null)
                 Padding(

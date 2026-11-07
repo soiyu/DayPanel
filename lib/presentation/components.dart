@@ -249,7 +249,7 @@ class SectionTitle extends StatelessWidget {
   final UiTone tone;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 8, bottom: 14),
+    padding: const EdgeInsets.only(top: 10, bottom: 8),
     child: Row(
       children: [
         Container(
@@ -353,7 +353,7 @@ class GlassNavigation extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(26),
@@ -372,7 +372,7 @@ class GlassNavigation extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: Container(
-                padding: const EdgeInsets.all(7),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: (dark ? const Color(0xFF232C3F) : Colors.white)
                       .withValues(alpha: .9),
@@ -397,7 +397,7 @@ class GlassNavigation extends StatelessWidget {
                                 onTap: () => onSelected(i),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    vertical: 10,
+                                    vertical: 6,
                                     horizontal: 2,
                                   ),
                                   decoration: BoxDecoration(
@@ -416,7 +416,7 @@ class GlassNavigation extends StatelessWidget {
                                     children: [
                                       Icon(
                                         icons[i],
-                                        size: 22,
+                                        size: 20,
                                         color: index == i
                                             ? [
                                                 UiTone.blue,
@@ -428,7 +428,7 @@ class GlassNavigation extends StatelessWidget {
                                                 context,
                                               ).colorScheme.onSurfaceVariant,
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 2),
                                       Text(
                                         labels[i],
                                         textAlign: TextAlign.center,

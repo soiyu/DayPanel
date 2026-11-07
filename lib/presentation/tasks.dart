@@ -52,27 +52,34 @@ class TasksPage extends StatelessWidget {
         UiTone.violet,
       ),
     ];
+    List<Widget> section(String name, List<SmallTask> tasks, UiTone tone) =>
+        tasks.isEmpty
+        ? []
+        : [
+            SectionTitle(name, count: tasks.length, tone: tone),
+            for (final task in tasks)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: TaskTile(app: app, task: task, tone: tone),
+              ),
+          ];
     return ListView(
       key: const PageStorageKey('taskList'),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
-        Text(
-          s.emptyTasksBody,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        Row(
           children: [
-            AppAction(
+            Expanded(
+              child: Text(
+                '${s.taskSummaryPending} ${singles.where((t) => !t.done).length}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            IconButton(
               key: const Key('task-history'),
-              label: s.taskHistory,
-              icon: Icons.history_rounded,
-              tone: UiTone.violet,
-              onTap: () => Navigator.push(
+              tooltip: s.taskHistory,
+              icon: const Icon(Icons.history_rounded),
+              onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(
                   builder: (_) => TaskHistoryPage(app: app),
@@ -80,10 +87,10 @@ class TasksPage extends StatelessWidget {
               ),
             ),
             if (app.tasks.any((t) => t.resident && t.archived))
-              AppAction(
-                label: s.archived,
-                icon: Icons.archive_outlined,
-                onTap: () => Navigator.push(
+              IconButton(
+                tooltip: s.archived,
+                icon: const Icon(Icons.archive_outlined),
+                onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute<void>(
                     builder: (_) => TaskArchivePage(app: app),
@@ -92,7 +99,6 @@ class TasksPage extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: 18),
         if (app.tasks.isEmpty)
           EmptyState(
             icon: Icons.checklist_rounded,
@@ -101,97 +107,28 @@ class TasksPage extends StatelessWidget {
             action: s.newTask,
             onAction: () => openEditor(context, app, 'task'),
             tone: UiTone.peach,
-          )
-        else ...[
-          SoftPanel(
-            tinted: true,
-            tone: UiTone.peach,
-            padding: const EdgeInsets.all(18),
-            child: Wrap(
-              spacing: 24,
-              runSpacing: 16,
-              children: [
-                _metric(
-                  context,
-                  s.taskSummaryPending,
-                  singles.where((t) => !t.done).length,
-                  UiTone.peach,
-                ),
-                _metric(
-                  context,
-                  s.taskSummaryToday,
-                  app.tasksCompletedOn(today),
-                  UiTone.blue,
-                ),
-              ],
-            ),
           ),
-          const SizedBox(height: 18),
-        ],
-        if (app.residentTasks.isNotEmpty) ...[
-          SectionTitle(
-            s.residentTasks,
-            count: app.residentTasks.length,
-            tone: UiTone.violet,
-          ),
-          Text(
-            s.residentDetailHint,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 12),
-          for (final task in app.residentTasks)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: TaskTile(app: app, task: task, tone: UiTone.violet),
-            ),
-        ],
-        for (final group in groups)
-          if (group.$2.isNotEmpty) ...[
-            SectionTitle(group.$1, count: group.$2.length, tone: group.$3),
-            for (final task in group.$2)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: TaskTile(app: app, task: task, tone: group.$3),
-              ),
-          ],
+        for (final group in groups.take(4))
+          ...section(group.$1, group.$2, group.$3),
+        ...section(s.residentTasks, app.residentTasks, UiTone.violet),
+        ...section(groups.last.$1, groups.last.$2, groups.last.$3),
         if (singles.any((t) => t.done && t.completedDay != today))
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: SoftPanel(
-              padding: const EdgeInsets.all(4),
-              child: SettingRow(
-                icon: Icons.history_rounded,
-                title: s.completedEarlier,
-                subtitle:
-                    '${singles.where((t) => t.done && t.completedDay != today).length}',
-                tone: UiTone.violet,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (_) => TaskHistoryPage(app: app),
-                  ),
-                ),
+          SettingRow(
+            icon: Icons.history_rounded,
+            title: s.completedEarlier,
+            subtitle:
+                '${singles.where((t) => t.done && t.completedDay != today).length}',
+            tone: UiTone.violet,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => TaskHistoryPage(app: app),
               ),
             ),
           ),
       ],
     );
   }
-
-  Widget _metric(BuildContext context, String label, int count, UiTone tone) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$count',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(color: tone.ink(context)),
-          ),
-          const SizedBox(height: 4),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-        ],
-      );
 }
 
 class TaskTile extends StatelessWidget {
@@ -233,6 +170,7 @@ class TaskTile extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: IconButton(
+              key: Key('task-action-${task.id}'),
               tooltip: done ? s.reopen : s.done,
               onPressed: app.busy || task.archived
                   ? null
@@ -273,7 +211,7 @@ class TaskTile extends StatelessWidget {
                             : null,
                       ),
                     ),
-                    const SizedBox(height: 9),
+                    const SizedBox(height: 4),
                     AppBadge(
                       task.resident
                           ? (done ? s.residentToday : s.residentUnrecorded)

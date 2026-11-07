@@ -124,33 +124,6 @@ class _CardSharePageState extends State<CardSharePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          s.cardShareHint,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 18),
-                        if (card != null)
-                          Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 380),
-                              child: RepaintBoundary(
-                                key: boundary,
-                                child: ShareCardPoster(
-                                  card: card!,
-                                  title: widget.title,
-                                  names: names,
-                                  excerpt: reflection ? excerpt.text : null,
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          EmptyState(
-                            icon: Icons.image_not_supported_outlined,
-                            title: s.cardShareStale,
-                            body: s.cardShareHint,
-                          ),
-                        const SizedBox(height: 18),
                         SwitchListTile(
                           key: const Key('share-names'),
                           title: Text(s.cardShareNames),
@@ -180,6 +153,29 @@ class _CardSharePageState extends State<CardSharePage> {
                             enabled: !working,
                             onChanged: (_) => setState(() {}),
                           ),
+                        const SizedBox(height: 12),
+                        if (card != null)
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 380),
+                              child: RepaintBoundary(
+                                key: boundary,
+                                child: ShareCardPoster(
+                                  card: card!,
+                                  title: widget.title,
+                                  names: names,
+                                  excerpt: reflection ? excerpt.text : null,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          EmptyState(
+                            icon: Icons.image_not_supported_outlined,
+                            title: s.cardShareStale,
+                            body: s.cardShareHint,
+                          ),
+                        const SizedBox(height: 18),
                         if (message != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 12),

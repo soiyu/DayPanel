@@ -196,6 +196,7 @@ class DetailDisclosure extends StatelessWidget {
   Widget build(BuildContext context) => Theme(
     data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
     child: ExpansionTile(
+      key: PageStorageKey('disclosure-$title'),
       initiallyExpanded: initiallyExpanded,
       tilePadding: const EdgeInsets.symmetric(horizontal: 2),
       childrenPadding: const EdgeInsets.fromLTRB(2, 0, 2, 16),
@@ -342,7 +343,7 @@ class SectionHeading extends StatelessWidget {
   final Widget? trailing;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 22, bottom: 12),
+    padding: const EdgeInsets.only(top: 16, bottom: 8),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

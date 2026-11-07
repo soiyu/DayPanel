@@ -44,6 +44,150 @@ class HabitTile extends StatelessWidget {
         day.compareTo(habit.startDay) >= 0;
     final scheme = Theme.of(context).colorScheme;
     final isQuantity = habit.kind == HabitKind.quantity;
+    if (openDetails) {
+      void details() => Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => HabitDetails(app: app, id: habit.id),
+        ),
+      );
+      void record() {
+        if (rest != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => RestDaysPage(app: app, id: habit.id),
+            ),
+          );
+        } else if (isQuantity) {
+          openQuantity(context, app, habit, day);
+        } else {
+          app.recordHabit(habit, day, done ? null : 1000, epoch);
+        }
+      }
+
+      final label = rest != null
+          ? s.restTitle
+          : isQuantity
+          ? s.record
+          : done
+          ? s.reopen
+          : s.done;
+      final subtitle = rest != null
+          ? restName(s, rest)
+          : isQuantity
+          ? '${amount == null ? '—' : quantityText(amount)} / ${quantityText(display.target)} ${display.unit}'
+          : done
+          ? s.finished
+          : s.notRecorded;
+      final action = AppAction(
+        key: Key('habit-action-${habit.id}'),
+        label: label,
+        icon: isQuantity
+            ? Icons.edit_outlined
+            : done
+            ? Icons.undo_rounded
+            : Icons.check_rounded,
+        tone: tone,
+        onTap: rest != null || enabled ? record : null,
+      );
+      return SoftPanel(
+        key: Key('habit-card-${habit.id}'),
+        radius: 18,
+        padding: const EdgeInsets.all(12),
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final stacked =
+                c.maxWidth < 280 ||
+                MediaQuery.textScalerOf(context).scale(1) > 1.3;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    HabitIcon(
+                      habit.icon,
+                      color: habit.color,
+                      frame: habit.frame,
+                      size: 44,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: InkWell(
+                        onTap: details,
+                        borderRadius: BorderRadius.circular(10),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 48),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                habit.title,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                subtitle,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: rest != null
+                                          ? UiTone.violet.ink(context)
+                                          : tone.ink(context),
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (!stacked)
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 128),
+                        child: action,
+                      )
+                    else
+                      IconButton(
+                        tooltip: s.history,
+                        onPressed: details,
+                        icon: const Icon(Icons.chevron_right_rounded),
+                      ),
+                  ],
+                ),
+                if (stacked)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: action,
+                    ),
+                  ),
+                if (plan.schedule == ScheduleKind.weekly)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                if (isQuantity)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: LinearProgressIndicator(
+                      value: ((amount ?? 0) / display.target).clamp(0.0, 1.0),
+                      minHeight: 3,
+                      color: tone.ink(context),
+                      backgroundColor: tone.wash(context),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      );
+    }
     return SoftPanel(
       tinted: done,
       tone: tone,

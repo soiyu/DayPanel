@@ -119,10 +119,8 @@ class _JournalPageState extends State<JournalPage> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SoftPanel(
-                tinted: true,
-                tone: UiTone.violet,
-                padding: const EdgeInsets.all(16),
+              Padding(
+                padding: EdgeInsets.zero,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -158,7 +156,7 @@ class _JournalPageState extends State<JournalPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         IconButton(
@@ -273,7 +271,7 @@ class _JournalPageState extends State<JournalPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 4),
               Row(
                 children: [
                   Expanded(
@@ -325,7 +323,8 @@ class NoteCard extends StatelessWidget {
     final s = AppLocalizations.of(context);
     final epoch = app.generation;
     return SoftPanel(
-      padding: const EdgeInsets.fromLTRB(18, 12, 12, 18),
+      key: Key('note-card-${note.id}'),
+      padding: const EdgeInsets.fromLTRB(14, 4, 8, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -397,7 +396,7 @@ class NoteCard extends StatelessWidget {
               ),
               child: Text(
                 note.body,
-                maxLines: 8,
+                maxLines: 5,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),

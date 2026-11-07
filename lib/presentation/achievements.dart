@@ -148,11 +148,6 @@ class _CardCollectionState extends State<CardCollection> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      s.cardCollectionHint,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 16),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -326,7 +321,10 @@ class _CardDetailsState extends State<CardDetails> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
                                     children: [
-                                      CardArt(artwork: card.artwork),
+                                      CardArt(
+                                        artwork: card.artwork,
+                                        height: 180,
+                                      ),
                                       const SizedBox(height: 18),
                                       Text(
                                         cardTitle(s, card.artwork),

@@ -155,117 +155,53 @@ class _AppearancePageState extends State<AppearancePage> {
                           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                           children: [
                             SoftPanel(
-                              padding: const EdgeInsets.all(18),
-                              tinted: true,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              padding: const EdgeInsets.all(10),
+                              child: Row(
                                 children: [
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.visibility_outlined,
-                                        size: 16,
-                                        color: scheme.primary,
-                                      ),
-                                      const SizedBox(width: 7),
-                                      Expanded(
-                                        child: Text(
+                                  HabitIcon(
+                                    h?.icon ?? 2,
+                                    color: h?.color ?? 'auto',
+                                    frame: h?.frame ?? 'auto',
+                                    size: 36,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          h?.title ?? s.uiFontSample,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall,
+                                        ),
+                                        Text(
                                           s.uiPreviewLive,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelLarge
-                                              ?.copyWith(color: scheme.primary),
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
                                         ),
-                                      ),
-                                      Icon(
-                                        Icons.auto_awesome_outlined,
-                                        size: 18,
-                                        color: UiTone.violet.ink(context),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(height: 18),
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      HabitIcon(
-                                        h?.icon ?? 2,
-                                        color: h?.color ?? 'auto',
-                                        frame: h?.frame ?? 'auto',
-                                        size: 48,
+                                  for (final tone in [
+                                    UiTone.blue,
+                                    UiTone.violet,
+                                    UiTone.peach,
+                                    UiTone.teal,
+                                  ])
+                                    Container(
+                                      width: 10,
+                                      height: 18,
+                                      margin: const EdgeInsets.only(left: 3),
+                                      decoration: BoxDecoration(
+                                        color: tone.ink(context),
+                                        borderRadius: BorderRadius.circular(3),
                                       ),
-                                      const SizedBox(width: 14),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              h?.title ?? s.uiFontSample,
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.titleMedium,
-                                            ),
-                                            const SizedBox(height: 5),
-                                            Text(
-                                              h == null
-                                                  ? s.appearanceSample
-                                                  : MaterialLocalizations.of(
-                                                      context,
-                                                    ).formatMediumDate(
-                                                      widget.app.today.date,
-                                                    ),
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.bodySmall,
-                                            ),
-                                            if (h != null) ...[
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                widget.app.achieved(
-                                                      h,
-                                                      widget.app.today,
-                                                    )
-                                                    ? s.finished
-                                                    : widget.app.value(
-                                                            h,
-                                                            widget.app.today,
-                                                          ) ==
-                                                          null
-                                                    ? s.notRecorded
-                                                    : s.notCompleted,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .labelLarge
-                                                    ?.copyWith(
-                                                      color: scheme.primary,
-                                                    ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              s.paletteCompositionHint,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                AppBadge(s.today, tone: UiTone.blue),
-                                AppBadge(s.tasks, tone: UiTone.peach),
-                                AppBadge(s.notes, tone: UiTone.violet),
-                                AppBadge(s.mine, tone: UiTone.teal),
-                              ],
                             ),
                             if (failed)
                               Padding(
@@ -277,7 +213,7 @@ class _AppearancePageState extends State<AppearancePage> {
                                   style: TextStyle(color: scheme.error),
                                 ),
                               ),
-                            SectionHeading(s.appearanceMode),
+                            const SizedBox(height: 8),
                             StyleChoices(
                               prefix: 'mode-',
                               choices: {
