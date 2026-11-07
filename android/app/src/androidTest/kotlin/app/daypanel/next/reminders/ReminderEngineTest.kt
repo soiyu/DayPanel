@@ -49,7 +49,7 @@ class ReminderEngineTest {
         db.execSQL("INSERT INTO plans VALUES(?,?,1000,'weekdays',127,1,3)",arrayOf(id,day))
         c.getSharedPreferences("reminder_runtime",0).edit().clear().commit()
         ReminderEngine.ensureChannel(c)
-        Assume.assumeTrue(ReminderEngine.status(c)["notifications"]==true)
+        assertTrue("Notification tests must execute with permission, not silently skip", ReminderEngine.status(c)["notifications"]==true)
         c.getSystemService(NotificationManager::class.java).cancel(id,1)
         awaitNotice(false)
     }

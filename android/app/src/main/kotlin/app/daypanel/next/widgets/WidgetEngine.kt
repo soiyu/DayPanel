@@ -50,6 +50,9 @@ object WidgetEngine {
     }
     fun render(c: Context, id: Int, snapshot: WidgetSnapshot?) {
         val manager = AppWidgetManager.getInstance(c)
+        manager.updateAppWidget(id, views(c, id, snapshot, manager.getAppWidgetOptions(id)))
+    }
+    internal fun views(c: Context, id: Int, snapshot: WidgetSnapshot?, options: Bundle): RemoteViews {
         val binding = WidgetBindings.get(c, id)
         val validBinding = binding?.takeIf { it.generation == snapshot?.generation }
         val item = validBinding?.let { snapshot?.items?.get("${it.kind}:${it.id}") }
@@ -64,7 +67,6 @@ object WidgetEngine {
         views.setInt(R.id.widget_root, "setBackgroundResource", if (dark) R.drawable.widget_dark else R.drawable.widget_light)
         listOf(R.id.widget_title, R.id.widget_state).forEach { views.setTextColor(it, ink) }
         listOf(R.id.widget_date, R.id.widget_hint, R.id.widget_settings).forEach { views.setTextColor(it, secondary) }
-        val options = manager.getAppWidgetOptions(id)
         val portrait = c.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE
         val width = options.getInt(if(portrait) AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH else AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 160)
         val date = if (width < 160 || c.resources.configuration.fontScale > 1.3f)
@@ -101,6 +103,7 @@ object WidgetEngine {
             title = item.title
             hint = when {
                 item.archived -> t("归档内容保留记录", "Archived; history is preserved")
+                item.rest != null -> t("休息期间不提醒，历史记录保留", "Reminders pause; history stays")
                 item.kind == "task" && item.resident -> t("常驻 · 按需记录，无欠账", "Resident · as needed, no overdue days")
                 item.kind == "task" -> t("一次性 · 完成后不会自动重建", "One-time · does not repeat automatically")
                 item.schedule == "weekly" -> t("本周 ${item.weekCount}/${item.weekGoal} 天", "This week ${item.weekCount}/${item.weekGoal} days")
@@ -108,8 +111,8 @@ object WidgetEngine {
                 else -> t("今天的安排", "Scheduled today")
             }
             state = when {
-                item.rest != null -> when(item.rest) { "skip" -> t("这天已跳过", "Skipped this day"); "vacation" -> t("休假中", "On a break"); else -> t("已暂停", "Paused") }
                 item.archived -> t("已归档 · 查看记录", "Archived · view records")
+                item.rest != null -> when(item.rest) { "skip" -> t("这天已跳过", "Skipped this day"); "vacation" -> t("休假中", "On a break"); else -> t("已暂停", "Paused") }
                 item.quantity -> "${item.value?.let { WidgetDisplayRules.quantity(it) } ?: "—"} / ${WidgetDisplayRules.quantity(item.target)} ${item.unit}"
                 item.kind == "habit" && item.done -> t("今天已完成", "Completed today")
                 item.kind == "habit" && item.schedule == "weekly" -> t("本周 ${item.weekCount}/${item.weekGoal} 天", "Week ${item.weekCount}/${item.weekGoal} days")
@@ -141,6 +144,6 @@ object WidgetEngine {
         views.setContentDescription(R.id.widget_action, "$action. $title. $day")
         views.setOnClickPendingIntent(R.id.widget_content, pending(c, id, if (item == null) "configure" else "view", binding, day))
         views.setOnClickPendingIntent(R.id.widget_action, pending(c, id, mode, binding, day))
-        manager.updateAppWidget(id, views)
+        return views
     }
 }

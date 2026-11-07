@@ -24,6 +24,8 @@ UI02 按新的视觉反馈重构外观、备份、旧习惯导入、统计导航
 
 UX01 已加入习惯暂停、按日期休假与单日跳过：休息不算失败或完成，提醒暂停，已有记录与卡片保留。成就卡可预览、保存PNG或调用系统分享，名称/心得默认隐藏；分享摘录不改原文。SQLite9/schema9兼容旧schema2–8，详见 [ADR0011](docs/adr/0011-rest-and-card-sharing.md) 与 [休息和分享设计](docs/design/REST-AND-SHARE.md)。
 
+FL19 持续补做系统回归：休息组件的状态和说明保持一致，提醒开关整行可点。API28/35/36的实际通过范围、失败重试和待验收项以 [系统矩阵](docs/development/SYSTEM-REGRESSION.md) 与 [STATUS](docs/development/STATUS.md) 为准，模拟器通过不代表真机全部通过。
+
 ## 产品与任务
 
 | 文档 | 内容 |

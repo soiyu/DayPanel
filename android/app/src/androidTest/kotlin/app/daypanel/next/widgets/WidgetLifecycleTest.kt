@@ -54,17 +54,18 @@ class WidgetLifecycleTest {
         c.getDatabasePath("").delete()
         val db=android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(c.getDatabasePath(""),null)
         try {
-            db.version=7
+            db.version=9
             db.execSQL("CREATE TABLE runtime(id INTEGER,generation INTEGER)");db.execSQL("INSERT INTO runtime VALUES(1,0)")
             db.execSQL("CREATE TABLE settings(key TEXT,value TEXT)")
-            db.execSQL("CREATE TABLE habits(id TEXT,title TEXT,kind TEXT,start_day TEXT,archived INTEGER)")
+            db.execSQL("CREATE TABLE habits(id TEXT,title TEXT,kind TEXT,start_day TEXT,archived INTEGER,icon INTEGER DEFAULT 0,color TEXT DEFAULT 'auto',frame TEXT DEFAULT 'auto')")
+            db.execSQL("CREATE TABLE habit_breaks(id TEXT,habit_id TEXT,start_day TEXT,end_day TEXT,kind TEXT)")
             db.execSQL("CREATE TABLE plans(habit_id TEXT,effective_day TEXT,target INTEGER,unit TEXT,schedule TEXT,weekdays INTEGER,interval_days INTEGER,weekly_goal INTEGER)")
             db.execSQL("CREATE TABLE entries(habit_id TEXT,day TEXT,value INTEGER)")
             db.execSQL("CREATE TABLE tasks(id TEXT,title TEXT,resident INTEGER,archived INTEGER,completed_day TEXT,due_day TEXT,start_day TEXT)")
             db.execSQL("CREATE TABLE task_entries(task_id TEXT,day TEXT)")
             val day=java.time.LocalDate.now()
             for(id in listOf("a","b")) {
-                db.execSQL("INSERT INTO habits VALUES(?,?,'check',?,0)",arrayOf(id,id,day.toString()))
+                db.execSQL("INSERT INTO habits(id,title,kind,start_day,archived) VALUES(?,?,'check',?,0)",arrayOf(id,id,day.toString()))
                 db.execSQL("INSERT INTO plans VALUES(?,?,1000,'','weekdays',127,1,3)",arrayOf(id,day.toString()))
             }
             val id=host.allocateAppWidgetId();allocated.add(id)
@@ -79,6 +80,12 @@ class WidgetLifecycleTest {
             assertFalse(WidgetBindings.valid(c,old))
             val current=request(WidgetBindings.get(c,id)!!)
             assertTrue(WidgetBindings.valid(c,current))
+            db.execSQL("INSERT INTO habit_breaks VALUES('rest','b',?,NULL,'pause')",arrayOf(day.toString()))
+            assertFalse(WidgetBindings.valid(c,current))
+            assertFalse(WidgetBindings.valid(c,current+mapOf("mode" to "quantity")))
+            assertTrue(WidgetBindings.valid(c,current+mapOf("mode" to "view")))
+            db.execSQL("DELETE FROM habit_breaks")
+            assertTrue(WidgetBindings.valid(c,current))
             db.execSQL("UPDATE habits SET archived=1 WHERE id='b'")
             assertFalse(WidgetBindings.valid(c,current))
             db.execSQL("UPDATE habits SET archived=0 WHERE id='b'")
@@ -90,6 +97,39 @@ class WidgetLifecycleTest {
             db.execSQL("DELETE FROM habits WHERE id='b'")
             assertFalse(WidgetBindings.valid(c,restored))
         } finally {db.close();c.getDatabasePath("").delete()}
+    }
+
+    @Test fun renderedRestArchiveAndExpiryKeepStateAndActionsConsistent() {
+        val manager=AppWidgetManager.getInstance(target)
+        val id=host.allocateAppWidgetId();allocated.add(id)
+        assertTrue(manager.bindAppWidgetIdIfAllowed(id,ComponentName(target,HabitWidgetProvider::class.java)))
+        val binding=WidgetBinding(id,"habit","rest-fixture",0,"rest-token")
+        target.contentResolver.call(android.net.Uri.parse("content://${target.packageName}.widget-bindings"),"put",id.toString(),android.os.Bundle().apply {putString("value",binding.json().toString())})
+        val options=android.os.Bundle().apply {
+            putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280)
+            putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,300)
+        }
+        val original=WidgetItem("rest-fixture","habit","Reading",false,rest="pause")
+        val day=java.time.LocalDate.now()
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            fun view(item:WidgetItem,zh:Boolean=false):android.view.View {
+                val snapshot=WidgetSnapshot(0,day,zh,false,mapOf("habit:rest-fixture" to item))
+                return WidgetEngine.views(target,id,snapshot,options).apply(target,android.widget.FrameLayout(target))
+            }
+            fun text(v:android.view.View,res:Int)=v.findViewById<android.widget.TextView>(res).text.toString()
+            val resting=view(original)
+            assertEquals("Paused",text(resting,app.daypanel.next.R.id.widget_state))
+            assertEquals("Reminders pause; history stays",text(resting,app.daypanel.next.R.id.widget_hint))
+            assertEquals("View records",text(resting,app.daypanel.next.R.id.widget_action))
+            val archived=view(original.copy(archived=true))
+            assertEquals("Archived · view records",text(archived,app.daypanel.next.R.id.widget_state))
+            val resumed=view(original.copy(rest=null))
+            assertEquals("Not recorded today",text(resumed,app.daypanel.next.R.id.widget_state))
+            assertEquals("Complete",text(resumed,app.daypanel.next.R.id.widget_action))
+            val vacation=view(original.copy(rest="vacation"),true)
+            assertEquals("休假中",text(vacation,app.daypanel.next.R.id.widget_state))
+            assertTrue(vacation.findViewById<android.view.View>(app.daypanel.next.R.id.widget_content).contentDescription.contains("休息期间不提醒"))
+        }
     }
 
 }

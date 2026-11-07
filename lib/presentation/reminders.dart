@@ -134,20 +134,18 @@ class _ReminderEditorState extends State<ReminderEditor> {
             tinted: true,
             tone: UiTone.peach,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    s.reminderOn,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+            child: Material(
+              color: Colors.transparent,
+              child: SwitchListTile(
+                key: const Key('enable-reminder'),
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  s.reminderOn,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                Switch(
-                  key: const Key('enable-reminder'),
-                  value: enabled,
-                  onChanged: saving ? null : (v) => setState(() => enabled = v),
-                ),
-              ],
+                value: enabled,
+                onChanged: saving ? null : (v) => setState(() => enabled = v),
+              ),
             ),
           ),
           const SizedBox(height: 18),

@@ -708,3 +708,57 @@ uiautomator个别次空root重试后正常；一次黑屏为休眠，唤醒后�
 安装前关闭主用户进程归档pre-ux01-db.tar，最终主用户启动迁移v8→v9后关闭进程归档post-ux01-db.tar。`python .local/ux01_retention.py`逐表比较通过：原14表逐行完全一致（2习惯/1记录/2小事/1手记/原设置/计划/归档履历），新增habit_breaks空，foreign_key_check为空；ux01-retention-final.log。最终切回0、停止并删除14，系统只剩主用户；主Activity启动Status: ok。没有清库/覆盖主用户记录，原语言和主题保持。
 
 本批实现及上述范围验收完成；FL19仍需厂商真机、真正TalkBack手工、本批API35/36分享和休息矩阵、第三方接收App/文件提供器、长时间Doze、Launcher休息到期全矩阵和手机大数据性能，不称全设备无BUG。下一步继续FL19系统回归及发现问题修复；应用锁/手记附件等仍未承诺，不自行扩范围。电脑及可见API28模拟器保持运行，不推送远端。
+
+## 2026-11-07 FL19B 系统补测与提醒/组件可用性修复
+
+从c25c8d4干净工作区继续FL19。未扩展产品功能、数据库仍SQLite9/schema9；旧原生工程未修改。不推送、不关机。本批修改和范围同步README/BACKLOG、SYSTEM-REGRESSION、REMINDERS/WIDGETS设计说明。
+
+### 修复
+
+- 组件暂停/休假/跳过时提示“休息期间不提醒，历史记录保留”，不再沿用“今天的安排”；归档与休息重叠时优先显示归档。提取同一RemoteViews构造函数供渲染检查，实际系统更新仍调用此函数，不另造测试版规则。
+- 提醒设置的Enable reminder原先只有右侧开关可点、文字不具备切换行为。改为整行SwitchListTile，文字和开关共用名称/状态/点击；保留主题面板，单独Material保证点击反馈可见。仍只在启用后保存时请求权限，取消不写。设备API36真实点击文字启用并保存通过。
+- WidgetLifecycle增加真实RemoteViews渲染断言：暂停状态/说明/查看动作、归档优先、恢复未记录/完成动作、中文休假完整可访问描述。既有实例测试升级真实v9 fixture，确认休息期间旧complete请求拒绝、view仍可用，恢复后明确动作可用；generation/配置/日期/删除保护保留。
+- ReminderEngineTest通知授权检查由Assume改为assert：未正确授予必须失败，不能静默跳过冒充验收。所有写入fixture在临时数据库，系统组件生命周期用临时Android用户。
+
+### 工程与APK
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+git diff --check
+git diff --cached --check
+```
+
+最终fl19b-verify-final.log：75文件format无变化、analyze无问题（15.6秒）、**249 Flutter/Dart全部通过**（1:54），APK构建19.5秒；Kotlin JVM **13/13**。native-test成功25秒，fl19b-native-final.log。提醒原用例新增点击文字的断言、中英320dp/160%保持；第一次改SwitchListTile缺少独立Material导致3项测试明确失败，补绘制层后完整249通过，失败记录fl19b-verify.log不计通过。既有Kotlin/Gradle弃用提示保留。
+
+最终APK build/app/outputs/flutter-apk/app-debug.apk，**174898781 bytes**，SHA-256 **38bc3e2af7b25b8a0cb11917f4cc8a6c43d2313a27e276f9cd83d2a6654281d3**。API28/35/36覆盖安装成功；Manifest/权限无变化、无存储权限或产品账号/网络SDK增加。
+
+三套设备运行同一最终APK/测试包：
+
+```powershell
+& $adb -s <device> install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s <device> install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s <device> shell am instrument --user <qaUser> -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest,app.daypanel.next.CardImageDeviceTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+API28 emulator-5554用户16最终 **OK(25)**，14.749秒，fl19b-api28-final.log；API35 emulator-5556用户11 **OK(25)**，20.022秒，fl19b-api35-final.log；API36 emulator-5558用户11 **OK(25)**，23.531秒，fl19b-api36-final.log。提醒8、反馈2、快照6、组件生命周期3、旧库4、PNG2全部执行；三API范围仅这些检查，不称全部系统状态穷举。
+
+### 实际设备流程
+
+API35临时用户11通过UI创建Read a page，通知权限弹窗选择拒绝后9:00设置仍保留，并提示notifications are blocked。随后原生用例对该用户授予权限并实测执行。真实暂停/恢复、完成解锁卡、默认隐藏名称/心得、SAF保存PNG、系统分享面板出现缩略图及Bluetooth/Messaging/Print目标，取消退出无发送。实际PNG拉回fl19b-api35-export.png，1115×1131/47143bytes，视觉确认卡面与文字完整。
+
+API35 Launcher长按→Widgets→DayPanel习惯→选择→Save，显示真实完成状态；View records进入对应习惯。由组件详情暂停后返回桌面显示Paused、Reminders pause; history stays及View records。截图fl19b-api35-widget-adding/widget-done/widget-paused.png，休息和分享页fl19b-api35-rest/share/chooser.png。没有伪造Launcher实例或生产演示记录。
+
+API36临时用户11通过UI创建Evening walk，暂停/恢复通过，修复后的启用文字点击变为开启并保存；完成获卡，SAF导出与系统分享面板取消通过。实际PNG fl19b-api36-export.png与API35同日同款匿名卡内容相同，1115×1131/47143bytes。Launcher真实添加/配置/查看/暂停后刷新通过；恢复并明确重开后，关闭旧查看页，再点桌面Complete成功回到Completed today，卡片保留。
+
+API36点Home保留旧组件查看页时再次点组件会回到旧详情，这是ADR0008既定单实例表单保留语义，不把该次导航当新完成；Back关闭旧详情后桌面完成正常。数量表单未在本批重复全矩阵。截图fl19b-api36-rest/reminder-label/share/chooser/widget-configured/widget-paused/widget-completed.png；汇总fl19b-overview.png来自真实设备截图，未修图伪装。
+
+### 环境问题与数据保留
+
+API35先后使用headless+swiftshader、qt隐藏窗口+swangle时发生Windows qemu进程0xc0000005崩溃，系统事件fl19b-host-crash*.log；不归因已证实的App崩溃，不把未执行流程计通过。最终使用项目本地AVD、`-memory 1024 -cores 2 -gpu host -feature -Vulkan -no-snapshot -no-boot-anim -no-audio -qt-hide-window`，串行API35/36，工程构建后仅停止本项目Gradle daemon释放资源。未更改全局JDK/SDK、未停止主API28或其他用户应用。部分switch-user刚完成立刻启动报Activity不存在，确认用户已就绪并启用包后正常，不计失败启动通过。
+
+API28主用户安装前force-stop并归档pre-fl19b-db.tar；最终同样归档post-fl19b-db.tar，`python .local/fl19b_retention.py`通过，fl19b-retention-final.log：**15张表逐行一致**、v9、foreign_key_check为空；原2习惯/1记录/2小事/1手记/设置/历史保持。API28临时用户15/16全部删除；API35第一次删除用户11未完成，重启确认仍存在后用`pm remove-user --wait 11`成功并核对只剩0；API36用户11也成功删除。两辅助模拟器关闭，只保留API28主用户0可见，最终主Activity启动成功。
+
+本批FL19限定矩阵已完成且修复已验证，FL19总任务仍进行中：厂商真机、真正TalkBack手工、长Doze/后台、休假到期跨午夜/时区完整矩阵、API36手动拒绝权限、所有字号/主题/缩放组合、第三方分享实际接收及外部文件提供器、大数据手机性能仍开放。下一步继续这些质量验证；FL20发布未开始。全部APK/数据库/图片/工具/个人路径在ignored目录，不提交、不推送远端。

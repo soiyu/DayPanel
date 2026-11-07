@@ -55,7 +55,8 @@ void main() {
       await tester.pumpWidget(shell(ReminderEditor(app: app, habit: h)));
       await tester.pumpAndSettle();
       expect(platform.requests, 0);
-      await tester.tap(find.byKey(const Key('enable-reminder')));
+      // The visible label is also the switch's named, tappable surface.
+      await tester.tap(find.text('Enable reminder'));
       await tester.pumpAndSettle();
       expect(platform.requests, 0);
       await tester.tap(find.byKey(const Key('save-reminder')));
