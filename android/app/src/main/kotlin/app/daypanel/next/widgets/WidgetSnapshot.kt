@@ -17,20 +17,21 @@ data class WidgetItem(
     val rest: String? = null, val icon: Int = 0, val color: String = "auto", val frame: String = "auto",
 ) { val done: Boolean get() = if (kind == "habit") (value ?: -1) >= target else doneDay != null }
 data class WidgetSnapshot(val generation: Long, val day: LocalDate, val chinese: Boolean,
-    val dark: Boolean, val items: Map<String, WidgetItem>, val palette: String = "blue", val frame: String = "soft")
+    val dark: Boolean, val items: Map<String, WidgetItem>, val palette: String = "blue", val frame: String = "soft", val revision: Long = -1)
 
 object WidgetSnapshotReader {
     fun read(context: Context, day: LocalDate = LocalDate.now()): WidgetSnapshot? {
         val file = context.getDatabasePath("daypanel_flutter.db")
         if (!file.exists()) return null
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
-            if (db.version !in 7..9) return null
+            if (db.version !in 7..10) return null
             db.beginTransactionNonExclusive()
             try {
                 val generation = db.rawQuery("SELECT generation FROM runtime WHERE id=1", null).use { c ->
                     if (!c.moveToFirst()) return null
                     c.getLong(0)
                 }
+                val revision = if(db.version >= 10) db.rawQuery("SELECT revision FROM runtime WHERE id=1",null).use { it.moveToFirst(); it.getLong(0) } else -1L
                 val settings = mutableMapOf<String, String>()
                 db.rawQuery("SELECT key,value FROM settings", null).use { c ->
                     while (c.moveToNext()) settings[c.getString(0)] = c.getString(1)
@@ -81,7 +82,7 @@ object WidgetSnapshotReader {
                     }
                 }
                 db.setTransactionSuccessful()
-                return WidgetSnapshot(generation, day, chinese, dark, items, settings["palette"] ?: "blue", settings["icon_frame"] ?: "soft")
+                return WidgetSnapshot(generation, day, chinese, dark, items, settings["palette"] ?: "blue", settings["icon_frame"] ?: "soft", revision)
             } finally { db.endTransaction() }
         }
     }

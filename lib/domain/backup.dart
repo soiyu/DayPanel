@@ -34,7 +34,7 @@ class BackupSnapshot {
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 9,
+      'schema': 10,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -77,7 +77,7 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3, 4, 5, 6, 7, 8, 9}.contains(content['schema'])) {
+      if (!{2, 3, 4, 5, 6, 7, 8, 9, 10}.contains(content['schema'])) {
         throw const BackupInvalid();
       }
       final created = DateTime.parse(content['created_at'] as String);

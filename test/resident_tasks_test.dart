@@ -39,6 +39,18 @@ void main() {
         options: OpenDatabaseOptions(
           version: 3,
           onCreate: (db, version) async {
+            // These v2 tables also exist in a real v3 database. The widget
+            // mutation clock now requires them during the v10 migration.
+            await db.execute(
+              'CREATE TABLE runtime(id INTEGER PRIMARY KEY,generation INTEGER NOT NULL)',
+            );
+            await db.insert('runtime', {'id': 1, 'generation': 0});
+            await db.execute(
+              'CREATE TABLE plans(habit_id TEXT,effective_day TEXT,target INTEGER,unit TEXT,schedule TEXT,weekdays INTEGER,interval_days INTEGER,weekly_goal INTEGER)',
+            );
+            await db.execute(
+              'CREATE TABLE entries(habit_id TEXT,day TEXT,value INTEGER)',
+            );
             await db.execute(
               'CREATE TABLE habits(id TEXT PRIMARY KEY,start_day TEXT,archived INTEGER)',
             );
@@ -62,7 +74,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: path,
       );
-      expect(await migrated.db.getVersion(), 9);
+      expect(await migrated.db.getVersion(), 10);
       final task = (await migrated.tasks()).single;
       expect(task.resident, isFalse);
       expect(task.startDay, isNull);

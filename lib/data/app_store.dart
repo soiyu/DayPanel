@@ -14,6 +14,7 @@ import '../domain/legacy_import.dart';
 part 'store_backup.dart';
 part 'store_cards.dart';
 part 'store_breaks.dart';
+part 'store_widget_actions.dart';
 
 class AppStore {
   AppStore._(this.db);
@@ -30,7 +31,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 9,
+        version: 10,
         singleInstance: false,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
@@ -57,6 +58,7 @@ class AppStore {
           await upgradeToV7(db, migrationDay ?? Day(DateTime.now()));
           await upgradeToV8(db);
           await upgradeToV9(db);
+          await upgradeToV10(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
@@ -69,6 +71,7 @@ class AppStore {
           }
           if (oldVersion < 8) await upgradeToV8(db);
           if (oldVersion < 9) await upgradeToV9(db);
+          if (oldVersion < 10) await upgradeToV10(db);
         },
       ),
     );

@@ -44,9 +44,20 @@ object WidgetEngine {
         val data = Uri.Builder().scheme("daypanel-widget").authority(c.packageName).appendPath(widgetId.toString())
             .appendPath(binding?.token ?: "unbound").appendPath((binding?.generation ?: -1).toString())
             .appendPath(day.toString()).appendPath(mode).build()
-        val intent = Intent(c, WidgetActivity::class.java).setAction(OPEN).setData(data)
+        val activity=when(mode){"quantity"->WidgetQuantityActivity::class.java;"configure"->WidgetConfigureActivity::class.java;else->WidgetActivity::class.java}
+        val intent = Intent(c, activity).setAction(OPEN).setData(data)
             .putExtra("widget", payload.toString()).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
         return PendingIntent.getActivity(c, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    }
+    fun direct(c:Context,binding:WidgetBinding,snapshot:WidgetSnapshot,item:WidgetItem):PendingIntent {
+        val payload=binding.json().put("mode","set").put("day",snapshot.day.toString())
+            .put("revision",snapshot.revision).put("completed",!item.done)
+            .put("expectedValue",(if(item.kind=="habit")item.value else item.doneDay) ?: JSONObject.NULL)
+        val data=Uri.Builder().scheme("daypanel-widget-action").authority(c.packageName)
+            .appendPath(binding.widgetId.toString()).appendPath(binding.token).appendPath(binding.generation.toString())
+            .appendPath(snapshot.day.toString()).appendPath(snapshot.revision.toString()).appendPath((!item.done).toString()).build()
+        return PendingIntent.getBroadcast(c,0,Intent(c,WidgetActionReceiver::class.java).setData(data).putExtra("widget",payload.toString()),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
     fun render(c: Context, id: Int, snapshot: WidgetSnapshot?) {
         val manager = AppWidgetManager.getInstance(c)
@@ -66,7 +77,7 @@ object WidgetEngine {
         val secondary = Color.parseColor(if (dark) "#B6C2E0" else "#52627F")
         views.setInt(R.id.widget_root, "setBackgroundResource", if (dark) R.drawable.widget_dark else R.drawable.widget_light)
         listOf(R.id.widget_title, R.id.widget_state).forEach { views.setTextColor(it, ink) }
-        listOf(R.id.widget_date, R.id.widget_hint, R.id.widget_settings).forEach { views.setTextColor(it, secondary) }
+        listOf(R.id.widget_date, R.id.widget_hint, R.id.widget_settings, R.id.widget_details).forEach { views.setTextColor(it, secondary) }
         val portrait = c.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE
         val width = options.getInt(if(portrait) AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH else AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 160)
         val date = if (width < 160 || c.resources.configuration.fontScale > 1.3f)
@@ -76,6 +87,8 @@ object WidgetEngine {
         views.setTextViewText(R.id.widget_settings, "⚙")
         views.setContentDescription(R.id.widget_settings, t("配置桌面组件", "Configure widget"))
         views.setOnClickPendingIntent(R.id.widget_settings, pending(c, id, "configure", binding, day))
+        views.setContentDescription(R.id.widget_details,t("查看详情","View details"))
+        views.setOnClickPendingIntent(R.id.widget_details,pending(c,id,if(item==null)"configure" else "view",binding,day))
         val height = options.getInt(if(portrait) AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT else AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 180)
         val large = height >= 240 && c.resources.configuration.fontScale <= 1.3f
         val compactText = height < 240 && c.resources.configuration.fontScale > 1.3f
@@ -127,23 +140,32 @@ object WidgetEngine {
                 item.rest != null -> "view"
                 item.archived -> "view"
                 item.quantity -> "quantity"
-                item.done || (item.kind == "habit" && !item.scheduled) -> "view"
-                else -> "complete"
+                snapshot?.revision == null || snapshot.revision < 0 -> "configure"
+                else -> "set"
             }
             action = when (mode) {
                 "quantity" -> t("输入总量", "Enter total")
-                "complete" -> t("完成", "Complete")
+                "set" -> if(item.done) {
+                    if(item.kind=="task" && !item.resident) t("重新待办","Reopen") else t("取消完成","Mark undone")
+                } else t("完成", "Complete")
+                "configure" -> t("打开更新","Open to update")
                 else -> t("查看记录", "View records")
             }
         }
         views.setTextViewText(R.id.widget_title, title)
         views.setTextViewText(R.id.widget_state, state)
         views.setTextViewText(R.id.widget_hint, hint)
-        views.setTextViewText(R.id.widget_action, action)
+        val status=WidgetActionStatus.get(c,id)
+        val actionLabel=when(status){"pending"->t("正在保存…","Saving…");"failed"->t("重试","Retry");else->action}
+        views.setTextViewText(R.id.widget_action, actionLabel)
+        if(status=="failed") {
+            views.setTextViewText(R.id.widget_state,t("未能保存，请重试","Could not save. Try again"))
+        }
         views.setContentDescription(R.id.widget_content, "$title. $day. $state. $hint")
-        views.setContentDescription(R.id.widget_action, "$action. $title. $day")
-        views.setOnClickPendingIntent(R.id.widget_content, pending(c, id, if (item == null) "configure" else "view", binding, day))
-        views.setOnClickPendingIntent(R.id.widget_action, pending(c, id, mode, binding, day))
+        views.setContentDescription(R.id.widget_action, "$actionLabel. $title. $day")
+        val primary=if(mode=="set" && validBinding!=null && snapshot!=null && item!=null) direct(c,validBinding,snapshot,item) else pending(c,id,mode,binding,day)
+        views.setOnClickPendingIntent(R.id.widget_content, primary)
+        views.setOnClickPendingIntent(R.id.widget_action, primary)
         return views
     }
 }

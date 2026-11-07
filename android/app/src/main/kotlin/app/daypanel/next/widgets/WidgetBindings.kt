@@ -45,17 +45,26 @@ object WidgetBindings {
             call(c, "remove", it)
         }
     }
-    fun valid(c: Context, request: Map<*, *>): Boolean {
+    fun matches(c: Context, request: Map<*, *>): Boolean {
         val widgetId = (request["widgetId"] as? Number)?.toInt() ?: return false
         val binding = get(c, widgetId) ?: return false
         if (kind(c, widgetId) != binding.kind || binding.kind != request["kind"] || binding.id != request["id"] ||
             binding.token != request["token"] || binding.generation != (request["generation"] as? Number)?.toLong()) return false
+        return true
+    }
+    fun valid(c: Context, request: Map<*, *>): Boolean {
+        if (!matches(c,request)) return false
+        val widgetId=(request["widgetId"] as Number).toInt()
+        val binding=get(c,widgetId) ?: return false
         val snapshot = WidgetSnapshotReader.read(c) ?: return false
         if (snapshot.generation != binding.generation || snapshot.day.toString() != request["day"]) return false
         val item = snapshot.items["${binding.kind}:${binding.id}"] ?: return false
         return when(request["mode"]) {
             "view" -> true
-            "complete" -> !item.archived && item.rest == null && !item.quantity
+            "complete" -> false // Pre-v10 Activity shortcuts have no revision guard.
+            "set" -> snapshot.revision >= 0 && !item.archived && item.rest == null && !item.quantity &&
+                request["completed"] is Boolean && (request["revision"] as? Number)?.toLong() == snapshot.revision &&
+                (if(item.kind=="habit") (request["expectedValue"] as? Number)?.toLong() == item.value else request["expectedValue"] == item.doneDay)
             "quantity" -> !item.archived && item.rest == null && item.quantity
             else -> false
         }

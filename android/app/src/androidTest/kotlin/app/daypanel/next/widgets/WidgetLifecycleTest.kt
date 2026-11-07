@@ -54,8 +54,8 @@ class WidgetLifecycleTest {
         c.getDatabasePath("").delete()
         val db=android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(c.getDatabasePath(""),null)
         try {
-            db.version=9
-            db.execSQL("CREATE TABLE runtime(id INTEGER,generation INTEGER)");db.execSQL("INSERT INTO runtime VALUES(1,0)")
+            db.version=10
+            db.execSQL("CREATE TABLE runtime(id INTEGER,generation INTEGER,revision INTEGER)");db.execSQL("INSERT INTO runtime VALUES(1,0,0)")
             db.execSQL("CREATE TABLE settings(key TEXT,value TEXT)")
             db.execSQL("CREATE TABLE habits(id TEXT,title TEXT,kind TEXT,start_day TEXT,archived INTEGER,icon INTEGER DEFAULT 0,color TEXT DEFAULT 'auto',frame TEXT DEFAULT 'auto')")
             db.execSQL("CREATE TABLE habit_breaks(id TEXT,habit_id TEXT,start_day TEXT,end_day TEXT,kind TEXT)")
@@ -72,7 +72,7 @@ class WidgetLifecycleTest {
             assertTrue(AppWidgetManager.getInstance(target).bindAppWidgetIdIfAllowed(id,ComponentName(target,HabitWidgetProvider::class.java)))
             WidgetBindings.save(c,id,"a",0)
             val a=WidgetBindings.get(c,id)!!
-            fun request(b:WidgetBinding):MutableMap<String,Any?> = mutableMapOf("widgetId" to id,"kind" to "habit","id" to b.id,"token" to b.token,"generation" to b.generation,"day" to day.toString(),"mode" to "complete")
+            fun request(b:WidgetBinding):MutableMap<String,Any?> = mutableMapOf("widgetId" to id,"kind" to "habit","id" to b.id,"token" to b.token,"generation" to b.generation,"day" to day.toString(),"mode" to "set","revision" to 0L,"completed" to true,"expectedValue" to null)
             val old=request(a)
             assertTrue(WidgetBindings.valid(c,old));assertTrue(WidgetBindings.valid(c,old))
             assertFalse(WidgetBindings.valid(c,old+mapOf("day" to day.minusDays(1).toString())))
@@ -113,7 +113,7 @@ class WidgetLifecycleTest {
         val day=java.time.LocalDate.now()
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             fun view(item:WidgetItem,zh:Boolean=false):android.view.View {
-                val snapshot=WidgetSnapshot(0,day,zh,false,mapOf("habit:rest-fixture" to item))
+                val snapshot=WidgetSnapshot(0,day,zh,false,mapOf("habit:rest-fixture" to item),revision=4)
                 return WidgetEngine.views(target,id,snapshot,options).apply(target,android.widget.FrameLayout(target))
             }
             fun text(v:android.view.View,res:Int)=v.findViewById<android.widget.TextView>(res).text.toString()

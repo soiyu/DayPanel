@@ -9,7 +9,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import org.json.JSONObject
 
-class WidgetActivity : MainActivity() {
+open class WidgetActivity : MainActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setResult(Activity.RESULT_CANCELED)
@@ -18,6 +18,10 @@ class WidgetActivity : MainActivity() {
     // not replace its target or create another Flutter writer in this process.
     override fun onNewIntent(intent: Intent) { /* Keep the current flow until closed. */ }
 }
+
+// Quantity/configuration can no longer be intercepted by an old details page.
+class WidgetQuantityActivity:WidgetActivity()
+class WidgetConfigureActivity:WidgetActivity()
 
 class WidgetBridge(private val activity: MainActivity, engine: FlutterEngine) {
     init {

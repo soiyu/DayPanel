@@ -22,10 +22,18 @@ open class MainActivity : FlutterActivity() {
     private var permissionReply: MethodChannel.Result? = null
     private var pendingOpen: String? = null
     private var completionFeedback: CompletionFeedback? = null
+    private var widgetChanges:MethodChannel? = null
+    private var dataReceiver:android.content.BroadcastReceiver? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         app.daypanel.next.widgets.WidgetBridge(this, flutterEngine)
+        widgetChanges=MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"app.daypanel.next/widgets")
+        dataReceiver=object:android.content.BroadcastReceiver() {
+            override fun onReceive(context:android.content.Context,intent:Intent) { widgetChanges?.invokeMethod("dataChanged",null) }
+        }.also {
+            androidx.core.content.ContextCompat.registerReceiver(this,it,android.content.IntentFilter("app.daypanel.next.DATA_CHANGED"),androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
+        }
         CardImageBridge.register(this,flutterEngine)
         completionFeedback = try { CompletionFeedback(this) } catch (_: Exception) { null }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.daypanel.next/feedback").setMethodCallHandler { call, reply ->
@@ -107,6 +115,7 @@ open class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        dataReceiver?.let { unregisterReceiver(it) };dataReceiver=null;widgetChanges=null
         worker.shutdown()
         completionFeedback?.release()
         completionFeedback = null

@@ -251,7 +251,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: '${dir.path}/data.db',
       );
-      expect(await store.db.getVersion(), 9);
+      expect(await store.db.getVersion(), 10);
       expect(await store.cards(), isEmpty);
       expect((await store.entries()).single.value, 1000);
       expect((await store.notes()).single.habitId, 'a');

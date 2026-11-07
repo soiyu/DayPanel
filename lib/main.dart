@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'data/widget_platform.dart';
 import 'presentation/home_widgets.dart';
+export 'application/widget_action_runner.dart' show widgetActionMain;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -118,6 +119,10 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     app.reminderPlatform?.onOpen(openReminder);
+    final updates = app.widgetPlatform;
+    if (updates is WidgetUpdates) {
+      (updates as WidgetUpdates).onChanged(refreshForeground);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         widgetRequest = await app.widgetPlatform?.launch();
@@ -133,6 +138,8 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     app.reminderPlatform?.onOpen(() {});
+    final updates = app.widgetPlatform;
+    if (updates is WidgetUpdates) (updates as WidgetUpdates).onChanged(() {});
     super.dispose();
   }
 

@@ -36,6 +36,20 @@
         </provider>
         <provider android:name=".widgets.WidgetBindingProvider" android:authorities="${applicationId}.widget-bindings"
             android:exported="false" />
+        <receiver android:name=".widgets.WidgetActionReceiver" android:exported="false" />
+        <service android:name=".widgets.WidgetActionService" android:process=":widget_actions" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true" />
+        <activity android:name=".widgets.WidgetQuantityActivity" android:exported="false"
+            android:process=":widget_quantity" android:launchMode="singleTask" android:taskAffinity="${applicationId}.widget_quantity" android:excludeFromRecents="true"
+            android:theme="@style/LaunchTheme" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
+            <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme" />
+        </activity>
+        <activity android:name=".widgets.WidgetConfigureActivity" android:exported="false"
+            android:process=":widget_configure" android:launchMode="singleTask" android:taskAffinity="${applicationId}.widget_configure" android:excludeFromRecents="true"
+            android:theme="@style/LaunchTheme" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
+            <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme" />
+        </activity>
         <activity android:name=".widgets.WidgetActivity" android:exported="true"
             android:process=":widgets" android:launchMode="singleTask" android:taskAffinity="${applicationId}.widgets" android:excludeFromRecents="true"
             android:theme="@style/LaunchTheme" android:hardwareAccelerated="true"

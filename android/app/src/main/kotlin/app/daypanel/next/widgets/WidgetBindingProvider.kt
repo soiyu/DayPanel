@@ -15,6 +15,14 @@ class WidgetBindingProvider : ContentProvider() {
         val prefs = c.getSharedPreferences("daypanel_widgets", 0)
         return Bundle().apply {
             when (method) {
+                "actionFinished" -> {
+                    app.daypanel.next.reminders.ReminderEngine.worker.submit { app.daypanel.next.reminders.ReminderEngine.sync(c) }.get()
+                    WidgetEngine.worker.submit {
+                        WidgetActionStatus.set(c,extras!!.getInt("widgetId"),extras.getString("status") ?: "failed")
+                        WidgetEngine.refresh(c)
+                        c.sendBroadcast(android.content.Intent("app.daypanel.next.DATA_CHANGED").setPackage(c.packageName))
+                    }.get()
+                }
                 "syncReminders" -> {
                     val status = app.daypanel.next.reminders.ReminderEngine.worker.submit<Map<String, Any>> {
                         app.daypanel.next.reminders.ReminderEngine.sync(c)

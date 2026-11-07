@@ -1,6 +1,30 @@
 import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
 
+Future<void> upgradeToV10(DatabaseExecutor db) async {
+  final columns = await db.rawQuery('PRAGMA table_info(runtime)');
+  if (!columns.any((c) => c['name'] == 'revision')) {
+    await db.execute(
+      'ALTER TABLE runtime ADD COLUMN revision INTEGER NOT NULL DEFAULT 0',
+    );
+  }
+  // Device-local mutation clock: survives deleted records and ABA, never imported.
+  for (final table in [
+    'habits',
+    'plans',
+    'entries',
+    'tasks',
+    'task_entries',
+    'habit_breaks',
+  ]) {
+    for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
+      await db.execute(
+        'CREATE TRIGGER IF NOT EXISTS widget_${table}_${event.toLowerCase()} AFTER $event ON $table BEGIN UPDATE runtime SET revision=revision+1 WHERE id=1; END',
+      );
+    }
+  }
+}
+
 Future<void> upgradeToV9(DatabaseExecutor db) async {
   await db.execute(
     'CREATE TABLE habit_breaks(id TEXT PRIMARY KEY,habit_id TEXT NOT NULL REFERENCES habits(id) ON DELETE CASCADE,start_day TEXT NOT NULL,end_day TEXT,kind TEXT NOT NULL)',

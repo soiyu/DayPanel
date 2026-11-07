@@ -73,15 +73,15 @@ class ReminderEngineTest {
         raw.put(id,e.json());prefs.edit().putString("scheduled",raw.toString()).commit()
         return e
     }
-    @Test fun schemaThreeThroughNineRemainReadableWithoutUserDataWrites() {
-        for(version in 3..9) {
+    @Test fun schemaThreeThroughTenRemainReadableWithoutUserDataWrites() {
+        for(version in 3..10) {
             db.version=version
             val snapshot=SnapshotReader.read(c)
             assertNotNull(snapshot)
             assertEquals(id,snapshot!!.habits.single().id)
             assertEquals(version,db.version)
         }
-        db.version=10
+        db.version=11
         assertNull(SnapshotReader.read(c))
         db.version=7
         db.rawQuery("SELECT COUNT(*) FROM entries",null).use { it.moveToFirst();assertEquals(0,it.getInt(0)) }

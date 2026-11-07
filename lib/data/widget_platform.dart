@@ -9,8 +9,17 @@ abstract class WidgetPlatform {
   Future<void> openApp();
 }
 
-class AndroidWidgets implements WidgetPlatform {
+abstract class WidgetUpdates {
+  void onChanged(void Function() callback);
+}
+
+class AndroidWidgets implements WidgetPlatform, WidgetUpdates {
   static const channel = MethodChannel('app.daypanel.next/widgets');
+  @override
+  void onChanged(void Function() callback) =>
+      channel.setMethodCallHandler((call) async {
+        if (call.method == 'dataChanged') callback();
+      });
   @override
   Future<void> refresh() => channel.invokeMethod('refresh');
   @override

@@ -818,3 +818,53 @@ Launcher实际长按→微件→DayPanel习惯→选择喝水→保存；桌面�
 主用户安装前停止进程归档pre-ui03-db.tar，结束停止主进程归档post-ui03-db.tar。`python .local/ui03_retention.py`逐表比较 **15张表完全一致**，v9与外键检查正常（ui03-retention-final.log）。原2习惯/1记录/2小事/1手记/偏好/计划/履历保持；测试用户17已停止删除，系统只剩用户0，主Activity启动Status: ok。电脑与可见API28保持运行，不推送。
 
 本批实现与限定检查完成；API35/36本批插画/目录全矩阵、厂商真机、真正TalkBack手工、全部主题字号组合仍未全部验收，视觉是否符合负责人审美需看实际结果，不称完美。后续继续FL19质量与设备回归，按用户视觉反馈迭代，FL20发布保持待开始。
+
+## 2026-11-07 桌面直接完成与取消
+
+用户指出桌面组件还要打开具体页面，基线fadea41干净。先记录ADR0013/WIDGET-DIRECT-ACTIONS，替代FL16初版“完成后进详情/单Activity拦后续点击”的交互。未扩大收费/云/AI/专注范围、未修改旧原生工程。
+
+### 最终交互与安全边界
+
+- 卡片主体与主按钮均为直接操作：布尔习惯完成/取消完成，常驻今天完成/取消，单次完成/重新待办。广播排入系统JobScheduler，在独立widget_actions进程启动无界面Flutter引擎，Launcher保持前台。Android31+请求加急任务，额度不足回退普通立即队列；处理显示正在保存，失败可重试，系统节电/强停限制仍适用。
+- 业务写入由同一个AppStore完成，原生仍不写业务库。Dart事务校验generation、revision、当前值、当地日期和对象类型；习惯仍按历史计划/休息/归档校验，常驻每天最多一条，已获卡不因取消而删除。完成按原规则解锁，数量不能经后台完成接口累加。保存/拒绝/重投都同步主进程提醒和组件，向运行中的App发同包刷新信号；App恢复也重新读库。
+- SQLite10在runtime新增本机revision，habits/plans/entries/tasks/task_entries/habit_breaks的事务内触发器递增。删除后再插入、完成/取消/完成等ABA不会复用旧版本。PendingIntent身份含实例/配置token/generation/日期/revision/明确目标，只是显示上下文，绝不假装物理点击ID；重复/旧请求刷新真实状态，不反复切换。旧版缺少revision的complete Activity快捷动作禁用。
+- schema10备份用户表集合不变，兼容schema2–9；runtime本机generation/revision不导出、不导入，恢复/回退自身增加generation并保留单调revision。迁移只加运行态字段和触发器；所有旧库迁移/恢复副本/旧备份继续验证。ReminderSnapshot支持3..10，WidgetSnapshot7..10，拒绝11。无Launcher绑定进入备份。
+- 数量主体/按钮一步打开原总量输入，不经过详情；保存才写、取消不写、不自动加量。数量Activity与配置Activity各有独立进程/任务身份，避免旧详情接管，同时避免多Flutter引擎共用sqflite线程池跨连接阻塞。各自未结束输入仍保留自身目标，不静默替换用户输入。详情是独立48dp小入口，右上配置保留。
+- 后台没有Activity视图，不主动播放完成声音/触感；以真实组件状态反馈，App内反馈偏好行为不变。无新增存储/通知/前台服务权限。JobService仅系统BIND_JOB_SERVICE可绑定，动作Receiver不导出，两新Activity不导出，通过不可变PendingIntent打开；合并Manifest已核对。
+
+### 工程与系统检查
+
+```powershell
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 assemble
+git diff --check
+git diff --cached --check
+```
+
+widget-direct-final.log：analyze无问题9.7秒，**271项Flutter/Dart通过**（2:12），Kotlin JVM **13/13**。新增10项真实SQLite规则：显式目标/重复、撤销保卡、ABA旧取消与旧完成、跨连接变更、事务回滚版本、恢复/回退generation、休息/归档/删除/日期/绑定、拒绝数量后台、两类小事、检查期间跨午夜、v9→v10/备份runtime排除。完整迁移/备份/进程中断/旧规则继续通过。旧v3任务迁移测试夹具缺少真实v3本有的runtime/plans/entries，补齐后通过；失败运行widget-direct-verify3.log未当通过。
+
+原生native-test最终24秒成功，widget-direct-native-delivery.log。新增WidgetDirectActionDeviceTest三项使用明确隔离Android用户的实际业务库fixture和真实AppWidgetHost/PendingIntent/JobScheduler，启动无界面Flutter writer，检查完成取消/重复旧请求/ABA以及常驻/一次性任务完成和重开，断言Launcher仍为resumed Activity。临时用户内fixture不进入主用户；不把模拟Host自动化冒充Launcher手工添加。
+
+首次新Activity taskAffinity用了连字符，API28安装拒绝；修正为下划线，核对合并Manifest后成功安装。失败安装后误开始的测试读取旧包产生NoSuchMethod与版本不匹配，不计通过；后续安装增加返回码检查再跑全套。新增任务设备用例一次Kotlin混合array推断编译失败，改显式Array<Any?>后原生构建通过。既有Gradle/Kotlin弃用提示保留。
+
+最终APK：build/app/outputs/flutter-apk/app-debug.apk，**174933065 bytes**，SHA-256 **00eff89fbff468d63ff9908d0604e01b079be8d533158dac43c7c260d349662b**；最终assemble22.8秒（widget-direct-build2.log），API28/35覆盖安装成功，非release包。
+
+```powershell
+& $adb -s <device> install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s <device> install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s <device> shell am instrument --user <qaUser> -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest,app.daypanel.next.CardImageDeviceTest,app.daypanel.next.widgets.WidgetDirectActionDeviceTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+API28 emulator-5554用户18最终 **OK(28)**，60.447秒，widget-direct-api28-delivery.log；API35 emulator-5556用户10最终 **OK(28)**，58.954秒，widget-direct-api35-final.log。包含后台真实执行的3项，未被权限假设跳过。原提醒8/反馈2/快照6/系统实例3/旧库4/图片2继续通过。API35本批验证是原生系统端到端路径，未重复全部Launcher人工步骤。
+
+### 实际Launcher与数据保护
+
+API28用户18真实创建Read a page（布尔）与喝水1500毫升，通过Launcher长按→微件→DayPanel习惯→选择Read a page→保存。点完成后桌面直接显示今天已完成/取消完成；再点取消变为未记录/完成。两次检查dumpsys ResumedActivity均为com.android.launcher3/.Launcher，没有Activity闪转。截图widget-direct-before/completed/undone.png。
+
+点击独立详情、按Home保留其页面，然后桌面配置仍正确打开独立配置并改成喝水。点卡片主体直接进入WidgetQuantityActivity总量面板，确认没有返回旧Read a page详情；取消后仍无数量，重新输入选250并保存后桌面250/1500毫升。截图widget-direct-quantity.png及widget-direct-quantity-saved.png；总览widget-direct-overview.png。uiautomator部分空root等待后正常；一次adb input进程报INJECT_EVENTS错误/退出，不是App崩溃，重试真实Launcher步骤完成，未计首次成功。
+
+安装前主用户进程停止归档pre-widget-direct-db.tar；升级后停止归档post-widget-direct-db.tar。`python .local/widget_direct_retention.py`通过：15张原表的全部原字段逐行一致、SQLite9→10、新revision为0、外键检查空；原2习惯/1记录/2小事/1手记/设置/计划/归档历史保持（widget-direct-retention.log）。API28测试用户18删除，API35用户10切回0后停止/删除并核对只剩主用户，辅助模拟器关闭；API28主用户0最终启动Status: ok、保持可见运行。只提交源码/测试/文档，APK/DB/截图/工具均ignored，不推送、不关机。
+
+本批直接操作可用并完成上述限定验收。API36新Job路径、厂商真机长Doze/后台限制、手工TalkBack、重启中任务中断及所有多实例/字号尺寸组合仍待完整验证，不称全设备无BUG。下一步继续FL19系统边界回归，不自动开始发布。
