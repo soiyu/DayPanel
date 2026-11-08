@@ -590,5 +590,43 @@
         "type": "String"
       }
     }
-  }
+  },
+  "habitSettings": "Habit settings",
+  "recordHistory": "History & statistics",
+  "recordSelectedDay": "Back to selected day",
+  "contextChanged": "Data has changed",
+  "habitUnavailable": "This habit is no longer available",
+  "reopenContext": "Return to the list and reopen the item you need.",
+  "backToList": "Back to list",
+  "optionalHabitNotes": "Optional notes; separate from completion",
+  "restManagementHint": "Pause from today or plan a future break",
+  "restWeeklySkipHint": "This day will be a rest day, not a completion. Its week is excluded from full-week goal assessment. Existing records and goals stay.",
+  "quantityReplaceTotal": "Total for this day",
+  "quantitySavedTotal": "Recorded: {amount} {unit}",
+  "quantityReplacePreview": "Saving sets this day's total to {amount} {unit}; it does not add to it.",
+  "quantityTotalHint": "Enter the total for this day. Saving replaces the previous value.",
+  "habitTypeFixed": "Tracking type cannot be changed after creation",
+  "habitAdvancedSettings": "Timing, group & appearance",
+  "@quantitySavedTotal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@quantityReplacePreview": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "pmTaskUnavailable": "This task is no longer available",
+  "widgetsHelpTitle": "How to add widgets"
 }

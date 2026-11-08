@@ -68,6 +68,8 @@ void main() {
     (tester) async {
       await tester.pumpWidget(shell(HabitDetails(app: app, id: 'h')));
       await tester.pumpAndSettle();
+      await tap(tester, find.byKey(const Key('habit-settings')));
+      await tap(tester, find.text('Habit journal'));
       await tap(tester, find.byKey(const Key('add-habit-note')));
       expect(find.text('Nov 6, 2026'), findsOneWidget);
       expect(find.text('Read a few pages').last, findsOneWidget);
@@ -233,6 +235,7 @@ void main() {
       final snapshot = await store.exportSnapshot();
       await tester.pumpWidget(shell(HabitDetails(app: app, id: 'h')));
       await tester.pumpAndSettle();
+      await tap(tester, find.byKey(const Key('habit-settings')));
       await tester.scrollUntilVisible(
         find.text('Delete'),
         300,

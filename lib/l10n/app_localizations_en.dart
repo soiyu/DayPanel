@@ -1780,4 +1780,65 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paletteCompositionHint =>
       'A coordinated palette for actions, notes and everyday details. Habit illustrations keep their own colors.';
+
+  @override
+  String get habitSettings => 'Habit settings';
+
+  @override
+  String get recordHistory => 'History & statistics';
+
+  @override
+  String get recordSelectedDay => 'Back to selected day';
+
+  @override
+  String get contextChanged => 'Data has changed';
+
+  @override
+  String get habitUnavailable => 'This habit is no longer available';
+
+  @override
+  String get reopenContext =>
+      'Return to the list and reopen the item you need.';
+
+  @override
+  String get backToList => 'Back to list';
+
+  @override
+  String get optionalHabitNotes => 'Optional notes; separate from completion';
+
+  @override
+  String get restManagementHint => 'Pause from today or plan a future break';
+
+  @override
+  String get restWeeklySkipHint =>
+      'This day will be a rest day, not a completion. Its week is excluded from full-week goal assessment. Existing records and goals stay.';
+
+  @override
+  String get quantityReplaceTotal => 'Total for this day';
+
+  @override
+  String quantitySavedTotal(String amount, String unit) {
+    return 'Recorded: $amount $unit';
+  }
+
+  @override
+  String quantityReplacePreview(String amount, String unit) {
+    return 'Saving sets this day\'s total to $amount $unit; it does not add to it.';
+  }
+
+  @override
+  String get quantityTotalHint =>
+      'Enter the total for this day. Saving replaces the previous value.';
+
+  @override
+  String get habitTypeFixed => 'Tracking type cannot be changed after creation';
+
+  @override
+  String get habitAdvancedSettings => 'Timing, group & appearance';
+
+  @override
+  String get pmTaskUnavailable => 'This task is no longer available';
+
+  @override
+  String get widgetsHelpTitle => 'How to add widgets';
 }

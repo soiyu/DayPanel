@@ -11,6 +11,7 @@ import 'reminders.dart';
 import 'journal.dart';
 import 'card_art.dart';
 import 'statistics.dart';
+import 'refined_components.dart';
 import 'rest_days.dart';
 import '../domain/habit_break.dart';
 
@@ -48,7 +49,7 @@ class HabitTile extends StatelessWidget {
       void details() => Navigator.push(
         context,
         MaterialPageRoute<void>(
-          builder: (_) => HabitDetails(app: app, id: habit.id),
+          builder: (_) => HabitDetails(app: app, id: habit.id, initialDay: day),
         ),
       );
       void record() {
@@ -212,8 +213,11 @@ class HabitTile extends StatelessWidget {
                       ? () => Navigator.push(
                           context,
                           MaterialPageRoute<void>(
-                            builder: (_) =>
-                                HabitDetails(app: app, id: habit.id),
+                            builder: (_) => HabitDetails(
+                              app: app,
+                              id: habit.id,
+                              initialDay: day,
+                            ),
                           ),
                         )
                       : null,
@@ -247,7 +251,8 @@ class HabitTile extends StatelessWidget {
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute<void>(
-                      builder: (_) => HabitDetails(app: app, id: habit.id),
+                      builder: (_) =>
+                          HabitDetails(app: app, id: habit.id, initialDay: day),
                     ),
                   ),
                 ),
@@ -304,6 +309,7 @@ class HabitTile extends StatelessWidget {
               if (rest != null)
                 AppBadge(restName(s, rest), tone: UiTone.violet),
               AppAction(
+                key: Key('habit-detail-action-${habit.id}'),
                 label: rest != null
                     ? s.restTitle
                     : isQuantity
@@ -312,7 +318,7 @@ class HabitTile extends StatelessWidget {
                     ? s.reopen
                     : s.done,
                 icon: isQuantity
-                    ? Icons.add_rounded
+                    ? Icons.edit_outlined
                     : done
                     ? Icons.undo_rounded
                     : Icons.check_rounded,
@@ -480,7 +486,8 @@ class HabitLibrary extends StatelessWidget {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute<void>(
-                              builder: (_) => HabitDetails(app: app, id: h.id),
+                              builder: (_) =>
+                                  HabitManagementPage(app: app, id: h.id),
                             ),
                           ),
                         ),
@@ -501,27 +508,35 @@ class HabitDetails extends StatefulWidget {
     super.key,
     required this.app,
     required this.id,
+    this.initialDay,
     this.logOnOpen = false,
   });
   final AppController app;
   final String id;
+  final Day? initialDay;
   final bool logOnOpen;
   @override
   State<HabitDetails> createState() => _HabitDetailsState();
 }
 
 class _HabitDetailsState extends State<HabitDetails> {
-  Day? selected;
+  late Day selected;
+  late final int epoch;
+  bool history = false;
   @override
   void initState() {
     super.initState();
+    selected = widget.initialDay ?? widget.app.today;
+    epoch = widget.app.generation;
     if (widget.logOnOpen) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+        if (!mounted || epoch != widget.app.generation) return;
         final h = widget.app.habits
             .where((h) => h.id == widget.id && !h.archived)
             .firstOrNull;
-        if (h != null) openQuantity(context, widget.app, h, widget.app.today);
+        if (h != null && h.kind == HabitKind.quantity) {
+          openQuantity(context, widget.app, h, selected);
+        }
       });
     }
   }
@@ -531,38 +546,45 @@ class _HabitDetailsState extends State<HabitDetails> {
     listenable: widget.app,
     builder: (context, _) {
       final app = widget.app;
-      final matches = app.habits.where((h) => h.id == widget.id);
-      if (matches.isEmpty) return const Scaffold(body: SizedBox.shrink());
-      final h = matches.first;
-      final epoch = app.generation;
       final s = AppLocalizations.of(context);
-      final day = selected ?? app.today;
-      final tone = habitTone(h.icon, h.color);
+      final h = app.habits.where((h) => h.id == widget.id).firstOrNull;
+      if (h == null || epoch != app.generation) {
+        return HabitUnavailable(changed: epoch != app.generation);
+      }
+      final day = selected;
+      final plan = app.planAt(h, day);
+      final rest = app.restOn(h, day);
+      final valid =
+          day.compareTo(h.startDay) >= 0 && day.compareTo(app.today) <= 0;
+      final maySkip =
+          !h.archived &&
+          valid &&
+          app.value(h, day) == null &&
+          rest == null &&
+          plan.scheduled(day);
+      void manage() => Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => HabitManagementPage(app: app, id: h.id, noteDay: day),
+        ),
+      );
       return AppCanvas(
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             title: Text(h.title),
             actions: [
-              AppIconAction(
-                icon: Icons.edit_outlined,
-                label: s.edit,
-                tone: tone,
-                onTap: app.busy
-                    ? null
-                    : () => openEditor(context, app, 'habit', habit: h),
+              IconButton(
+                key: const Key('habit-settings'),
+                tooltip: s.habitSettings,
+                icon: const Icon(Icons.tune_rounded),
+                onPressed: manage,
               ),
-              const SizedBox(width: 16),
             ],
           ),
           body: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
-              if (app.error != null)
-                Text(
-                  s.storageError,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
               Row(
                 children: [
                   Expanded(
@@ -573,196 +595,361 @@ class _HabitDetailsState extends State<HabitDetails> {
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                   ),
-                  AppIconAction(
-                    label: s.chooseDate,
-                    icon: Icons.calendar_month_outlined,
-                    tone: UiTone.peach,
-                    onTap: () async {
-                      final d = await showDatePicker(
-                        context: context,
-                        initialDate: day.date,
-                        firstDate: h.startDay.date,
-                        lastDate: app.today.date,
-                      );
-                      if (d != null && mounted) {
-                        setState(() => selected = Day(d));
-                      }
-                    },
+                  IconButton(
+                    key: const Key('habit-record-date'),
+                    tooltip: s.chooseDate,
+                    icon: const Icon(Icons.calendar_today_outlined),
+                    onPressed: h.startDay.compareTo(app.today) > 0
+                        ? null
+                        : () async {
+                            final bounded = day.compareTo(h.startDay) < 0
+                                ? h.startDay
+                                : day.compareTo(app.today) > 0
+                                ? app.today
+                                : day;
+                            final d = await showDatePicker(
+                              context: context,
+                              initialDate: bounded.date,
+                              firstDate: h.startDay.date,
+                              lastDate: app.today.date,
+                            );
+                            if (d != null && mounted) {
+                              setState(() => selected = Day(d));
+                            }
+                          },
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              HabitTile(app: app, habit: h, day: day, openDetails: false),
-              const SizedBox(height: 12),
-              ActionTileRest(app: app, habit: h, day: day),
-              const SizedBox(height: 16),
-              SoftPanel(
-                tinted: true,
-                tone: UiTone.violet,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SectionTitle(
-                      s.habitJournal,
-                      count: app.notes.where((n) => n.habitId == h.id).length,
-                      tone: UiTone.violet,
-                    ),
-                    Text(
-                      s.noteAssociationHint,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        AppAction(
-                          key: const Key('add-habit-note'),
-                          label: s.writeHabitNote,
-                          icon: Icons.edit_note_rounded,
-                          primary: true,
-                          onTap: app.busy
-                              ? null
-                              : () => openEditor(
-                                  context,
-                                  app,
-                                  'note',
-                                  noteHabitId: h.id,
-                                  noteDay: day,
-                                ),
-                        ),
-                        AppAction(
-                          label: s.viewHabitNotes,
-                          icon: Icons.auto_stories_outlined,
-                          tone: UiTone.violet,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) =>
-                                  HabitJournalPage(app: app, habitId: h.id),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    for (final note in app.notes.where(
-                      (n) => n.habitId == h.id && n.day == day,
-                    ))
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: NoteCard(app: app, note: note),
-                      ),
-                  ],
+              if (app.error != null)
+                Text(
+                  s.storageError,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
-              ),
-              const SizedBox(height: 14),
-              SoftPanel(
-                padding: const EdgeInsets.all(3),
-                tinted: true,
-                tone: UiTone.peach,
-                child: SettingRow(
-                  icon: Icons.notifications_none_rounded,
-                  title: s.habitReminder,
-                  tone: UiTone.peach,
-                  subtitle: widget.app.reminderFor(h.id).enabled
-                      ? formatReminderTimes(
-                          context,
-                          widget.app.reminderFor(h.id).minutes,
-                        )
-                      : s.reminderOff,
-                  onTap: () => openReminderEditor(context, app, h),
-                ),
-              ),
-              if (app.pending(h) != null) ...[
-                const SizedBox(height: 12),
-                AppBadge(s.planPending, tone: UiTone.peach),
-              ],
-              const SizedBox(height: 24),
-              SectionTitle(s.history, tone: tone),
-              SoftPanel(
-                padding: const EdgeInsets.all(6),
-                child: Column(
-                  children: [
-                    for (var i = 0; i < 7; i++)
-                      if (app.today.plus(-i).compareTo(h.startDay) >= 0)
-                        SettingRow(
-                          icon: Icons.calendar_today_outlined,
-                          tone: tone,
-                          title: MaterialLocalizations.of(
-                            context,
-                          ).formatMediumDate(app.today.plus(-i).date),
-                          subtitle: app.value(h, app.today.plus(-i)) == null
-                              ? s.notRecorded
-                              : h.kind == HabitKind.quantity
-                              ? '${quantityText(app.value(h, app.today.plus(-i))!)} ${app.planAt(h, app.today.plus(-i)).unit}'
-                              : app.achieved(h, app.today.plus(-i))
-                              ? s.finished
-                              : s.notCompleted,
-                          trailing: day == app.today.plus(-i)
-                              ? Icon(
-                                  Icons.check_circle_rounded,
-                                  color: tone.ink(context),
-                                  size: 20,
-                                )
-                              : null,
-                          onTap: () =>
-                              setState(() => selected = app.today.plus(-i)),
-                        ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              SectionTitle(s.planHistory, tone: UiTone.violet),
-              AppAction(
-                label: s.habitStatistics,
-                icon: Icons.insights_outlined,
-                tone: UiTone.violet,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (_) =>
-                        StatisticsPage(app: app, habitId: h.id, initialTab: 1),
+              if (!history) ...[
+                if (h.archived)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(s.restoreToCorrect),
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              for (final p
-                  in app.plans
-                      .where((p) => p.habitId == h.id)
-                      .toList()
-                      .reversed)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: SoftPanel(
-                    tinted: true,
-                    tone: UiTone.violet,
+                if (h.archived || rest != null)
+                  SoftPanel(
+                    key: const Key('readonly-habit-record'),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${s.effectiveFrom} ${p.effectiveDay.key}',
-                          style: Theme.of(context).textTheme.titleSmall,
+                          h.archived ? s.archived : restName(s, rest!),
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
-                        Text(scheduleText(s, p)),
                         if (h.kind == HabitKind.quantity)
                           Text(
-                            '${s.target} ${quantityText(p.target)} ${p.unit}',
+                            '${app.value(h, day) == null ? '—' : quantityText(app.value(h, day)!)} / ${quantityText(plan.target)} ${plan.unit}',
+                          )
+                        else
+                          Text(
+                            app.achieved(h, day)
+                                ? s.finished
+                                : app.value(h, day) == null
+                                ? s.notRecorded
+                                : s.notCompleted,
                           ),
                       ],
                     ),
+                  )
+                else
+                  HabitTile(app: app, habit: h, day: day, openDetails: false),
+                if (rest != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      s.restRecordBlocked,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                if (!h.archived &&
+                    valid &&
+                    (maySkip || rest?.kind == BreakKind.skip))
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      key: const Key('skip-record-day'),
+                      icon: const Icon(Icons.skip_next_outlined),
+                      label: Text(rest == null ? s.restSkip : s.restUnskip),
+                      onPressed: app.busy
+                          ? null
+                          : () => skipDay(context, app, h, day),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                SettingRow(
+                  key: const Key('habit-record-history'),
+                  icon: Icons.history_rounded,
+                  title: s.recordHistory,
+                  tone: UiTone.violet,
+                  onTap: () => setState(() => history = true),
+                ),
+                if (app.notes.any((n) => n.habitId == h.id))
+                  SettingRow(
+                    icon: Icons.auto_stories_outlined,
+                    title: s.viewHabitNotes,
+                    subtitle:
+                        '${app.notes.where((n) => n.habitId == h.id).length}',
+                    tone: UiTone.violet,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            HabitJournalPage(app: app, habitId: h.id),
+                      ),
+                    ),
+                  ),
+              ] else ...[
+                TextButton.icon(
+                  key: const Key('back-to-record'),
+                  onPressed: () => setState(() => history = false),
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  label: Text(s.recordSelectedDay),
+                ),
+                AppAction(
+                  label: s.habitStatistics,
+                  icon: Icons.insights_outlined,
+                  tone: UiTone.violet,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => StatisticsPage(
+                        app: app,
+                        habitId: h.id,
+                        initialTab: 1,
+                      ),
+                    ),
                   ),
                 ),
-              Text(
-                s.planVersionNote,
-                style: Theme.of(context).textTheme.bodySmall,
+                SectionTitle(s.history, tone: habitTone(h.icon, h.color)),
+                for (var i = 0; i < 7; i++)
+                  if (app.today.plus(-i).compareTo(h.startDay) >= 0)
+                    SettingRow(
+                      key: Key('habit-history-${app.today.plus(-i).key}'),
+                      icon: Icons.calendar_today_outlined,
+                      title: MaterialLocalizations.of(
+                        context,
+                      ).formatMediumDate(app.today.plus(-i).date),
+                      subtitle: app.restOn(h, app.today.plus(-i)) != null
+                          ? restName(s, app.restOn(h, app.today.plus(-i))!)
+                          : app.value(h, app.today.plus(-i)) == null
+                          ? s.notRecorded
+                          : h.kind == HabitKind.quantity
+                          ? '${quantityText(app.value(h, app.today.plus(-i))!)} ${app.planAt(h, app.today.plus(-i)).unit}'
+                          : app.achieved(h, app.today.plus(-i))
+                          ? s.finished
+                          : s.notCompleted,
+                      onTap: () => setState(() {
+                        selected = app.today.plus(-i);
+                        history = false;
+                      }),
+                    ),
+              ],
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class HabitUnavailable extends StatelessWidget {
+  const HabitUnavailable({super.key, required this.changed});
+  final bool changed;
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(s.manageHabits)),
+      body: EmptyState(
+        icon: Icons.info_outline_rounded,
+        title: changed ? s.contextChanged : s.habitUnavailable,
+        body: s.reopenContext,
+        action: s.backToList,
+        onAction: () => Navigator.maybePop(context),
+      ),
+    );
+  }
+}
+
+/// Whole-habit choices are deliberately separate from a day's recording flow.
+class HabitManagementPage extends StatefulWidget {
+  const HabitManagementPage({
+    super.key,
+    required this.app,
+    required this.id,
+    this.noteDay,
+  });
+  final AppController app;
+  final String id;
+  final Day? noteDay;
+  @override
+  State<HabitManagementPage> createState() => _HabitManagementPageState();
+}
+
+class _HabitManagementPageState extends State<HabitManagementPage> {
+  late final int epoch;
+  @override
+  void initState() {
+    super.initState();
+    epoch = widget.app.generation;
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.app,
+    builder: (context, _) {
+      final app = widget.app;
+      final s = AppLocalizations.of(context);
+      final h = app.habits.where((h) => h.id == widget.id).firstOrNull;
+      if (h == null || epoch != app.generation) {
+        return HabitUnavailable(changed: epoch != app.generation);
+      }
+      final day = widget.noteDay ?? app.today;
+      return AppCanvas(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(title: Text(s.habitSettings)),
+          body: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Text(h.title, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              SettingRow(
+                key: const Key('edit-habit-settings'),
+                icon: Icons.edit_outlined,
+                title: s.edit,
+                onTap: app.busy
+                    ? null
+                    : () => openEditor(
+                        context,
+                        app,
+                        'habit',
+                        habit: h,
+                        expectedGeneration: epoch,
+                      ),
               ),
-              const SizedBox(height: 20),
+              SettingRow(
+                icon: Icons.notifications_none_rounded,
+                title: s.habitReminder,
+                subtitle: h.archived
+                    ? s.reminderArchived
+                    : app.reminderFor(h.id).enabled
+                    ? formatReminderTimes(
+                        context,
+                        app.reminderFor(h.id).minutes,
+                      )
+                    : s.reminderOff,
+                tone: UiTone.peach,
+                onTap: h.archived || app.busy
+                    ? null
+                    : () => openReminderEditor(context, app, h),
+              ),
+              if (!h.archived)
+                SettingRow(
+                  key: const Key('manage-rest-days'),
+                  icon: Icons.free_breakfast_outlined,
+                  title: s.restTitle,
+                  subtitle: s.restManagementHint,
+                  tone: UiTone.violet,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => RestDaysPage(app: app, id: h.id),
+                    ),
+                  ),
+                ),
+              DetailDisclosure(
+                title: s.habitJournal,
+                subtitle: s.optionalHabitNotes,
+                icon: Icons.edit_note_outlined,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppAction(
+                      key: const Key('add-habit-note'),
+                      label: s.writeHabitNote,
+                      icon: Icons.edit_note_rounded,
+                      onTap: app.busy
+                          ? null
+                          : () => openEditor(
+                              context,
+                              app,
+                              'note',
+                              noteHabitId: h.id,
+                              noteDay: day,
+                              expectedGeneration: epoch,
+                            ),
+                    ),
+                    const SizedBox(height: 8),
+                    AppAction(
+                      label: s.viewHabitNotes,
+                      icon: Icons.auto_stories_outlined,
+                      tone: UiTone.violet,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) =>
+                              HabitJournalPage(app: app, habitId: h.id),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              DetailDisclosure(
+                title: s.planHistory,
+                icon: Icons.event_note_rounded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (app.pending(h) != null)
+                      AppBadge(s.planPending, tone: UiTone.peach),
+                    for (final p
+                        in app.plans
+                            .where((p) => p.habitId == h.id)
+                            .toList()
+                            .reversed)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${s.effectiveFrom} ${p.effectiveDay.key}',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            Text(scheduleText(s, p)),
+                            if (h.kind == HabitKind.quantity)
+                              Text(
+                                '${s.target} ${quantityText(p.target)} ${p.unit}',
+                              ),
+                          ],
+                        ),
+                      ),
+                    if (!app.activity.any(
+                      (a) => a.habitId == h.id && a.day == h.startDay,
+                    ))
+                      Text(
+                        s.planVersionNote,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              const SizedBox(height: 12),
               Text(
                 s.archivedHint,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
               AppAction(
                 label: h.archived ? s.unarchive : s.archive,
                 icon: Icons.archive_outlined,
@@ -778,7 +965,7 @@ class _HabitDetailsState extends State<HabitDetails> {
                         expectedGeneration: epoch,
                       ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               AppAction(
                 label: s.delete,
                 icon: Icons.delete_outline,
@@ -800,50 +987,4 @@ class _HabitDetailsState extends State<HabitDetails> {
       );
     },
   );
-}
-
-class ActionTileRest extends StatelessWidget {
-  const ActionTileRest({
-    super.key,
-    required this.app,
-    required this.habit,
-    required this.day,
-  });
-  final AppController app;
-  final Habit habit;
-  final Day day;
-  @override
-  Widget build(BuildContext context) {
-    final s = AppLocalizations.of(context);
-    final rest = app.restOn(habit, day);
-    return SoftPanel(
-      padding: const EdgeInsets.all(6),
-      child: Column(
-        children: [
-          SettingRow(
-            icon: Icons.free_breakfast_outlined,
-            title: s.restTitle,
-            subtitle: rest == null ? s.restHint : restName(s, rest),
-            tone: UiTone.violet,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => RestDaysPage(app: app, id: habit.id),
-              ),
-            ),
-          ),
-          if (!habit.archived &&
-              day.compareTo(habit.startDay) >= 0 &&
-              day.compareTo(app.today) <= 0 &&
-              ((rest == null && app.value(habit, day) == null) ||
-                  rest?.kind == BreakKind.skip))
-            SettingRow(
-              icon: Icons.skip_next_outlined,
-              title: rest == null ? s.restSkip : s.restUnskip,
-              onTap: app.busy ? null : () => skipDay(context, app, habit, day),
-            ),
-        ],
-      ),
-    );
-  }
 }

@@ -510,7 +510,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
         child: Text(s.tableHint, style: Theme.of(context).textTheme.bodySmall),
       ),
       const SizedBox(height: 18),
-      Text(s.statisticsKnownHint, style: Theme.of(context).textTheme.bodySmall),
+      if (habits.any(
+        (h) =>
+            dates.any((d) => statsFor(app, h).state(d) == DayPlanState.unknown),
+      ))
+        Text(
+          s.statisticsKnownHint,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
     ];
   }
 
@@ -618,6 +625,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
     final weeks = stats.weeks(start, app.today);
     final weekly = WeeklySummary(weeks, app.today, stats);
     final quantities = stats.quantities(start, app.today);
+    final hasDailyPlan = stats
+        .days(start, app.today)
+        .any(
+          (d) =>
+              d.compareTo(selected.startDay) >= 0 &&
+              stats.plan(d).schedule != ScheduleKind.weekly,
+        );
     return [
       Wrap(
         spacing: 8,
@@ -638,48 +652,80 @@ class _StatisticsPageState extends State<StatisticsPage> {
         style: Theme.of(context).textTheme.bodySmall,
       ),
       const SizedBox(height: 12),
-      SoftPanel(
-        tinted: true,
-        tone: UiTone.violet,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              s.dailyCompletionRate,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              result.due == 0
-                  ? s.noDenominator
-                  : '${(100 * result.done / result.due).toStringAsFixed(1)}%  (${result.done}/${result.due})',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 12),
-            Text(s.dailyRateHint, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                AppBadge(
-                  '${s.currentRun} ${result.current}',
-                  tone: UiTone.violet,
-                ),
-                AppBadge('${s.bestRun} ${result.best}', tone: UiTone.peach),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              s.streakRangeHint,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+      if (selected.kind == HabitKind.quantity) ...[
+        const SizedBox(height: 20),
+        SectionTitle(
+          s.quantityStatistics,
+          key: const Key('quantity-statistics'),
+          tone: UiTone.blue,
         ),
-      ),
+        Text(s.quantityStatsHint, style: Theme.of(context).textTheme.bodySmall),
+        if (quantities.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Text(s.noRecordedValues),
+          ),
+        for (final group in quantities.entries) ...[
+          const SizedBox(height: 16),
+          QuantityTrend(
+            points: group.value,
+            unit: group.key,
+            app: app,
+            habit: selected,
+          ),
+        ],
+      ],
+      if (hasDailyPlan)
+        SoftPanel(
+          key: const Key('daily-statistics'),
+          tinted: true,
+          tone: UiTone.violet,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                s.dailyCompletionRate,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                result.due == 0
+                    ? s.noDenominator
+                    : '${(100 * result.done / result.due).toStringAsFixed(1)}%  (${result.done}/${result.due})',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                s.dailyRateHint,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  AppBadge(
+                    '${s.currentRun} ${result.current}',
+                    tone: UiTone.violet,
+                  ),
+                  AppBadge('${s.bestRun} ${result.best}', tone: UiTone.peach),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                s.streakRangeHint,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
       if (weeks.isNotEmpty) ...[
         const SizedBox(height: 18),
-        SectionTitle(s.weeklyStatistics, tone: UiTone.violet),
+        SectionTitle(
+          s.weeklyStatistics,
+          key: const Key('weekly-statistics'),
+          tone: UiTone.violet,
+        ),
         SoftPanel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -716,27 +762,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
           ),
         ),
       ],
-      if (selected.kind == HabitKind.quantity) ...[
-        const SizedBox(height: 20),
-        SectionTitle(s.quantityStatistics, tone: UiTone.blue),
-        Text(s.quantityStatsHint, style: Theme.of(context).textTheme.bodySmall),
-        if (quantities.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Text(s.noRecordedValues),
-          ),
-        for (final group in quantities.entries) ...[
-          const SizedBox(height: 16),
-          QuantityTrend(
-            points: group.value,
-            unit: group.key,
-            app: app,
-            habit: selected,
-          ),
-        ],
-      ],
       const SizedBox(height: 20),
-      Text(s.statisticsKnownHint, style: Theme.of(context).textTheme.bodySmall),
+      if (stats
+          .days(start, app.today)
+          .any((d) => stats.state(d) == DayPlanState.unknown))
+        Text(
+          s.statisticsKnownHint,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
       const SizedBox(height: 16),
       SectionTitle(s.history, tone: UiTone.violet),
       for (final d

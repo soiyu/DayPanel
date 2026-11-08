@@ -3373,6 +3373,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A coordinated palette for actions, notes and everyday details. Habit illustrations keep their own colors.'**
   String get paletteCompositionHint;
+
+  /// No description provided for @habitSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit settings'**
+  String get habitSettings;
+
+  /// No description provided for @recordHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History & statistics'**
+  String get recordHistory;
+
+  /// No description provided for @recordSelectedDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to selected day'**
+  String get recordSelectedDay;
+
+  /// No description provided for @contextChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Data has changed'**
+  String get contextChanged;
+
+  /// No description provided for @habitUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This habit is no longer available'**
+  String get habitUnavailable;
+
+  /// No description provided for @reopenContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to the list and reopen the item you need.'**
+  String get reopenContext;
+
+  /// No description provided for @backToList.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to list'**
+  String get backToList;
+
+  /// No description provided for @optionalHabitNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional notes; separate from completion'**
+  String get optionalHabitNotes;
+
+  /// No description provided for @restManagementHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause from today or plan a future break'**
+  String get restManagementHint;
+
+  /// No description provided for @restWeeklySkipHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This day will be a rest day, not a completion. Its week is excluded from full-week goal assessment. Existing records and goals stay.'**
+  String get restWeeklySkipHint;
+
+  /// No description provided for @quantityReplaceTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total for this day'**
+  String get quantityReplaceTotal;
+
+  /// No description provided for @quantitySavedTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded: {amount} {unit}'**
+  String quantitySavedTotal(String amount, String unit);
+
+  /// No description provided for @quantityReplacePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving sets this day\'s total to {amount} {unit}; it does not add to it.'**
+  String quantityReplacePreview(String amount, String unit);
+
+  /// No description provided for @quantityTotalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the total for this day. Saving replaces the previous value.'**
+  String get quantityTotalHint;
+
+  /// No description provided for @habitTypeFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking type cannot be changed after creation'**
+  String get habitTypeFixed;
+
+  /// No description provided for @habitAdvancedSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing, group & appearance'**
+  String get habitAdvancedSettings;
+
+  /// No description provided for @pmTaskUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This task is no longer available'**
+  String get pmTaskUnavailable;
+
+  /// No description provided for @widgetsHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to add widgets'**
+  String get widgetsHelpTitle;
 }
 
 class _AppLocalizationsDelegate

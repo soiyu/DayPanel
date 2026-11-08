@@ -67,6 +67,15 @@ void main() {
   }
 
   Future<void> pick(WidgetTester t, Key key) async {
+    if (key == const Key('habit-icon-18')) {
+      final advanced = find.byKey(const Key('habit-advanced-settings'));
+      await Scrollable.ensureVisible(t.element(advanced), alignment: .4);
+      await t.pumpAndSettle();
+      await t.tap(
+        find.descendant(of: advanced, matching: find.byType(ExpansionTile)),
+      );
+      await t.pumpAndSettle();
+    }
     final f = find.byKey(key);
     if (f.evaluate().isEmpty) {
       await t.scrollUntilVisible(

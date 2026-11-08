@@ -188,6 +188,7 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
             builder: (context) => HabitDetails(
               app: app,
               id: h.id,
+              initialDay: day,
               logOnOpen: h.kind == HabitKind.quantity,
             ),
           ),

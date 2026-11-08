@@ -169,6 +169,7 @@ void main() {
       await store.saveTask(
         SmallTask(id: 'r', title: 'Stretch', resident: true, startDay: today),
         create: true,
+        today: today,
       );
       await store.saveTask(
         SmallTask(id: 't', title: 'Post', dueDay: today.plus(-3)),

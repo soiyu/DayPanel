@@ -57,6 +57,7 @@ void main() {
               startDay: app.today,
             ),
             create: true,
+            today: app.today,
           );
           await store.saveNote(
             Note(

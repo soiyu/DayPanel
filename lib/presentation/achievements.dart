@@ -37,6 +37,12 @@ class DailyCardPanel extends StatelessWidget {
     final s = AppLocalizations.of(context);
     final card = app.cardFor(day);
     if (day != app.today && card == null) return const SizedBox.shrink();
+    final hasDailyObligation = app.habits.any(
+      (h) =>
+          app.scheduled(h, day) &&
+          app.planAt(h, day).schedule != ScheduleKind.weekly,
+    );
+    if (card == null && !hasDailyObligation) return const SizedBox.shrink();
     final epoch = app.generation;
     final canClaim = day == app.today && app.canClaimCard;
     return Padding(

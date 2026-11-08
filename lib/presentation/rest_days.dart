@@ -40,7 +40,13 @@ Future<void> skipDay(
       subtitle: MaterialLocalizations.of(ctx).formatFullDate(day.date),
       icon: Icons.free_breakfast_outlined,
       tone: UiTone.violet,
-      body: Text(old == null ? s.restConfirmSkip : s.restConfirmUnskip),
+      body: Text(
+        old != null
+            ? s.restConfirmUnskip
+            : app.planAt(h, day).schedule == ScheduleKind.weekly
+            ? s.restWeeklySkipHint
+            : s.restConfirmSkip,
+      ),
       footer: Row(
         children: [
           Expanded(

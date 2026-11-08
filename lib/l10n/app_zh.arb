@@ -590,5 +590,43 @@
         "type": "String"
       }
     }
-  }
+  },
+  "habitSettings": "习惯设置",
+  "recordHistory": "历史记录与统计",
+  "recordSelectedDay": "返回所选日期记录",
+  "contextChanged": "数据已更新",
+  "habitUnavailable": "这项习惯已不存在",
+  "reopenContext": "请返回列表，重新打开需要的内容。",
+  "backToList": "返回列表",
+  "optionalHabitNotes": "需要时再写，不影响完成状态",
+  "restManagementHint": "从今天暂停，或安排未来休假",
+  "restWeeklySkipHint": "这天将标为休息，不算完成。所在周不纳入完整周目标考核；原记录和目标不变。",
+  "quantityReplaceTotal": "当天累计总量",
+  "quantitySavedTotal": "已记录 {amount} {unit}",
+  "quantityReplacePreview": "保存后，当天总量将改为 {amount} {unit}，不会累加。",
+  "quantityTotalHint": "输入当天累计总量，保存后替换原值。",
+  "habitTypeFixed": "记录方式创建后不可更改",
+  "habitAdvancedSettings": "时段、分组与外观",
+  "@quantitySavedTotal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@quantityReplacePreview": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "pmTaskUnavailable": "这件小事已不存在",
+  "widgetsHelpTitle": "如何添加桌面组件"
 }

@@ -8,6 +8,7 @@ import 'components.dart';
 import 'theme.dart';
 import 'organization.dart';
 import 'appearance.dart';
+import 'refined_components.dart';
 import 'habit_catalog.dart';
 import 'habit_icon.dart';
 import '../domain/habit_templates.dart';
@@ -477,30 +478,59 @@ class _EntryEditorState extends State<EntryEditor> {
                   ),
                 ),
               const SizedBox(height: 22),
-              fieldLabel(s.type),
-              LayoutBuilder(
-                builder: (context, constraints) => Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    for (final k in HabitKind.values)
-                      SizedBox(
-                        width: (constraints.maxWidth - 10) / 2,
-                        child: _TypeChoice(
-                          label: k == HabitKind.check
-                              ? s.checkHabit
-                              : s.quantityHabit,
-                          icon: k == HabitKind.check
-                              ? Icons.task_alt_rounded
-                              : Icons.water_drop_outlined,
-                          selected: kind == k,
-                          enabled: !saving && widget.habit == null,
-                          onTap: () => setState(() => kind = k),
+              if (widget.habit == null) ...[
+                fieldLabel(s.type),
+                LayoutBuilder(
+                  builder: (context, constraints) => Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      for (final k in HabitKind.values)
+                        SizedBox(
+                          width: (constraints.maxWidth - 10) / 2,
+                          child: _TypeChoice(
+                            label: k == HabitKind.check
+                                ? s.checkHabit
+                                : s.quantityHabit,
+                            icon: k == HabitKind.check
+                                ? Icons.task_alt_rounded
+                                : Icons.water_drop_outlined,
+                            selected: kind == k,
+                            enabled: !saving && widget.habit == null,
+                            onTap: () => setState(() => kind = k),
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ] else
+                Padding(
+                  key: const Key('habit-type-readonly'),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${s.type}: ${kind == HabitKind.quantity ? s.quantityHabit : s.checkHabit}',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        s.habitTypeFixed,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              if (widget.habit != null && kind == HabitKind.quantity)
+                Padding(
+                  key: const Key('plan-tomorrow-target'),
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    s.planTomorrow,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
               if (kind == HabitKind.quantity) ...[
                 const SizedBox(height: 20),
                 fieldLabel(s.target),
@@ -533,6 +563,15 @@ class _EntryEditorState extends State<EntryEditor> {
                 ),
               ],
               const SizedBox(height: 22),
+              if (widget.habit != null)
+                Padding(
+                  key: const Key('plan-tomorrow-frequency'),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    s.planTomorrow,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
               fieldLabel(s.frequency),
               Wrap(
                 spacing: 8,
@@ -658,95 +697,115 @@ class _EntryEditorState extends State<EntryEditor> {
                     ],
                   ),
                 ),
-              const SizedBox(height: 22),
-              fieldLabel(s.contextLabel),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final c in HabitContext.values)
-                    AppAction(
-                      label: contextName(s, c),
-                      icon: habitContext == c
-                          ? Icons.check_circle_rounded
-                          : contextIcon(c),
-                      tone: UiTone.peach,
-                      onTap: saving
-                          ? null
-                          : () => setState(() => habitContext = c),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              fieldLabel(s.groupLabel),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final g in <HabitGroup?>[null, ...widget.app.groups])
-                    AppAction(
-                      label: g?.name ?? s.ungrouped,
-                      icon: groupId == g?.id
-                          ? Icons.check_circle_rounded
-                          : Icons.folder_outlined,
-                      tone: UiTone.violet,
-                      onTap: saving
-                          ? null
-                          : () => setState(() => groupId = g?.id),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              if (widget.habit != null) ...[
-                Text(
-                  s.planTomorrow,
-                  style: Theme.of(context).textTheme.bodySmall,
+              const SizedBox(height: 14),
+              Material(
+                color: Colors.transparent,
+                child: DetailDisclosure(
+                  key: const Key('habit-advanced-settings'),
+                  title: s.habitAdvancedSettings,
+                  icon: Icons.tune_rounded,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 22),
+                      fieldLabel(s.contextLabel),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final c in HabitContext.values)
+                            AppAction(
+                              label: contextName(s, c),
+                              icon: habitContext == c
+                                  ? Icons.check_circle_rounded
+                                  : contextIcon(c),
+                              tone: UiTone.peach,
+                              onTap: saving
+                                  ? null
+                                  : () => setState(() => habitContext = c),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      fieldLabel(s.groupLabel),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final g in <HabitGroup?>[
+                            null,
+                            ...widget.app.groups,
+                          ])
+                            AppAction(
+                              label: g?.name ?? s.ungrouped,
+                              icon: groupId == g?.id
+                                  ? Icons.check_circle_rounded
+                                  : Icons.folder_outlined,
+                              tone: UiTone.violet,
+                              onTap: saving
+                                  ? null
+                                  : () => setState(() => groupId = g?.id),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      HabitStylePicker(
+                        icon: icon,
+                        color: decorationColor,
+                        frame: decorationFrame,
+                        title: title.text,
+                        onIcon: saving
+                            ? null
+                            : (v) => setState(() {
+                                icon = v;
+                                iconManuallyPicked = true;
+                              }),
+                        onColor: saving
+                            ? null
+                            : (v) => setState(() => decorationColor = v),
+                        onFrame: saving
+                            ? null
+                            : (v) => setState(() => decorationFrame = v),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 18),
-              ],
-              HabitStylePicker(
-                icon: icon,
-                color: decorationColor,
-                frame: decorationFrame,
-                title: title.text,
-                onIcon: saving
-                    ? null
-                    : (v) => setState(() {
-                        icon = v;
-                        iconManuallyPicked = true;
-                      }),
-                onColor: saving
-                    ? null
-                    : (v) => setState(() => decorationColor = v),
-                onFrame: saving
-                    ? null
-                    : (v) => setState(() => decorationFrame = v),
               ),
             ],
             if (!isHabit && !isNote) ...[
               const SizedBox(height: 20),
-              fieldLabel(s.taskKind),
-              LayoutBuilder(
-                builder: (context, constraints) => Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    for (final keep in [false, true])
-                      SizedBox(
-                        width: (constraints.maxWidth - 10) / 2,
-                        child: _TypeChoice(
-                          label: keep ? s.residentTask : s.oneTimeTask,
-                          icon: keep
-                              ? Icons.bookmark_border_rounded
-                              : Icons.check_circle_outline_rounded,
-                          selected: resident == keep,
-                          enabled: !saving && widget.task == null,
-                          onTap: () => setState(() => resident = keep),
+              if (widget.task == null) ...[
+                fieldLabel(s.taskKind),
+                LayoutBuilder(
+                  builder: (context, constraints) => Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      for (final keep in [false, true])
+                        SizedBox(
+                          width: (constraints.maxWidth - 10) / 2,
+                          child: _TypeChoice(
+                            label: keep ? s.residentTask : s.oneTimeTask,
+                            icon: keep
+                                ? Icons.bookmark_border_rounded
+                                : Icons.check_circle_outline_rounded,
+                            selected: resident == keep,
+                            enabled: !saving && widget.task == null,
+                            onTap: () => setState(() => resident = keep),
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ] else
+                Padding(
+                  key: const Key('task-type-readonly'),
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    '${s.taskKind}: ${resident ? s.residentTask : s.oneTimeTask}',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
               const SizedBox(height: 10),
               Text(
                 resident ? s.residentHelp : s.oneTimeHelp,
@@ -997,61 +1056,11 @@ class _QuantityEditorState extends State<QuantityEditor> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SoftPanel(
-            tinted: true,
-            tone: tone,
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  s.currentRecord,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 6),
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.end,
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: [
-                    Text(
-                      current == null ? '—' : quantityText(current),
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontSize: 34, color: tone.ink(context)),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        h.unit,
-                        style: TextStyle(
-                          color: tone.ink(context),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: ((current ?? 0) / h.target).clamp(0.0, 1.0),
-                    minHeight: 5,
-                    color: tone.ink(context),
-                    backgroundColor: tone.wash(context),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${s.target}  ${quantityText(h.target)} ${h.unit}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
+          Text(
+            s.quantityReplaceTotal,
+            style: Theme.of(context).textTheme.titleSmall,
           ),
-          const SizedBox(height: 20),
-          Text(s.total, style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 9),
+          const SizedBox(height: 8),
           TextField(
             key: const Key('quantity-input'),
             controller: value,
@@ -1063,15 +1072,44 @@ class _QuantityEditorState extends State<QuantityEditor> {
               suffixText: h.unit,
               errorText: error,
             ),
+            onChanged: (_) => setState(() => error = null),
           ),
-          const SizedBox(height: 10),
-          Text(
-            s.confirmBeforeWrite,
-            style: Theme.of(context).textTheme.bodySmall,
+          const SizedBox(height: 8),
+          Wrap(
+            key: const Key('quantity-saved-summary'),
+            spacing: 16,
+            runSpacing: 4,
+            children: [
+              Text(
+                s.quantitySavedTotal(
+                  current == null ? '—' : quantityText(current),
+                  h.unit,
+                ),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              Text(
+                '${s.target}: ${quantityText(h.target)} ${h.unit}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              parseQuantity(value.text) == null
+                  ? s.quantityTotalHint
+                  : s.quantityReplacePreview(
+                      quantityText(parseQuantity(value.text)!),
+                      h.unit,
+                    ),
+              key: const Key('quantity-replace-preview'),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+          const SizedBox(height: 16),
           Text(s.prefillTotal, style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 9),
+          const SizedBox(height: 8),
           LayoutBuilder(
             builder: (context, constraints) => Wrap(
               spacing: 8,
@@ -1095,11 +1133,11 @@ class _QuantityEditorState extends State<QuantityEditor> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(s.quantityHelp, style: Theme.of(context).textTheme.bodySmall),
           if (current != null)
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
+                key: const Key('quantity-clear'),
                 onPressed: saving ? null : () => save(clear: true),
                 icon: const Icon(Icons.restart_alt_rounded, size: 18),
                 label: Text(s.clearRecord),
@@ -1120,6 +1158,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
           Expanded(
             flex: 2,
             child: AppAction(
+              key: const Key('quantity-save'),
               label: s.save,
               icon: Icons.check_rounded,
               primary: true,

@@ -448,7 +448,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               ),
               SettingRow(
                 icon: Icons.widgets_outlined,
-                title: s.widgetsTitle,
+                title: s.widgetsHelpTitle,
                 tone: UiTone.violet,
                 onTap: () => open(const WidgetsHelpPage()),
               ),

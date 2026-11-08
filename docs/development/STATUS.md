@@ -922,3 +922,61 @@ API28可见emulator-5554，隔离用户19 DayPanelUI04QA。UI创建喝水1500毫
 主用户安装前关闭进程归档pre-ui04-db.tar，结束切回0/关闭进程归档post-ui04-db.tar。`python .local/ui04_retention.py`逐表核对 **15张表完全一致**，包括runtime/generation/revision，SQLite10与foreign_key_check正常（ui04-retention-final.log）；原2习惯/1记录/2小事/1手记/偏好/计划/履历保留。用户19已停止删除，主用户最终启动成功，仅主可见模拟器运行。APK/数据库/截图/本机路径不提交。
 
 本批布局和上述范围验收完成，不宣称所有页面在所有屏幕/语言/字体下已完整手工验收。API35/36本批完整布局、厂商真机、手工TalkBack与极长列表仍开放；下一步按真实视觉反馈继续精修与FL19设备回归，FL20发布保持待开始。电脑与模拟器保持开机、不推送。
+
+## 2026-11-08 PM01 产品场景审查与功能整理
+
+用户明确要求搜索安装产品经理skill，全面梳理不合理功能并修改，以喝水记录暴露大量无关功能为例。基线254ac03干净。使用skill-installer查询官方curated目录（没有专门PM项），从GitHub比较社区来源后固定commit安装alirezarezvani/claude-skills的product-manager-toolkit，commit `8f082544116fc0d014188e521ca40304cdfc86b0`，路径`product-team/skills/product-manager-toolkit`。安装到用户本地技能目录，不提交技能包；SKILL.md SHA-256 `ecd62fa7837d451d68f505350a95756d27384f0bbec8dbbb0ed01e6a3668953c`。安装使用官方helper的`--repo ... --ref ... --path ...`，没有执行第三方评分/访谈脚本，未接分析SDK/通讯服务。技能下回合可自动发现，本轮已读取SKILL.md、frameworks和prd_templates按JTBD/适用场景/验收组织工作。
+
+并行只读审查与分域实现覆盖全部产品模块；完整功能处置矩阵在PM01-FUNCTION-REVIEW.md，ADR0014记录边界。没有真实用户访谈或使用量数据，不编造RICE分数/留存效果，不恢复已取消的五人走查前置。旧Loop工程源码未修改。
+
+### 本批修改
+
+- HabitDetails仅承载所选日期记录与次级历史/统计，HabitManagementPage独立提供编辑、提醒、休息安排、可选关联手记、折叠计划历史、归档/删除。管理习惯列表直接进入设置；记录页有明确设置入口。日志仍可创建/查看，已有文本不删，空日志大卡不再默认出现。
+- 所有习惯记录路由传initialDay，首页历史、提醒、桌面详情不再静默切今天。详情/管理捕获进入时generation，恢复后同ID旧页面失效；缺失对象给明确返回而非空白。历史休息/归档只读显示保留值，不直接进入今天/未来休息管理；显式0与未记录分清。跳过仅限计划内且无记录的合法非归档日，周目标确认明确该周不计完整周考核。
+- 数量记录先输入累计总量，紧凑已记录值/当日目标，实时展示保存后会替换成多少且不累加。快捷总量仅填草稿，保存才写、取消保留。数量记录按钮的加号改为编辑图标。没有新增每杯流水、盲加量、健康处方或计时器。
+- 已有习惯/小事类型只读呈现，消除不能选择却像选择项的控件；目标/频率“明天生效”提示就近显示，时段/分组/装扮放高级展开区。早餐模板新建时默认早晨，已有事项不批量重写。
+- 常驻详情默认今天是否记录与主操作，历史纠正和管理次级展开，历史进入保留initialDay。一次性标题统一详情，编辑独立；两类任务旧页generation/删除空态保护补齐。
+- 统计按范围内历史计划决定日/周考核是否适用，纯周目标不显示无意义日完成率；数量先显示按单位的真实趋势/总量/平均值。旧库迁移/未知历史说明只在相应历史确实未知时显示，不向每个新习惯输出技术说明。
+- 没有当日可计卡义务且无已得卡时，隐藏不可达成的解锁提示；已有卡保持。桌面组件帮助标题明确“如何添加桌面组件”，不冒充添加操作。备份、恢复、旧库导入的确认与保护保持。SQLite10/schema10、原生业务规则/权限没有变化。
+
+### 工程检查
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 test -Extra '--concurrency=2','test/pm_habit_context_test.dart','test/pm_secondary_context_test.dart','test/statistics_ui_test.dart'
+./scripts/dev.ps1 assemble
+./scripts/dev.ps1 analyze
+git diff --check
+git diff --cached --check
+```
+
+pm01-verify-final.log完整verify：86文件format无变化、analyze无问题8.5秒、**301 Flutter/Dart通过**（2:53）、APK构建108.1秒，Kotlin JVM **13/13**。新增场景覆盖日期不漂移/按历史目标写入、记录与管理分层、可选日志可达、缺失与恢复旧页面、无安排日skip/周目标影响、数量替换/取消/忙碌/旧世代、已有类型只读、常驻今日/历史、一次性标题、纯周/混合历史/数量优先、无义务卡与已卡保留、中英320dp/160%键盘。
+
+最后补充1项归档显式0显示与未知历史说明修正后，PM习惯/次要场景/统计相关 **29项通过**13秒，pm01-final-focused.log；没有宣称全302项重新跑。编辑领域29项（pm-editor-focused2.log）、次要场景34项（pm-secondary-final.log）、习惯/日志20项（pm01-habit-final.log）为阶段验证，不与全量相加。首轮全量5失败来自两份旧测试fixture未传冻结today，跨到11月8后违背新建常驻当天约束；修测试传参，不放宽业务规则。初始新测试RichText查找方式/常驻夹具日期也已修正，失败不算通过。
+
+最终native-test成功8秒，pm01-native.log；最终assemble18.5秒、analyze无问题9.1秒（pm01-build-delivery.log / pm01-analyze-delivery.log）。最终APK **174940598 bytes**，SHA-256 **907f042bac774c6f35e5a155a1f2eb19a80359db7af29a0360536edadf24258c**，build/app/outputs/flutter-apk/app-debug.apk，已覆盖安装。既有Kotlin/Gradle迁移提示保留，非release包。
+
+API28原生 **OK(28 tests)**，33.326秒，pm01-api28-final.log，含真实后台桌面完成/撤销/任务/ABA、提醒、旧库、图片回归；没有本批原生规则修改。
+
+```powershell
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument --user 10 -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest,app.daypanel.next.CardImageDeviceTest,app.daypanel.next.widgets.WidgetDirectActionDeviceTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+### 设备与数据
+
+本轮开始没有ADB连接，用既有API28 AVD重新启动可见模拟器，无清数据/快照覆盖。首次冷启动约192秒；临时用户切换后系统界面无响应弹窗选择等待恢复，后续应用流程正常，未把启动等待算App成功。主用户进程停止归档pre-pm01-db.tar后才覆盖安装。
+
+全部写记录测试在临时用户10 DayPanelPM01QA：空账号无每日卡承诺；喝水保存500毫升后重新选择250，面板明确替换且非累加，取消回到500。习惯概览只显示日期/数量/记录/历史，设置独立可进入提醒/休息/可选日志/计划；已有类型显示只读。常驻Water the plants进入先显示今天状态，完成后显示今天已做，历史/归档不再展开。新建Run twice a week为周目标2次，统计只出现周目标考核，没有日完成率或新习惯不适用的迁移说明。喝水统计先展示实际500毫升与按单位趋势。
+
+暂停唯一日计划喝水后仅剩周目标，首页无无法领取的卡片提示，500毫升保留；暂停概览为只读真实值，恢复操作从设置进入。原生fixture在隔离用户解锁的卡随后仍保留，符合已获卡不可删除规则，不把该后期测试卡混作早期无义务提示截图。
+
+真实截图ignored .local/reports：pm01-water-input-final.png、pm01-water-detail-final.png、pm01-settings-final.png，组合pm01-overview.png；pm01-water-statistics.png、pm01-weekly-statistics-final.png、pm01-resident-today/done.png、pm01-edit-water.png、pm01-empty-no-card.png、pm01-weekly-only-no-card.png、pm01-water-rest-readonly.png。没有把示意图当设备截图。最终pm01-device-errors.log无AndroidRuntime/flutter错误。日期过滤首次命令引号错误未用作证据，改取实际错误日志后为空。
+
+收尾切回0，停止进程归档post-pm01-db.tar。`python .local/pm01_retention.py`确认 **15表所有字段逐行一致**，v10、foreign_key_check空；原2习惯/1记录/2小事/1手记/设置/计划/运行态/归档历史保持。临时用户10已停止删除，主用户启动Status: ok，电脑和可见模拟器保持运行，不推送。
+
+交接：全功能已完成本次代码/流程审查，必须/应修项已实现与上述限定验收；产品效果不等于真实用户研究完成。七日概览/统计导航合并、逐杯事件语义仍为明确后续而未假装完成。API35/36本批完整流程、真机/TalkBack、大规模数据手机性能仍待，FL19开放，发布未开始。技能包在用户本地目录，源码/测试/产品文档入库；APK/数据库/截图/个人工具路径不提交。

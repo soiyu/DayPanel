@@ -1667,4 +1667,62 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get paletteCompositionHint => '主操作、手记与日常细节各有配色，相互协调。事项插画保留自己的颜色。';
+
+  @override
+  String get habitSettings => '习惯设置';
+
+  @override
+  String get recordHistory => '历史记录与统计';
+
+  @override
+  String get recordSelectedDay => '返回所选日期记录';
+
+  @override
+  String get contextChanged => '数据已更新';
+
+  @override
+  String get habitUnavailable => '这项习惯已不存在';
+
+  @override
+  String get reopenContext => '请返回列表，重新打开需要的内容。';
+
+  @override
+  String get backToList => '返回列表';
+
+  @override
+  String get optionalHabitNotes => '需要时再写，不影响完成状态';
+
+  @override
+  String get restManagementHint => '从今天暂停，或安排未来休假';
+
+  @override
+  String get restWeeklySkipHint => '这天将标为休息，不算完成。所在周不纳入完整周目标考核；原记录和目标不变。';
+
+  @override
+  String get quantityReplaceTotal => '当天累计总量';
+
+  @override
+  String quantitySavedTotal(String amount, String unit) {
+    return '已记录 $amount $unit';
+  }
+
+  @override
+  String quantityReplacePreview(String amount, String unit) {
+    return '保存后，当天总量将改为 $amount $unit，不会累加。';
+  }
+
+  @override
+  String get quantityTotalHint => '输入当天累计总量，保存后替换原值。';
+
+  @override
+  String get habitTypeFixed => '记录方式创建后不可更改';
+
+  @override
+  String get habitAdvancedSettings => '时段、分组与外观';
+
+  @override
+  String get pmTaskUnavailable => '这件小事已不存在';
+
+  @override
+  String get widgetsHelpTitle => '如何添加桌面组件';
 }

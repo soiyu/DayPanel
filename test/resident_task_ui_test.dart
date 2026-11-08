@@ -94,6 +94,13 @@ void main() {
       await tester.tap(find.byKey(const Key('resident-record')));
       await tester.pumpAndSettle();
       expect(app.taskEntries.single.day, app.today);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('task-management')),
+        180,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('More actions'));
+      await tester.pumpAndSettle();
       await tester.scrollUntilVisible(find.text('Archive'), 180);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Archive'));
@@ -157,6 +164,15 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);
+          await tester.scrollUntilVisible(
+            find.byKey(const Key('task-management')),
+            180,
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.text(language == 'zh' ? '更多操作' : 'More actions'),
+          );
+          await tester.pumpAndSettle();
           await tester.scrollUntilVisible(
             find.text(language == 'zh' ? '删除' : 'Delete'),
             180,

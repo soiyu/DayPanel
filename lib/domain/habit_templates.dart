@@ -82,7 +82,7 @@ const habitTemplates = [
     '吃饭',
     'meal',
     'breakfast',
-  ]),
+  ], context: HabitContext.morning),
   HabitTemplate('tidy', 17, '整理房间', 'Tidy up', [
     '整理',
     '打扫',

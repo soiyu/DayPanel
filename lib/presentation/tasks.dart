@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'editors.dart';
 import 'theme.dart';
+import 'refined_components.dart';
 
 class TasksPage extends StatelessWidget {
   const TasksPage({super.key, required this.app});
@@ -156,7 +157,12 @@ class TaskTile extends StatelessWidget {
           ),
         );
       } else {
-        openEditor(context, app, 'task', task: task);
+        Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => OneTimeTaskPage(app: app, id: task.id),
+          ),
+        );
       }
     }
 
@@ -294,6 +300,24 @@ Future<bool> confirmTaskDelete(BuildContext context, SmallTask task) async {
       false;
 }
 
+Widget taskContextUnavailable(BuildContext context, {required bool stale}) {
+  final s = AppLocalizations.of(context);
+  return AppCanvas(
+    child: Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(title: Text(s.task)),
+      body: EmptyState(
+        icon: Icons.info_outline_rounded,
+        title: stale ? s.contextChanged : s.pmTaskUnavailable,
+        body: s.reopenContext,
+        action: s.backToList,
+        onAction: () => Navigator.maybePop(context),
+        tone: UiTone.peach,
+      ),
+    ),
+  );
+}
+
 class ResidentTaskPage extends StatefulWidget {
   const ResidentTaskPage({
     super.key,
@@ -312,10 +336,12 @@ class _ResidentTaskPageState extends State<ResidentTaskPage>
     with WidgetsBindingObserver {
   Day? selected;
   Timer? timer;
+  late final int epoch;
   @override
   void initState() {
     super.initState();
     selected = widget.initialDay;
+    epoch = widget.app.generation;
     WidgetsBinding.instance.addObserver(this);
     timer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (mounted) setState(() {});
@@ -340,51 +366,70 @@ class _ResidentTaskPageState extends State<ResidentTaskPage>
     builder: (context, _) {
       final app = widget.app;
       final task = app.tasks.where((t) => t.id == widget.id).firstOrNull;
-      if (task == null) return const Scaffold(body: SizedBox.shrink());
+      if (epoch != app.generation || task == null || !task.resident) {
+        return taskContextUnavailable(context, stale: epoch != app.generation);
+      }
       final s = AppLocalizations.of(context);
       final day = selected ?? app.today;
-      final epoch = app.generation;
-      final done = app.taskDoneOn(task, day);
       final valid =
           day.compareTo(task.startDay!) >= 0 && day.compareTo(app.today) <= 0;
-      final entries = app.taskEntries
-          .where((e) => e.taskId == task.id)
-          .toList();
+      final done = app.taskDoneOn(task, day);
+      final entries = app.taskEntries.where((e) => e.taskId == task.id).toList()
+        ..sort((a, b) => b.day.compareTo(a.day));
+      Future<void> selectDate() async {
+        if (app.today.compareTo(task.startDay!) < 0) return;
+        final d = await showDatePicker(
+          context: context,
+          initialDate: (valid ? day : app.today).date,
+          firstDate: task.startDay!.date,
+          lastDate: app.today.date,
+        );
+        if (d != null && mounted) setState(() => selected = Day(d));
+      }
+
       return AppCanvas(
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             title: Text(task.title),
             actions: [
-              AppIconAction(
-                icon: Icons.edit_outlined,
-                label: s.edit,
-                tone: UiTone.violet,
-                onTap: app.busy
+              IconButton(
+                tooltip: s.edit,
+                onPressed: app.busy
                     ? null
-                    : () => openEditor(context, app, 'task', task: task),
+                    : () => openEditor(
+                        context,
+                        app,
+                        'task',
+                        task: task,
+                        expectedGeneration: epoch,
+                      ),
+                icon: const Icon(Icons.edit_outlined),
               ),
-              const SizedBox(width: 16),
             ],
           ),
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              if (app.error != null) ...[
-                Text(
-                  s.storageError,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+              if (app.error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    s.storageError,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 12),
-              ],
               SoftPanel(
                 tinted: true,
                 tone: UiTone.violet,
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Wrap(
-                      spacing: 10,
+                      spacing: 8,
                       runSpacing: 8,
                       children: [
                         AppBadge(s.residentTask, tone: UiTone.violet),
@@ -392,123 +437,152 @@ class _ResidentTaskPageState extends State<ResidentTaskPage>
                           AppBadge(s.archived, tone: UiTone.peach),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
                     Text(
-                      s.residentDetailHint,
+                      MaterialLocalizations.of(
+                        context,
+                      ).formatFullDate(day.date),
+                      key: const Key('resident-record-day'),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 6),
                     Text(
-                      '${s.residentStart} ${MaterialLocalizations.of(context).formatMediumDate(task.startDay!.date)}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      day == app.today
+                          ? (done ? s.residentToday : s.residentUnrecorded)
+                          : (done ? s.finished : s.notRecorded),
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
+                    const SizedBox(height: 12),
+                    AppAction(
+                      key: const Key('resident-record'),
+                      label: done ? s.clearThisDay : s.recordThisDay,
+                      icon: done ? Icons.undo_rounded : Icons.check_rounded,
+                      primary: !done,
+                      tone: UiTone.violet,
+                      onTap: app.busy || task.archived || !valid
+                          ? null
+                          : () => selected == null
+                                ? app.recordResidentToday(
+                                    task,
+                                    day,
+                                    !done,
+                                    epoch,
+                                  )
+                                : app.run(
+                                    () => app.store.setResidentRecord(
+                                      task.id,
+                                      day,
+                                      !done,
+                                      today: app.today,
+                                    ),
+                                    expectedGeneration: epoch,
+                                  ),
+                    ),
+                    if (selected != null)
+                      TextButton(
+                        onPressed: () => setState(() => selected = null),
+                        child: Text(s.todayLabel),
+                      ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              SectionTitle(s.editTaskHistory, tone: UiTone.violet),
-              SoftPanel(
-                padding: const EdgeInsets.all(4),
-                child: SettingRow(
-                  icon: Icons.calendar_month_outlined,
-                  title: MaterialLocalizations.of(
-                    context,
-                  ).formatFullDate(day.date),
-                  subtitle: s.chooseDate,
-                  tone: UiTone.peach,
-                  onTap: app.today.compareTo(task.startDay!) < 0
-                      ? null
-                      : () async {
-                          final d = await showDatePicker(
-                            context: context,
-                            initialDate: (valid ? day : app.today).date,
-                            firstDate: task.startDay!.date,
-                            lastDate: app.today.date,
-                          );
-                          if (d != null && mounted) {
-                            setState(() => selected = Day(d));
-                          }
-                        },
+              const SizedBox(height: 12),
+              DetailDisclosure(
+                key: const Key('resident-history'),
+                title: s.editTaskHistory,
+                icon: Icons.history_rounded,
+                initiallyExpanded: widget.initialDay != null,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SettingRow(
+                      key: const Key('resident-history-date'),
+                      icon: Icons.calendar_month_outlined,
+                      title: s.chooseDate,
+                      subtitle: MaterialLocalizations.of(
+                        context,
+                      ).formatMediumDate(day.date),
+                      tone: UiTone.peach,
+                      onTap: selectDate,
+                    ),
+                    Text(
+                      s.residentHistoryHint,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    SectionTitle(
+                      s.taskHistory,
+                      count: entries.length,
+                      tone: UiTone.violet,
+                    ),
+                    if (entries.isEmpty)
+                      Text(
+                        s.noTaskHistory,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    for (final entry in entries)
+                      SettingRow(
+                        icon: Icons.check_circle_outline_rounded,
+                        title: MaterialLocalizations.of(
+                          context,
+                        ).formatMediumDate(entry.day.date),
+                        subtitle: s.finished,
+                        tone: UiTone.violet,
+                        onTap: () => setState(() => selected = entry.day),
+                      ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 14),
-              Text(
-                s.residentHistoryHint,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 12),
-              AppAction(
-                key: const Key('resident-record'),
-                label: done ? s.clearThisDay : s.recordThisDay,
-                icon: done ? Icons.undo_rounded : Icons.check_rounded,
-                tone: UiTone.violet,
-                onTap: app.busy || task.archived || !valid
-                    ? null
-                    : () => selected == null
-                          ? app.recordResidentToday(task, day, !done, epoch)
-                          : app.run(
-                              () => app.store.setResidentRecord(
+              DetailDisclosure(
+                key: const Key('task-management'),
+                title: s.more,
+                icon: Icons.tune_rounded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      '${s.residentDetailHint}\n${s.residentStart} ${MaterialLocalizations.of(context).formatMediumDate(task.startDay!.date)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      s.taskArchiveHint,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    AppAction(
+                      label: task.archived ? s.unarchive : s.archive,
+                      icon: Icons.archive_outlined,
+                      tone: UiTone.violet,
+                      onTap: app.busy
+                          ? null
+                          : () => app.run(
+                              () => app.store.archiveTask(
                                 task.id,
-                                day,
-                                !done,
-                                today: app.today,
+                                !task.archived,
                               ),
                               expectedGeneration: epoch,
                             ),
-              ),
-              const SizedBox(height: 24),
-              SectionTitle(
-                s.taskHistory,
-                count: entries.length,
-                tone: UiTone.violet,
-              ),
-              if (entries.isEmpty)
-                Text(
-                  s.noTaskHistory,
-                  style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    AppAction(
+                      label: s.delete,
+                      icon: Icons.delete_outline,
+                      danger: true,
+                      onTap: app.busy
+                          ? null
+                          : () async {
+                              if (!await confirmTaskDelete(context, task)) {
+                                return;
+                              }
+                              final ok = await app.run(
+                                () => app.store.remove('tasks', task.id),
+                                expectedGeneration: epoch,
+                              );
+                              if (ok && context.mounted) Navigator.pop(context);
+                            },
+                    ),
+                  ],
                 ),
-              for (final entry in entries)
-                SettingRow(
-                  icon: Icons.check_circle_outline_rounded,
-                  title: MaterialLocalizations.of(
-                    context,
-                  ).formatMediumDate(entry.day.date),
-                  subtitle: s.finished,
-                  tone: UiTone.violet,
-                  onTap: () => setState(() => selected = entry.day),
-                ),
-              const SizedBox(height: 20),
-              Text(
-                s.taskArchiveHint,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 12),
-              AppAction(
-                label: task.archived ? s.unarchive : s.archive,
-                icon: Icons.archive_outlined,
-                tone: UiTone.violet,
-                onTap: app.busy
-                    ? null
-                    : () => app.run(
-                        () => app.store.archiveTask(task.id, !task.archived),
-                        expectedGeneration: epoch,
-                      ),
-              ),
-              const SizedBox(height: 12),
-              AppAction(
-                label: s.delete,
-                icon: Icons.delete_outline,
-                danger: true,
-                onTap: app.busy
-                    ? null
-                    : () async {
-                        if (!await confirmTaskDelete(context, task)) return;
-                        final ok = await app.run(
-                          () => app.store.remove('tasks', task.id),
-                          expectedGeneration: epoch,
-                        );
-                        if (ok && context.mounted) Navigator.pop(context);
-                      },
               ),
             ],
           ),
@@ -651,42 +725,138 @@ class _TaskHistoryPageState extends State<TaskHistoryPage> {
   );
 }
 
-class OneTimeTaskPage extends StatelessWidget {
+class OneTimeTaskPage extends StatefulWidget {
   const OneTimeTaskPage({super.key, required this.app, required this.id});
   final AppController app;
   final String id;
   @override
+  State<OneTimeTaskPage> createState() => _OneTimeTaskPageState();
+}
+
+class _OneTimeTaskPageState extends State<OneTimeTaskPage> {
+  late final int epoch;
+  @override
+  void initState() {
+    super.initState();
+    epoch = widget.app.generation;
+  }
+
+  @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: app,
+    listenable: widget.app,
     builder: (context, _) {
-      final task = app.tasks.where((t) => t.id == id).firstOrNull;
+      final app = widget.app;
       final s = AppLocalizations.of(context);
+      final task = app.tasks.where((t) => t.id == widget.id).firstOrNull;
+      if (epoch != app.generation || task == null || task.resident) {
+        return taskContextUnavailable(context, stale: epoch != app.generation);
+      }
       return AppCanvas(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          appBar: AppBar(title: Text(s.task)),
+          appBar: AppBar(
+            title: Text(task.title),
+            actions: [
+              IconButton(
+                tooltip: s.edit,
+                onPressed: app.busy
+                    ? null
+                    : () => openEditor(
+                        context,
+                        app,
+                        'task',
+                        task: task,
+                        expectedGeneration: epoch,
+                      ),
+                icon: const Icon(Icons.edit_outlined),
+              ),
+            ],
+          ),
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
               if (app.error != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    s.storageError,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
+                Text(
+                  s.storageError,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
-              if (task != null) ...[
-                TaskTile(app: app, task: task),
-                if (task.completedDay != null) ...[
-                  const SizedBox(height: 14),
-                  AppBadge(
-                    '${s.finished} ${MaterialLocalizations.of(context).formatMediumDate(task.completedDay!.date)}',
-                  ),
-                ],
-              ],
+              SoftPanel(
+                tinted: true,
+                tone: UiTone.peach,
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppBadge(s.oneTimeTask, tone: UiTone.peach),
+                    const SizedBox(height: 12),
+                    Text(
+                      task.dueDay == null
+                          ? s.noDate
+                          : '${s.dueDate} · ${MaterialLocalizations.of(context).formatMediumDate(task.dueDay!.date)}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      task.completedDay == null
+                          ? s.notRecorded
+                          : '${s.finished} ${MaterialLocalizations.of(context).formatMediumDate(task.completedDay!.date)}',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 14),
+                    AppAction(
+                      key: const Key('one-time-record'),
+                      label: task.done ? s.reopen : s.done,
+                      primary: !task.done,
+                      icon: task.done
+                          ? Icons.undo_rounded
+                          : Icons.check_rounded,
+                      onTap: app.busy
+                          ? null
+                          : () => app.run(
+                              () => app.store.completeTask(
+                                task.id,
+                                !task.done,
+                                app.today,
+                              ),
+                              expectedGeneration: epoch,
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              DetailDisclosure(
+                key: const Key('task-management'),
+                title: s.more,
+                icon: Icons.tune_rounded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      s.oneTimeHelp,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    AppAction(
+                      label: s.delete,
+                      icon: Icons.delete_outline,
+                      danger: true,
+                      onTap: app.busy
+                          ? null
+                          : () async {
+                              if (!await confirmTaskDelete(context, task)) {
+                                return;
+                              }
+                              final ok = await app.run(
+                                () => app.store.remove('tasks', task.id),
+                                expectedGeneration: epoch,
+                              );
+                              if (ok && context.mounted) Navigator.pop(context);
+                            },
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

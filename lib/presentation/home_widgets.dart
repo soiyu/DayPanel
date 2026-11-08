@@ -116,7 +116,9 @@ class _WidgetFlowState extends State<WidgetFlow> {
           context,
           MaterialPageRoute(
             builder: (_) {
-              if (kind == 'habit') return HabitDetails(app: app, id: id);
+              if (kind == 'habit') {
+                return HabitDetails(app: app, id: id, initialDay: day);
+              }
               final task = app.tasks.firstWhere((t) => t.id == id);
               return task.resident
                   ? ResidentTaskPage(app: app, id: id)
@@ -313,7 +315,7 @@ class WidgetsHelpPage extends StatelessWidget {
     return AppCanvas(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: Text(s.widgetsTitle)),
+        appBar: AppBar(title: Text(s.widgetsHelpTitle)),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: [
