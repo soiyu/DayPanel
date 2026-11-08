@@ -1,6 +1,6 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="160dp" android:minHeight="180dp" android:minResizeWidth="110dp" android:minResizeHeight="180dp"
-    android:targetCellWidth="2" android:targetCellHeight="3" android:updatePeriodMillis="1800000"
+    android:minWidth="160dp" android:minHeight="140dp" android:minResizeWidth="128dp" android:minResizeHeight="140dp"
+    android:targetCellWidth="3" android:targetCellHeight="2" android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/daypanel_widget" android:previewLayout="@layout/daypanel_widget"
     android:configure="app.daypanel.next.widgets.WidgetActivity" android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" android:widgetFeatures="reconfigurable" />

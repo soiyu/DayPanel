@@ -1081,3 +1081,57 @@ SAF：取消导出仍显示本机未导出，保存成功显示本机成功导�
 切回0，实际首页加载后关闭进程归档post-pm04-db.tar；`python .local/pm04_retention.py`确认 **15张表逐行所有字段完全一致**（包括runtime/generation/revision），版本10→11、foreign_key_check为空，日志pm04-retention-final.log。测试用户11已停止删除，主用户再次启动；电脑和可见模拟器保持运行，不推送。APK/数据库/截图/机器路径不提交。
 
 本批设计范围已落地并完成上述限定验收。没有承诺每次事件时间/独立流水/撤销某笔、周累计次数/周累计量；本次输入是计算新日合计，旧weekly仍按达标天数。七日回顾总导航合并、实际用户研究收益、API35/36本批完整路径、厂商真机/TalkBack与大数据手机性能仍待。FL19开放、FL20发布未开始。
+
+
+## 2026-11-08 UI05 桌面组件视觉重排
+
+用户反馈“桌面插件有点丑”，随后要求继续。基线187a06c干净。读取工程/设计/组件决策后独立视觉审查，按UI05-HOME-WIDGETS实施。仅原生RemoteViews外观、尺寸和布局适配；Dart业务、SQLite11/schema11、权限、PendingIntent身份/显式动作/generation/revision规则均未改。旧Loop源码未修改。
+
+### 改动
+
+- 默认建议3×2、最小高度180→140dp、最窄128dp；实际格子由Launcher决定。标准/紧凑布局依据宽高与字号选择，名称与短日期、40dp事项图标同头部，数字/状态居中相邻，移除图标独占一行的大空白。
+- 冷白/深蓝底、细边22dp圆角；数量/次数真实值突出、目标单位次级，实际比例细进度，超目标文字保留、条封顶100%，微小比例不人为画成最少1.5%。周目标进度按已有达标日数，任务/归档/休息不画假数量进度。
+- 设置/详情由字体“⚙/↗”和大紫底改为线性图形，48dp透明点击区；主操作蓝色，达标后柔和青绿。标题/内容/主按钮同一真实主操作，设置/详情独立。数值仍确认输入，布尔/小事仍在Launcher显式完成/撤销。
+- 普通“今天的安排”不重复占视觉空间，周目标/休息/归档等必要说明按尺寸显示。任务主行短为“今天已做/今天未记录”或“已完成/待处理”，类型与实际日期次级；完整原标题、ISO日期、数值、类型和状态保留可访问语义。
+- 实测字体变化会让Launcher直接放大缓存RemoteViews，而不先刷新引擎；首次截图出现裁字，已通过XML头部/状态/按钮的限定空间自动字号和单行辅助说明修正。新增“100%字号生成、160%context直接重建同份RemoteViews”测试检查字形行底、不裁切、不截掉实际数值/日期/主按钮，保持48dp。
+
+### 检查
+
+```powershell
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 assemble
+git diff --check
+git diff --cached --check
+```
+
+`ui05-verify.log`完整verify：91文件格式无变化、analyze无问题15.1秒、**344 Flutter/Dart通过**3:13、debug APK构建与**14 Kotlin JVM**通过。之后仅原生任务短文案、极小进度与字体自动适配改动；最终native-test成功8秒`ui05-native-fontfit.log`，assemble成功15.5秒`ui05-build-fontfit.log`。未声称344在最后每个资源改动后重复跑；资源由最终Android编译/设备验证覆盖。既有Kotlin/Gradle提示保留。
+
+新增WidgetVisualTest共5项，包含24种中英/明暗/尺寸/字号测量组合、真实比例像素检查、所有状态/点击区域、缓存视图字体变更、同实例重排。初版4项+生命周期3项为7通过；字体修复后5+3为8通过4.492秒`ui05-fontfit-device.log`；最终全套 **OK(37 tests)**，36.999秒，`ui05-api28-final.log`。这些范围有重叠，不相加。
+
+```powershell
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument --user 10 -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest,app.daypanel.next.CardImageDeviceTest,app.daypanel.next.widgets.WidgetDirectActionDeviceTest,app.daypanel.next.widgets.WidgetPinDeviceTest,app.daypanel.next.widgets.WidgetVisualTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+最终APK **174981769 bytes**，SHA-256 **11b9e2aa948c59c7291d1967ef1412c5072fcfb46c80c9fee94ab784388bbfe8**，`build/app/outputs/flutter-apk/app-debug.apk`，已覆盖安装；测试包不含临时LauncherProbe。
+
+### 真实桌面与截图
+
+API28可见emulator-5554，临时Android用户10 DayPanelUI05QA。创建阅读10页并记录5页，通过App系统pin真实添加3×2组件；组件点记录直达输入，保存10页回桌面满进度/青绿状态。创建常驻Plants，真实桌面完成/取消均留Launcher并更新状态；详情可编辑回去，配置/多实例保留。
+
+窄尺寸：普通ADB长按拖动多次只进入拖拽或移动，没有将其冒充缩放成功。临时只读诊断枚举真实Launcher可访问性action，再仅对屏幕内host执行系统“调整大小”，返回菜单后点击“减小宽度”，确认3列→2列、切紧凑布局、实际10/10与独立操作保留（ui05-reading-compact-final.png）。诊断只在用户10，不修改AppWidgetOptions伪造尺寸，脚本已移至ignored并删除源码目录中的临时测试；不计入37正式测试。
+
+中文浅色、英文深色均实际查看，系统字号160%实测发现缓存布局问题后修复；最终ui05-fontfit-large-final.png确认日期/名称/数值/任务类型/按钮无纵向裁字。实际字体变更会让Launcher重排桌面页和尺寸，截图按当时真实状态记录，不声称不同Launcher完全一致。
+
+截图ignored .local/reports：ui05-before-after.png为旧版与新版真实截图裁剪排列；ui05-reading-default.png、ui05-reading-done.png、ui05-task-done.png、ui05-reading-compact-final.png、ui05-final-dark-pair.png、ui05-fontfit-large-final.png。早期ui05-large-type-final.png是裁字问题证据，不作为通过截图；ui05-widgets-dark-settled.png为任务缩短前，不作为最终任务文案截图。
+
+### 异常与清理
+
+本轮又出现模拟器qemu无响应，ADB shell/覆盖安装等待超时，保持userdata、不wipe、不载入快照地重启可见AVD，冷启动54.835秒；原记录保留，Launcher实例需重建。该组合不是视觉通过证据，延续FL19系统稳定性待核，不判断归因为App或模拟器。随后覆盖最终APK并sync，重新建立真实桌面完成缩放/最终截图与37项原生回归。
+
+回主用户0时曾显示存储重试，日志SQLITE_BUSY BEGIN IMMEDIATE；停止App并结束临时用户后重新启动即恢复，未清库未改记录。此情况记录为后续稳定性核查，不宣称无错误。最终主用户首页实际加载后停进程归档post-ui05-db.tar，与安装前pre-ui05-db.tar逐表核对 **15表所有字段完全一致**，SQLite11、foreign_key_check空（`python .local/ui05_retention.py`，ui05-retention-final.log）。临时用户10已停止删除，主用户再次启动成功；电脑和可见模拟器保持运行，未推送。
+
+本批视觉及上述限定范围完成。真机、手工TalkBack、API35/36本批布局与系统稳定性组合尚未全验；不称所有设备无BUG。下一步按实际桌面审美反馈微调并继续FL19稳定性/设备验证，FL20发布仍待。

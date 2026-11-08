@@ -7,6 +7,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.RelativeSizeSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.util.TypedValue
@@ -70,35 +76,46 @@ object WidgetEngine {
         val zh = snapshot?.chinese ?: (c.resources.configuration.locales[0].language == "zh")
         fun t(chinese: String, english: String) = if (zh) chinese else english
         val day = snapshot?.day ?: LocalDate.now()
-        val views = RemoteViews(c.packageName, R.layout.daypanel_widget)
-        views.setInt(R.id.widget_action, "setBackgroundResource", WidgetAppearance.action(snapshot?.palette ?: "blue"))
-        val dark = snapshot?.dark ?: (c.resources.configuration.uiMode and 48 == 32)
-        val ink = Color.parseColor(if (dark) "#EDF1FF" else "#18223B")
-        val secondary = Color.parseColor(if (dark) "#B6C2E0" else "#52627F")
-        views.setInt(R.id.widget_root, "setBackgroundResource", if (dark) R.drawable.widget_dark else R.drawable.widget_light)
-        listOf(R.id.widget_title, R.id.widget_state).forEach { views.setTextColor(it, ink) }
-        listOf(R.id.widget_date, R.id.widget_hint, R.id.widget_settings, R.id.widget_details).forEach { views.setTextColor(it, secondary) }
         val portrait = c.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE
-        val width = options.getInt(if(portrait) AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH else AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 160)
-        val date = if (width < 160 || c.resources.configuration.fontScale > 1.3f)
-            "${day.year}\n%02d/%02d".format(day.monthValue, day.dayOfMonth)
-            else day.toString().replace('-', '/')
-        views.setTextViewText(R.id.widget_date, date)
-        views.setTextViewText(R.id.widget_settings, "⚙")
+        val width = options.getInt(if (portrait) AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH else AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 220)
+        val height = options.getInt(if (portrait) AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT else AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 180)
+        val scale = c.resources.configuration.fontScale
+        val compact = width < 200 || height < 190 || scale > 1.3f
+        val views = RemoteViews(c.packageName, if (compact) R.layout.daypanel_widget_compact else R.layout.daypanel_widget)
+        val dark = snapshot?.dark ?: (c.resources.configuration.uiMode and 48 == 32)
+        val ink = Color.parseColor(if (dark) "#EDF2FC" else "#22314A")
+        val secondary = Color.parseColor(if (dark) "#A9B8CF" else "#687990")
+        val complete = item != null && item.rest == null && !item.archived && item.done
+        val accent = Color.parseColor(if (complete) { if (dark) "#A2DCCD" else "#276C5C" }
+            else when(snapshot?.palette) { "teal" -> if (dark) "#A2DCCD" else "#276C5C"; "violet" -> if (dark) "#CDBFFA" else "#7156A5"; else -> if (dark) "#B8CDFF" else "#2D5EB4" })
+        views.setInt(R.id.widget_root, "setBackgroundResource", if (dark) R.drawable.widget_dark else R.drawable.widget_light)
+        views.setInt(R.id.widget_action, "setBackgroundResource", if (complete) { if (dark) R.drawable.widget_action_done_dark else R.drawable.widget_action_done } else WidgetAppearance.action(snapshot?.palette ?: "blue"))
+        views.setTextColor(R.id.widget_action, if (complete) accent else Color.WHITE)
+        views.setTextColor(R.id.widget_title, ink)
+        views.setTextColor(R.id.widget_state, if (item?.quantity == true || complete) accent else ink)
+        views.setTextColor(R.id.widget_date, secondary)
+        views.setTextColor(R.id.widget_hint, secondary)
+        views.setImageViewResource(R.id.widget_settings, if (dark) R.drawable.widget_more_dark else R.drawable.widget_more)
+        views.setImageViewResource(R.id.widget_details, if (dark) R.drawable.widget_open_dark else R.drawable.widget_open)
+        val shortDate = if (width < 180) "%02d/%02d".format(day.monthValue, day.dayOfMonth)
+            else day.format(java.time.format.DateTimeFormatter.ofPattern(if (zh) "M月d日 · E" else "MMM d · E", if (zh) java.util.Locale.SIMPLIFIED_CHINESE else java.util.Locale.ENGLISH))
+        views.setTextViewText(R.id.widget_date, shortDate)
+        views.setContentDescription(R.id.widget_date, day.toString())
         views.setContentDescription(R.id.widget_settings, t("配置桌面组件", "Configure widget"))
         views.setOnClickPendingIntent(R.id.widget_settings, pending(c, id, "configure", binding, day))
-        views.setContentDescription(R.id.widget_details,t("查看详情","View details"))
-        views.setOnClickPendingIntent(R.id.widget_details,pending(c,id,if(item==null)"configure" else "view",binding,day))
-        val height = options.getInt(if(portrait) AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT else AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 180)
-        val large = height >= 240 && c.resources.configuration.fontScale <= 1.3f
-        val compactText = height < 240 && c.resources.configuration.fontScale > 1.3f
-        views.setInt(R.id.widget_title, "setMaxLines", if (compactText) 1 else 2)
-        views.setInt(R.id.widget_state, "setMaxLines", if (compactText) 1 else 2)
-        views.setViewVisibility(R.id.widget_hint, if (large) View.VISIBLE else View.GONE)
-        views.setViewVisibility(R.id.widget_icon, if (large && item?.kind == "habit") View.VISIBLE else View.GONE)
-        if (large && item?.kind == "habit" && snapshot != null) {
-            views.setImageViewBitmap(R.id.widget_icon, WidgetAppearance.icon(c,item,snapshot))
+        views.setContentDescription(R.id.widget_details, t("查看详情", "View details"))
+        views.setOnClickPendingIntent(R.id.widget_details, pending(c, id, if(item == null) "configure" else "view", binding, day))
+        val showIcon = !compact || (width >= 240 && height >= 170 && scale <= 1.3f)
+        views.setViewVisibility(R.id.widget_icon, if (showIcon && item != null) View.VISIBLE else View.GONE)
+        if (showIcon && item != null && snapshot != null) {
+            views.setImageViewBitmap(R.id.widget_icon, if (item.kind == "habit") WidgetAppearance.icon(c, item, snapshot) else WidgetAppearance.taskIcon(c, snapshot.dark, item.resident))
         }
+        val importantHint = item == null || item.archived || item.rest != null || item.kind == "task" || item.schedule == "weekly" || !item.scheduled
+        val showHint = importantHint && (!compact || height >= if (scale > 1.3f) 230 else 190)
+        views.setViewVisibility(R.id.widget_hint, if (showHint) View.VISIBLE else View.GONE)
+        views.setInt(R.id.widget_state, "setMaxLines", if (!compact || height >= 190) 2 else 1)
+        views.setTextViewTextSize(R.id.widget_state, TypedValue.COMPLEX_UNIT_SP, if (compact) { if (width < 160) 15f else 20f } else if (item?.quantity == true) 28f else 21f)
+        if (compact && scale > 1.3f) views.setTextViewTextSize(R.id.widget_title, TypedValue.COMPLEX_UNIT_SP, 14f)
         val title: String
         val state: String
         val hint: String
@@ -144,7 +161,7 @@ object WidgetEngine {
                 else -> "set"
             }
             action = when (mode) {
-                "quantity" -> if(width < 180) t("记录", "Record") else t("输入总量", "Enter total")
+                "quantity" -> t("记录", "Record")
                 "set" -> if(item.done) {
                     if(item.kind=="task" && !item.resident) t("重新待办","Reopen") else t("取消完成","Mark undone")
                 } else t("完成", "Complete")
@@ -153,10 +170,43 @@ object WidgetEngine {
             }
         }
         views.setTextViewText(R.id.widget_title, title)
-        views.setTextViewText(R.id.widget_state, state)
-        views.setTextViewText(R.id.widget_hint, hint)
+        val displayState: CharSequence = if (item?.quantity == true && item.rest == null && !item.archived) {
+            SpannableString(state).apply {
+                val slash = state.indexOf(" /")
+                if (slash >= 0) {
+                    setSpan(RelativeSizeSpan(if (compact) .8f else .6f), slash, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    setSpan(ForegroundColorSpan(secondary), slash, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    setSpan(StyleSpan(Typeface.NORMAL), slash, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            }
+        } else if (item?.kind == "task" && !item.archived && item.rest == null) {
+            if (item.resident) { if (item.done) t("今天已做", "Done today") else t("今天未记录", "Not yet today") }
+            else if (item.done) t("已完成", "Completed") else t("待处理", "To do")
+        } else state
+        val displayHint = if (item?.kind == "task" && !item.archived && item.rest == null) {
+            if (item.resident) t("常驻 · 按需记录", "Resident · as needed")
+            else if (item.doneDay != null) t("完成于 ${item.doneDay}", "Done ${item.doneDay}")
+            else if (item.dueDay != null) t("安排于 ${item.dueDay}", "Due ${item.dueDay}")
+            else t("一次性 · 未设日期", "One-time · no date")
+        } else hint
+        views.setTextViewText(R.id.widget_hint, displayHint)
+        views.setTextViewText(R.id.widget_state, displayState)
+        val showProgress = item != null && item.kind == "habit" && !item.archived && item.rest == null &&
+            (item.quantity || item.schedule == "weekly") && (!compact || height >= if (scale > 1.3f) 210 else 160)
+        views.setViewVisibility(R.id.widget_progress, if (showProgress) View.VISIBLE else View.GONE)
+        if (showProgress && item != null) {
+            val ratio = if (item.quantity) (item.value ?: 0L).toDouble() / item.target.coerceAtLeast(1L)
+                else item.weekCount.toDouble() / item.weekGoal.coerceAtLeast(1)
+            views.setImageViewBitmap(R.id.widget_progress, WidgetAppearance.progress(ratio, accent, dark))
+        }
         val status=WidgetActionStatus.get(c,id)
-        val actionLabel=when(status){"pending"->t("正在保存…","Saving…");"failed"->t("重试","Retry");else->action}
+        val shortAction = if (width < 180 || scale > 1.3f) when(mode) {
+            "set" -> if (item?.done == true) t("撤销", "Undo") else t("完成", "Done")
+            "quantity" -> t("记录", "Record")
+            "configure" -> t("选择", "Choose")
+            else -> t("查看", "View")
+        } else action
+        val actionLabel=when(status){"pending"->t("保存中", "Saving");"failed"->t("重试","Retry");else->shortAction}
         views.setTextViewText(R.id.widget_action, actionLabel)
         if(status=="failed") {
             views.setTextViewText(R.id.widget_state,t("未能保存，请重试","Could not save. Try again"))
@@ -164,6 +214,7 @@ object WidgetEngine {
         views.setContentDescription(R.id.widget_content, "$title. $day. $state. $hint")
         views.setContentDescription(R.id.widget_action, "$actionLabel. $title. $day")
         val primary=if(mode=="set" && validBinding!=null && snapshot!=null && item!=null) direct(c,validBinding,snapshot,item) else pending(c,id,mode,binding,day)
+        views.setOnClickPendingIntent(R.id.widget_heading, primary)
         views.setOnClickPendingIntent(R.id.widget_content, primary)
         views.setOnClickPendingIntent(R.id.widget_action, primary)
         return views
