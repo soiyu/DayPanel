@@ -24,7 +24,7 @@ object WidgetSnapshotReader {
         val file = context.getDatabasePath("daypanel_flutter.db")
         if (!file.exists()) return null
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
-            if (db.version !in 7..10) return null
+            if (db.version !in 7..11) return null
             db.beginTransactionNonExclusive()
             try {
                 val generation = db.rawQuery("SELECT generation FROM runtime WHERE id=1", null).use { c ->
@@ -67,7 +67,7 @@ object WidgetSnapshotReader {
                             }
                         }
                         items["habit:$id"] = WidgetItem(id, "habit", c.getString(1), c.getInt(3) == 1 || day < start,
-                            c.getString(2) == "quantity", value, target, c.getString(7), schedule, scheduled, weekCount, c.getInt(11), rest=rests[id], icon=c.getInt(12), color=c.getString(13), frame=c.getString(14))
+                            c.getString(2) in setOf("quantity", "count"), value, target, c.getString(7), schedule, scheduled, weekCount, c.getInt(11), rest=rests[id], icon=c.getInt(12), color=c.getString(13), frame=c.getString(14))
                     }
                 }
                 db.rawQuery("SELECT id,title,resident,archived,completed_day,due_day,start_day FROM tasks", null).use { c ->

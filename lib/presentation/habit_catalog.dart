@@ -8,8 +8,9 @@ import 'theme.dart';
 import 'habit_icon.dart';
 
 class HabitStarter {
-  const HabitStarter([this.template]);
+  const HabitStarter([this.template, this.title = '']);
   final HabitTemplate? template;
+  final String title;
 }
 
 class HabitCatalog extends StatefulWidget {
@@ -101,7 +102,11 @@ class _HabitCatalogState extends State<HabitCatalog> {
                                       ),
                                       const SizedBox(height: 5),
                                       Text(
-                                        t.kind == HabitKind.check
+                                        t.chooseSchedule
+                                            ? t.kind == HabitKind.check
+                                                  ? s.chooseSchedule
+                                                  : '${quantityText(t.target)} ${t.unit(zh)} · ${s.chooseSchedule}'
+                                            : t.kind == HabitKind.check
                                             ? s.templateDailyCheck
                                             : s.templateDailyGoal(
                                                 quantityText(t.target),
@@ -127,10 +132,15 @@ class _HabitCatalogState extends State<HabitCatalog> {
                   Expanded(
                     child: AppAction(
                       key: const Key('custom-habit'),
-                      label: s.customHabit,
+                      label: query.trim().isEmpty
+                          ? s.customHabit
+                          : s.createNamedHabit(query.trim()),
                       icon: Icons.add_rounded,
                       primary: true,
-                      onTap: () => Navigator.pop(context, const HabitStarter()),
+                      onTap: () => Navigator.pop(
+                        context,
+                        HabitStarter(null, query.trim()),
+                      ),
                     ),
                   ),
                 ],

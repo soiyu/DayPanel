@@ -17,3 +17,19 @@ class AndroidDocumentFiles implements DocumentFiles {
   @override
   Future<Uint8List?> pick() => channel.invokeMethod<Uint8List>('pick');
 }
+
+class DeviceExportHistory {
+  static const channel = MethodChannel('app.daypanel.next/documents');
+  Future<DateTime?> lastExport() async {
+    try {
+      final millis = await channel.invokeMethod<int>('lastExport');
+      return millis == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(millis);
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    }
+  }
+}

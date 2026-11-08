@@ -231,14 +231,14 @@ void main() {
         factory: databaseFactoryFfi,
         path: '${dir.path}/db',
       );
-      expect(await store.db.getVersion(), 10);
+      expect(await store.db.getVersion(), 11);
       expect((await store.habits()).single.toMap(), before);
       expect(await store.widgetRevision(), 0);
       final snap = await store.exportSnapshot();
       expect(snap.tables.containsKey('runtime'), isFalse);
       final envelope = jsonDecode(utf8.decode(snap.encode())) as Map;
       final payload = jsonDecode(envelope['payload']) as Map;
-      expect(payload['schema'], 10);
+      expect(payload['schema'], 11);
       payload['schema'] = 9;
       envelope['payload'] = jsonEncode(payload);
       envelope['sha256'] = sha256

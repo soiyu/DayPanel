@@ -23,6 +23,7 @@ open class MainActivity : FlutterActivity() {
     private var pendingOpen: String? = null
     private var completionFeedback: CompletionFeedback? = null
     private var widgetChanges:MethodChannel? = null
+    private var exportBackup = false
     private var dataReceiver:android.content.BroadcastReceiver? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -70,7 +71,10 @@ open class MainActivity : FlutterActivity() {
         }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.daypanel.next/documents")
             .setMethodCallHandler { call, result ->
-                if (call.method == "readLegacy") {
+                if (call.method == "lastExport") {
+                    val prefs = getSharedPreferences("device_export_history", MODE_PRIVATE)
+                    result.success(if (prefs.contains("last_export")) prefs.getLong("last_export", 0L) else null)
+                } else if (call.method == "readLegacy") {
                     val bytes = call.argument<ByteArray>("bytes")
                     if(bytes == null || bytes.size > limit) result.error("legacy", "Unsupported or damaged legacy file", null)
                     else worker.execute {
@@ -90,6 +94,7 @@ open class MainActivity : FlutterActivity() {
                     } else {
                         pending = result
                         exportBytes = bytes
+                        exportBackup = call.method == "save" && call.argument<String>("mime") != "image/png"
                         try {
                             val intent = if (call.method == "save") {
                                 Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
@@ -157,6 +162,7 @@ open class MainActivity : FlutterActivity() {
         if (requestCode != 4101 && requestCode != 4102) return
         val reply = pending ?: return
         val bytes = exportBytes
+        val isBackup = exportBackup
         val uri = data?.data
         if (resultCode != Activity.RESULT_OK || uri == null) {
             pending = null
@@ -172,6 +178,7 @@ open class MainActivity : FlutterActivity() {
                         stream.write(bytes)
                         stream.flush()
                     } ?: error("Cannot open destination")
+                    if (isBackup) getSharedPreferences("device_export_history", MODE_PRIVATE).edit().putLong("last_export", System.currentTimeMillis()).commit()
                     true
                 } else {
                     contentResolver.openInputStream(uri)?.use { stream ->

@@ -29,7 +29,13 @@ class Day implements Comparable<Day> {
   int get hashCode => key.hashCode;
 }
 
-enum HabitKind { check, quantity }
+enum HabitKind {
+  check,
+  quantity,
+  count;
+
+  bool get isNumeric => this != HabitKind.check;
+}
 
 enum ScheduleKind { weekdays, interval, weekly }
 

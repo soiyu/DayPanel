@@ -13,8 +13,28 @@ abstract class WidgetUpdates {
   void onChanged(void Function() callback);
 }
 
-class AndroidWidgets implements WidgetPlatform, WidgetUpdates {
+abstract class WidgetPinning {
+  Future<bool> canPin();
+  Future<bool> hasWidgets();
+  Future<bool> pin(String kind, String id, int generation);
+}
+
+class AndroidWidgets implements WidgetPlatform, WidgetUpdates, WidgetPinning {
   static const channel = MethodChannel('app.daypanel.next/widgets');
+  @override
+  Future<bool> canPin() async =>
+      await channel.invokeMethod<bool>('canPin') ?? false;
+  @override
+  Future<bool> hasWidgets() async =>
+      await channel.invokeMethod<bool>('hasWidgets') ?? false;
+  @override
+  Future<bool> pin(String kind, String id, int generation) async =>
+      await channel.invokeMethod<bool>('pin', {
+        'kind': kind,
+        'id': id,
+        'generation': generation,
+      }) ??
+      false;
   @override
   void onChanged(void Function() callback) =>
       channel.setMethodCallHandler((call) async {

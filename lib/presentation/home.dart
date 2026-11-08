@@ -171,6 +171,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final summaryCount = app.allDailyPlanned.length;
     final summaryDone = app.allDailyCompleted;
     final anyActive = app.habits.any((h) => !h.archived);
+    final filtered = app.contextFilter != null || app.groupFilter != null;
+    final extras = app.habits
+        .where(
+          (h) =>
+              !h.archived &&
+              day.compareTo(h.startDay) >= 0 &&
+              day.compareTo(app.today) <= 0 &&
+              app.restOn(h, day) == null &&
+              !app.scheduled(h, day),
+        )
+        .toList();
     final scale = MediaQuery.textScalerOf(context).scale(1);
     return ListView(
       key: const PageStorageKey('daily'),
@@ -307,7 +318,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Flexible(
                   flex: 2,
                   child: Text(
-                    s.planned,
+                    filtered ? s.allHabitsProgress : s.planned,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
@@ -317,7 +328,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     value: summaryDone / summaryCount,
                     minHeight: 3,
                     borderRadius: BorderRadius.circular(3),
-                    semanticsLabel: '${s.planned} $summaryDone/$summaryCount',
+                    semanticsLabel:
+                        '${filtered ? s.allHabitsProgress : s.planned} $summaryDone/$summaryCount',
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -343,9 +355,30 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 : anyActive
                 ? s.emptyDay
                 : s.emptyHabits,
-            body: anyActive ? s.emptyDayBody : s.emptyHabitsBody,
-            action: s.newHabit,
-            onAction: () => openEditor(context, app, 'habit'),
+            body: filtered
+                ? s.filterEmptyHelp
+                : anyActive
+                ? s.emptyDayHelp
+                : s.emptyHabitsBody,
+            action: filtered
+                ? s.resetFilter
+                : !anyActive
+                ? s.newHabit
+                : day != app.today
+                ? s.todayLabel
+                : s.manageHabits,
+            onAction: filtered
+                ? () => app.filter()
+                : !anyActive
+                ? () => openEditor(context, app, 'habit')
+                : day != app.today
+                ? () => app.select(app.today)
+                : () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => HabitLibrary(app: app),
+                    ),
+                  ),
           ),
         for (final h in planned)
           Padding(
@@ -402,8 +435,68 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               child: HabitTile(app: app, habit: h, day: day),
             ),
         ],
+        if (extras.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: AppAction(
+              key: const Key('record-other-habit'),
+              label: s.recordOtherHabit,
+              icon: Icons.playlist_add_check_rounded,
+              tone: UiTone.violet,
+              onTap: app.busy
+                  ? null
+                  : () => chooseExtraRecord(context, day, extras),
+            ),
+          ),
         DailyCardPanel(app: app, day: day),
       ],
+    );
+  }
+
+  Future<void> chooseExtraRecord(
+    BuildContext context,
+    Day day,
+    List<Habit> choices,
+  ) async {
+    final epoch = app.generation;
+    final s = AppLocalizations.of(context);
+    final id = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => SheetFrame(
+        title: s.recordOtherHabit,
+        subtitle: s.extraRecordHelp,
+        icon: Icons.playlist_add_check_rounded,
+        tone: UiTone.violet,
+        body: Column(
+          children: [
+            for (final h in choices)
+              SettingRow(
+                key: Key('extra-habit-${h.id}'),
+                icon: Icons.edit_outlined,
+                title: h.title,
+                subtitle: s.extraRecords,
+                onTap: () => Navigator.pop(ctx, h.id),
+              ),
+          ],
+        ),
+        footer: AppAction(label: s.cancel, onTap: () => Navigator.pop(ctx)),
+      ),
+    );
+    if (id == null || !context.mounted || epoch != app.generation) return;
+    final h = app.habits.where((h) => h.id == id && !h.archived).firstOrNull;
+    if (h == null || app.restOn(h, day) != null) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => HabitDetails(
+          app: app,
+          id: id,
+          initialDay: day,
+          logOnOpen: h.kind.isNumeric,
+        ),
+      ),
     );
   }
 
@@ -444,13 +537,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 icon: Icons.shield_outlined,
                 title: s.dataBackup,
                 tone: UiTone.teal,
-                onTap: () => open(BackupPage(app: app)),
+                onTap: () => open(
+                  BackupPage(
+                    app: app,
+                    onReturnToday: () => setState(() => tab = 0),
+                  ),
+                ),
               ),
               SettingRow(
                 icon: Icons.widgets_outlined,
                 title: s.widgetsHelpTitle,
                 tone: UiTone.violet,
-                onTap: () => open(const WidgetsHelpPage()),
+                onTap: () => open(WidgetsHelpPage(app: app)),
               ),
             ],
           ),

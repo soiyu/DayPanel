@@ -339,7 +339,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: '${dir.path}/db',
       );
-      expect(await store.db.getVersion(), 10);
+      expect(await store.db.getVersion(), 11);
       expect(await store.breaks(), isEmpty);
       expect((await store.habits()).single.title, 'h');
       await store.addBreak(rest('p', 'h', today), today: today);

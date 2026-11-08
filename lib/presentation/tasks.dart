@@ -109,9 +109,11 @@ class TasksPage extends StatelessWidget {
             onAction: () => openEditor(context, app, 'task'),
             tone: UiTone.peach,
           ),
-        for (final group in groups.take(4))
+        for (final group in groups.take(2))
           ...section(group.$1, group.$2, group.$3),
         ...section(s.residentTasks, app.residentTasks, UiTone.violet),
+        for (final group in groups.skip(2).take(2))
+          ...section(group.$1, group.$2, group.$3),
         ...section(groups.last.$1, groups.last.$2, groups.last.$3),
         if (singles.any((t) => t.done && t.completedDay != today))
           SettingRow(

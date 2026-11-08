@@ -34,7 +34,7 @@ class BackupSnapshot {
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 10,
+      'schema': 11,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -77,7 +77,7 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3, 4, 5, 6, 7, 8, 9, 10}.contains(content['schema'])) {
+      if (!{2, 3, 4, 5, 6, 7, 8, 9, 10, 11}.contains(content['schema'])) {
         throw const BackupInvalid();
       }
       final created = DateTime.parse(content['created_at'] as String);
@@ -86,6 +86,26 @@ class BackupSnapshot {
       }
       final raw = content['tables'] as Map<String, dynamic>;
       final schema = content['schema'] as int;
+      // A lower schema must not smuggle a newer enum, including snapshots of
+      // deleted habits that survive only in already earned card evidence.
+      if (schema < 11) {
+        for (final habit in raw['habits'] as List) {
+          if ((habit as Map)['kind'] == HabitKind.count.name) {
+            throw const BackupInvalid();
+          }
+        }
+        if (schema >= 6) {
+          for (final card in raw['cards'] as List) {
+            final evidence =
+                jsonDecode((card as Map)['evidence'] as String) as List;
+            if (evidence.any(
+              (item) => (item as Map)['kind'] == HabitKind.count.name,
+            )) {
+              throw const BackupInvalid();
+            }
+          }
+        }
+      }
       _keys(
         raw,
         tableNames
@@ -238,7 +258,8 @@ class BackupSnapshot {
         throw const BackupInvalid();
       }
       final h = Habit.fromMap(m);
-      if (h.kind == HabitKind.check && h.target != 1000) {
+      if ((h.kind == HabitKind.check && h.target != 1000) ||
+          (h.kind == HabitKind.count && h.target % 1000 != 0)) {
         throw const BackupInvalid();
       }
       habitIds[id] = h;
@@ -267,7 +288,8 @@ class BackupSnapshot {
       if (h == null ||
           plan.effectiveDay.compareTo(h.startDay) < 0 ||
           !planKeys.add('${plan.habitId}/${plan.effectiveDay.key}') ||
-          (h.kind == HabitKind.check && plan.target != 1000)) {
+          (h.kind == HabitKind.check && plan.target != 1000) ||
+          (h.kind == HabitKind.count && plan.target % 1000 != 0)) {
         throw const BackupInvalid();
       }
       if (first[h.id] == null ||
@@ -294,6 +316,7 @@ class BackupSnapshot {
       if (h == null ||
           d.compareTo(h.startDay) < 0 ||
           (h.kind == HabitKind.check && v != 0 && v != 1000) ||
+          (h.kind == HabitKind.count && v % 1000 != 0) ||
           !entryKeys.add('${m['habit_id']}/${d.key}')) {
         throw const BackupInvalid();
       }

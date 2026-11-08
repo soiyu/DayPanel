@@ -16,6 +16,11 @@ part 'store_cards.dart';
 part 'store_breaks.dart';
 part 'store_widget_actions.dart';
 
+/// The record was changed after an input form captured its displayed value.
+class RecordRevisionConflict implements Exception {
+  const RecordRevisionConflict();
+}
+
 class AppStore {
   AppStore._(this.db);
   final Database db;
@@ -31,7 +36,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 10,
+        version: 11,
         singleInstance: false,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
@@ -59,6 +64,7 @@ class AppStore {
           await upgradeToV8(db);
           await upgradeToV9(db);
           await upgradeToV10(db);
+          await upgradeToV11(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
@@ -72,6 +78,7 @@ class AppStore {
           if (oldVersion < 8) await upgradeToV8(db);
           if (oldVersion < 9) await upgradeToV9(db);
           if (oldVersion < 10) await upgradeToV10(db);
+          if (oldVersion < 11) await upgradeToV11(db);
         },
       ),
     );
@@ -151,6 +158,8 @@ class AppStore {
   )).map(HabitPlan.fromMap).toList();
   Future<int> generation() async =>
       (await _executor.query('runtime')).single['generation'] as int;
+  Future<int> revision() async =>
+      (await _executor.query('runtime')).single['revision'] as int;
   Future<List<SmallTask>> tasks() async => (await _executor.query(
     'tasks',
     orderBy: 'rowid DESC',
@@ -179,6 +188,7 @@ class AppStore {
         habit.target <= 0 ||
         habit.target > 999999999999 ||
         (habit.kind == HabitKind.check && habit.target != 1000) ||
+        (habit.kind == HabitKind.count && habit.target % 1000 != 0) ||
         habit.weekdays < 1 ||
         habit.weekdays > 127 ||
         habit.unit.length > 12 ||
@@ -365,8 +375,13 @@ class AppStore {
     Day day,
     int? value, {
     required Day today,
+    int? expectedRevision,
   }) async {
     return _transaction((txn) async {
+      if (expectedRevision != null &&
+          (await txn.query('runtime')).single['revision'] != expectedRevision) {
+        throw const RecordRevisionConflict();
+      }
       final rows = await txn.query('habits', where: 'id = ?', whereArgs: [id]);
       if (rows.isEmpty) throw StateError('Habit missing');
       final h = Habit.fromMap(rows.single);
@@ -383,9 +398,8 @@ class AppStore {
           (value != null &&
               (value < 0 ||
                   value > 999999999999 ||
-                  (h.kind == HabitKind.check &&
-                      value != 0 &&
-                      value != 1000)))) {
+                  (h.kind == HabitKind.check && value != 0 && value != 1000) ||
+                  (h.kind == HabitKind.count && value % 1000 != 0)))) {
         throw ArgumentError('Invalid record');
       }
       final previous = await txn.query(

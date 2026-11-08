@@ -144,7 +144,7 @@ object WidgetEngine {
                 else -> "set"
             }
             action = when (mode) {
-                "quantity" -> t("输入总量", "Enter total")
+                "quantity" -> if(width < 180) t("记录", "Record") else t("输入总量", "Enter total")
                 "set" -> if(item.done) {
                     if(item.kind=="task" && !item.resident) t("重新待办","Reopen") else t("取消完成","Mark undone")
                 } else t("完成", "Complete")

@@ -209,7 +209,7 @@ abstract class AppLocalizations {
   /// No description provided for @dailyRateHint.
   ///
   /// In en, this message translates to:
-  /// **'Achieved / planned days through yesterday. Today, flexible weekly goals, archived and unknown dates are excluded.'**
+  /// **'Qualifying days / planned days, counting ended days only. Today, weekly goals, archived periods and unknown history are excluded.'**
   String get dailyRateHint;
 
   /// No description provided for @currentRun.
@@ -1757,7 +1757,7 @@ abstract class AppLocalizations {
   /// No description provided for @quantityHabit.
   ///
   /// In en, this message translates to:
-  /// **'Quantity'**
+  /// **'Track an amount'**
   String get quantityHabit;
 
   /// No description provided for @target.
@@ -3481,6 +3481,317 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'How to add widgets'**
   String get widgetsHelpTitle;
+
+  /// No description provided for @allHabitsProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'All daily habits'**
+  String get allHabitsProgress;
+
+  /// No description provided for @filterEmptyHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the filters to see your habits.'**
+  String get filterEmptyHelp;
+
+  /// No description provided for @emptyDayHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'No habits are planned for this day. Choose another date or record an unplanned activity.'**
+  String get emptyDayHelp;
+
+  /// No description provided for @recordOtherHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Record another habit'**
+  String get recordOtherHabit;
+
+  /// No description provided for @extraRecordHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Record what you did on this day without changing its schedule.'**
+  String get extraRecordHelp;
+
+  /// No description provided for @historicalRestReadonly.
+  ///
+  /// In en, this message translates to:
+  /// **'This past break has ended. This day keeps its original rest status.'**
+  String get historicalRestReadonly;
+
+  /// No description provided for @restSkippedRecordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this day’s skip before recording it.'**
+  String get restSkippedRecordHint;
+
+  /// No description provided for @restManageRecordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This day is on a break. Manage current or upcoming breaks in habit settings.'**
+  String get restManageRecordHint;
+
+  /// No description provided for @reminderSharedGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'These times remind you about one daily goal. Reminders stop when it is met; each time is not a separate completion.'**
+  String get reminderSharedGoal;
+
+  /// No description provided for @backupLocalStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data is on this device'**
+  String get backupLocalStatus;
+
+  /// No description provided for @backupNeverExported.
+  ///
+  /// In en, this message translates to:
+  /// **'No successful export on this device yet'**
+  String get backupNeverExported;
+
+  /// No description provided for @backupExportFact.
+  ///
+  /// In en, this message translates to:
+  /// **'This records a past export. Keep the exported file outside the app.'**
+  String get backupExportFact;
+
+  /// No description provided for @restoreNextSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Next steps'**
+  String get restoreNextSteps;
+
+  /// No description provided for @restoreCheckReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Check reminders and permissions'**
+  String get restoreCheckReminders;
+
+  /// No description provided for @restoreWidgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect home screen widgets'**
+  String get restoreWidgets;
+
+  /// No description provided for @widgetAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to home screen'**
+  String get widgetAddTitle;
+
+  /// No description provided for @widgetChooseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an item, then confirm in the system dialog.'**
+  String get widgetChooseHint;
+
+  /// No description provided for @widgetPinRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested. Confirm on your home screen; cancelling adds no widget.'**
+  String get widgetPinRequested;
+
+  /// No description provided for @widgetPinUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Your launcher does not support adding here. Follow the steps below to add from your home screen.'**
+  String get widgetPinUnavailable;
+
+  /// No description provided for @widgetPinFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to request a widget. Retry or add it from your home screen.'**
+  String get widgetPinFailed;
+
+  /// No description provided for @widgetPinEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a habit or task first, then choose it for your widget.'**
+  String get widgetPinEmpty;
+
+  /// No description provided for @widgetPinSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose widget content'**
+  String get widgetPinSelect;
+
+  /// No description provided for @widgetPinConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Request widget'**
+  String get widgetPinConfirm;
+
+  /// No description provided for @backupLastExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Last successful export on this device'**
+  String get backupLastExport;
+
+  /// No description provided for @countHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Count repetitions'**
+  String get countHabit;
+
+  /// No description provided for @countUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'times'**
+  String get countUnit;
+
+  /// No description provided for @countWholeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a non-negative whole count.'**
+  String get countWholeError;
+
+  /// No description provided for @countTargetError.
+  ///
+  /// In en, this message translates to:
+  /// **'The count target must be a positive whole number.'**
+  String get countTargetError;
+
+  /// No description provided for @recordingCheckHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark it done once for the day.'**
+  String get recordingCheckHelp;
+
+  /// No description provided for @recordingQuantityHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Record the day total; decimal amounts are allowed.'**
+  String get recordingQuantityHelp;
+
+  /// No description provided for @recordingCountHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Record the day count using whole numbers.'**
+  String get recordingCountHelp;
+
+  /// No description provided for @chooseSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your schedule'**
+  String get chooseSchedule;
+
+  /// No description provided for @chooseScheduleHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a schedule, then set the days or goal that suits you.'**
+  String get chooseScheduleHelp;
+
+  /// No description provided for @recordingRuleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your completion rule'**
+  String get recordingRuleTitle;
+
+  /// No description provided for @weeklyCountingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly progress counts qualifying days; several sessions on one day still count as one day.'**
+  String get weeklyCountingHint;
+
+  /// No description provided for @quantitySetMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Set day total'**
+  String get quantitySetMode;
+
+  /// No description provided for @quantityAddMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Add this amount'**
+  String get quantityAddMode;
+
+  /// No description provided for @countSetMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Set day count'**
+  String get countSetMode;
+
+  /// No description provided for @countAddMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Add this count'**
+  String get countAddMode;
+
+  /// No description provided for @quantityAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter this amount and confirm the new day total.'**
+  String get quantityAddHint;
+
+  /// No description provided for @quantityAddPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded {previous} {unit}; adding {amount} {unit}. Saving sets the day total to {total} {unit}.'**
+  String quantityAddPreview(
+    String previous,
+    String unit,
+    String amount,
+    String total,
+  );
+
+  /// No description provided for @recordChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The record or plan changed. Reload and check the latest values.'**
+  String get recordChanged;
+
+  /// No description provided for @reloadRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload record'**
+  String get reloadRecord;
+
+  /// No description provided for @createNamedHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create “{name}”'**
+  String createNamedHabit(String name);
+
+  /// No description provided for @pmSearchScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Search in {scope}'**
+  String pmSearchScope(String scope);
+
+  /// No description provided for @pmSearchAllMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Search all months'**
+  String get pmSearchAllMonths;
+
+  /// No description provided for @pmReviewEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No records in these seven days'**
+  String get pmReviewEmptyTitle;
+
+  /// No description provided for @pmReviewEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records will appear here. Open a day to view it or correct a past record.'**
+  String get pmReviewEmptyBody;
+
+  /// No description provided for @pmCardsNoDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Your earned daily cards are kept here. There are no daily habits to complete today; weekly goals and rest days do not count toward today\'s card.'**
+  String get pmCardsNoDaily;
+
+  /// No description provided for @pmRecentStatistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get pmRecentStatistics;
+
+  /// No description provided for @widgetReconnectHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to your home screen. Open settings or refresh on each existing widget, choose its habit or task again, and save. Restoring data requires reconnecting existing widgets; you do not need to add duplicates.'**
+  String get widgetReconnectHelp;
 }
 
 class _AppLocalizationsDelegate

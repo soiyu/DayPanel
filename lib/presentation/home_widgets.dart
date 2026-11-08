@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../application/app_controller.dart';
 import '../domain/models.dart';
+import '../data/widget_platform.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
@@ -91,7 +92,7 @@ class _WidgetFlowState extends State<WidgetFlow> {
             app: app,
             habit: habit,
             day: day,
-            onSave: (value) async {
+            onSave: (value, revision) async {
               if (!await valid() || day != app.today) {
                 if (mounted) setState(() => failed = true);
                 await app.syncWidgets();
@@ -104,6 +105,7 @@ class _WidgetFlowState extends State<WidgetFlow> {
                 value,
                 epoch,
                 requireToday: true,
+                expectedRevision: revision,
               );
             },
           ),
@@ -173,7 +175,11 @@ class _WidgetFlowState extends State<WidgetFlow> {
           (
             h.id,
             h.title,
-            h.kind == HabitKind.quantity ? s.quantityHabit : s.checkHabit,
+            h.kind == HabitKind.count
+                ? s.countHabit
+                : h.kind.isNumeric
+                ? s.quantityHabit
+                : s.checkHabit,
           )
       else
         for (final t in app.tasks.where((t) => !t.archived))
@@ -307,8 +313,107 @@ class _WidgetFlowState extends State<WidgetFlow> {
   }
 }
 
-class WidgetsHelpPage extends StatelessWidget {
-  const WidgetsHelpPage({super.key});
+class WidgetsHelpPage extends StatefulWidget {
+  const WidgetsHelpPage({super.key, this.app, this.reconnect = false});
+  final AppController? app;
+  final bool reconnect;
+  @override
+  State<WidgetsHelpPage> createState() => _WidgetsHelpPageState();
+}
+
+class _WidgetsHelpPageState extends State<WidgetsHelpPage> {
+  bool? supported;
+  bool working = false;
+  String? message;
+  @override
+  void initState() {
+    super.initState();
+    final platform = widget.app?.widgetPlatform;
+    if (platform is WidgetPinning) {
+      (platform as WidgetPinning)
+          .canPin()
+          .then((value) {
+            if (mounted) setState(() => supported = value);
+          })
+          .catchError((Object _) {
+            if (mounted) setState(() => supported = false);
+          });
+    } else {
+      supported = false;
+    }
+  }
+
+  Future<void> choose() async {
+    final app = widget.app;
+    final platform = app?.widgetPlatform;
+    if (app == null || platform is! WidgetPinning || working) return;
+    final epoch = app.generation;
+    final s = AppLocalizations.of(context);
+    final selected = await showModalBottomSheet<(String, String)>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => SheetFrame(
+        title: s.widgetPinSelect,
+        subtitle: s.widgetChooseHint,
+        icon: Icons.widgets_outlined,
+        tone: UiTone.violet,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!app.habits.any((h) => !h.archived) &&
+                !app.tasks.any((t) => !t.archived))
+              Text(s.widgetPinEmpty),
+            for (final h in app.habits.where((h) => !h.archived))
+              SettingRow(
+                key: Key('pin-habit-${h.id}'),
+                icon: Icons.spa_outlined,
+                title: h.title,
+                subtitle: s.habit,
+                onTap: () => Navigator.pop(ctx, ('habit', h.id)),
+              ),
+            for (final t in app.tasks.where((t) => !t.archived))
+              SettingRow(
+                key: Key('pin-task-${t.id}'),
+                icon: Icons.check_circle_outline,
+                title: t.title,
+                subtitle: t.resident ? s.residentTask : s.oneTimeTask,
+                onTap: () => Navigator.pop(ctx, ('task', t.id)),
+              ),
+          ],
+        ),
+        footer: AppAction(label: s.cancel, onTap: () => Navigator.pop(ctx)),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    if (epoch != app.generation) {
+      setState(() => message = s.widgetPinFailed);
+      return;
+    }
+    setState(() {
+      working = true;
+      message = null;
+    });
+    try {
+      final requested = await (platform as WidgetPinning).pin(
+        selected.$1,
+        selected.$2,
+        epoch,
+      );
+      if (mounted) {
+        setState(
+          () => message = requested
+              ? s.widgetPinRequested
+              : s.widgetPinUnavailable,
+        );
+      }
+    } catch (_) {
+      if (mounted) setState(() => message = s.widgetPinFailed);
+    } finally {
+      if (mounted) setState(() => working = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
@@ -319,10 +424,35 @@ class WidgetsHelpPage extends StatelessWidget {
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            if (supported == true && !widget.reconnect) ...[
+              AppAction(
+                key: const Key('pin-widget'),
+                label: s.widgetAddTitle,
+                icon: Icons.add_to_home_screen_rounded,
+                primary: true,
+                busy: working,
+                onTap: working ? null : choose,
+              ),
+              const SizedBox(height: 12),
+              Text(s.widgetChooseHint),
+              const SizedBox(height: 16),
+            ],
+            if (message != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(message!, key: const Key('pin-result')),
+              ),
+            if (supported == false && widget.app != null && !widget.reconnect)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(s.widgetPinUnavailable),
+              ),
             SoftPanel(
               tone: UiTone.violet,
               tinted: true,
-              child: Text(s.widgetHelp),
+              child: Text(
+                widget.reconnect ? s.widgetReconnectHelp : s.widgetHelp,
+              ),
             ),
           ],
         ),

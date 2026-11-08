@@ -44,7 +44,7 @@ class HabitTile extends StatelessWidget {
         day.compareTo(app.today) <= 0 &&
         day.compareTo(habit.startDay) >= 0;
     final scheme = Theme.of(context).colorScheme;
-    final isQuantity = habit.kind == HabitKind.quantity;
+    final isQuantity = habit.kind.isNumeric;
     if (openDetails) {
       void details() => Navigator.push(
         context,
@@ -53,7 +53,9 @@ class HabitTile extends StatelessWidget {
         ),
       );
       void record() {
-        if (rest != null) {
+        if (rest != null && day != app.today) {
+          details();
+        } else if (rest != null) {
           Navigator.push(
             context,
             MaterialPageRoute<void>(
@@ -232,7 +234,11 @@ class HabitTile extends StatelessWidget {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          '${contextName(s, habit.context)} · ${isQuantity ? s.quantityHabit : s.checkHabit}',
+                          '${contextName(s, habit.context)} · ${habit.kind == HabitKind.count
+                              ? s.countHabit
+                              : isQuantity
+                              ? s.quantityHabit
+                              : s.checkHabit}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -480,7 +486,7 @@ class HabitLibrary extends StatelessWidget {
                           icon: habitIcons[h.icon],
                           title: h.title,
                           tone: habitTone(h.icon, h.color),
-                          subtitle: h.kind == HabitKind.quantity
+                          subtitle: h.kind.isNumeric
                               ? '${quantityText(h.target)} ${h.unit}'
                               : s.checkHabit,
                           onTap: () => Navigator.push(
@@ -534,7 +540,7 @@ class _HabitDetailsState extends State<HabitDetails> {
         final h = widget.app.habits
             .where((h) => h.id == widget.id && !h.archived)
             .firstOrNull;
-        if (h != null && h.kind == HabitKind.quantity) {
+        if (h != null && h.kind.isNumeric) {
           openQuantity(context, widget.app, h, selected);
         }
       });
@@ -643,7 +649,7 @@ class _HabitDetailsState extends State<HabitDetails> {
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
-                        if (h.kind == HabitKind.quantity)
+                        if (h.kind.isNumeric)
                           Text(
                             '${app.value(h, day) == null ? '—' : quantityText(app.value(h, day)!)} / ${quantityText(plan.target)} ${plan.unit}',
                           )
@@ -664,7 +670,7 @@ class _HabitDetailsState extends State<HabitDetails> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
-                      s.restRecordBlocked,
+                      restRecordHint(s, rest, day, app.today),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -723,30 +729,31 @@ class _HabitDetailsState extends State<HabitDetails> {
                         app: app,
                         habitId: h.id,
                         initialTab: 1,
+                        initialDay: day,
                       ),
                     ),
                   ),
                 ),
                 SectionTitle(s.history, tone: habitTone(h.icon, h.color)),
                 for (var i = 0; i < 7; i++)
-                  if (app.today.plus(-i).compareTo(h.startDay) >= 0)
+                  if (day.plus(-i).compareTo(h.startDay) >= 0)
                     SettingRow(
-                      key: Key('habit-history-${app.today.plus(-i).key}'),
+                      key: Key('habit-history-${day.plus(-i).key}'),
                       icon: Icons.calendar_today_outlined,
                       title: MaterialLocalizations.of(
                         context,
-                      ).formatMediumDate(app.today.plus(-i).date),
-                      subtitle: app.restOn(h, app.today.plus(-i)) != null
-                          ? restName(s, app.restOn(h, app.today.plus(-i))!)
-                          : app.value(h, app.today.plus(-i)) == null
+                      ).formatMediumDate(day.plus(-i).date),
+                      subtitle: app.restOn(h, day.plus(-i)) != null
+                          ? restName(s, app.restOn(h, day.plus(-i))!)
+                          : app.value(h, day.plus(-i)) == null
                           ? s.notRecorded
-                          : h.kind == HabitKind.quantity
-                          ? '${quantityText(app.value(h, app.today.plus(-i))!)} ${app.planAt(h, app.today.plus(-i)).unit}'
-                          : app.achieved(h, app.today.plus(-i))
+                          : h.kind.isNumeric
+                          ? '${quantityText(app.value(h, day.plus(-i))!)} ${app.planAt(h, day.plus(-i)).unit}'
+                          : app.achieved(h, day.plus(-i))
                           ? s.finished
                           : s.notCompleted,
                       onTap: () => setState(() {
-                        selected = app.today.plus(-i);
+                        selected = day.plus(-i);
                         history = false;
                       }),
                     ),
@@ -926,7 +933,7 @@ class _HabitManagementPageState extends State<HabitManagementPage> {
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             Text(scheduleText(s, p)),
-                            if (h.kind == HabitKind.quantity)
+                            if (h.kind.isNumeric)
                               Text(
                                 '${s.target} ${quantityText(p.target)} ${p.unit}',
                               ),

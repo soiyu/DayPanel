@@ -79,4 +79,15 @@ class ReminderRulesTest {
         assertTrue(ReminderRules.eligible(skip,day.plusDays(1)))
     }
 
+    @Test fun countGoalControlsAllReminderTimesAsOneDailyTarget() {
+        val now=ZonedDateTime.parse("2026-11-08T10:00:00+08:00[Asia/Shanghai]")
+        val day=now.toLocalDate()
+        val partial=habit(plans=listOf(Plan(day,3000,"weekdays",127,1,3)),
+            entries=mapOf(day to 1000)).copy(kind="count")
+        assertEquals(1200,ReminderRules.next(partial,now,emptySet(),0)!!.minute)
+        val complete=partial.copy(entries=mapOf(day to 3000))
+        assertFalse(ReminderRules.eligible(complete,day))
+        assertEquals(day.plusDays(1),ReminderRules.next(complete,now,emptySet(),0)!!.day)
+    }
+
 }

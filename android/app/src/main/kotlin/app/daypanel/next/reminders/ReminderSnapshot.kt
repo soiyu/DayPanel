@@ -14,7 +14,7 @@ object SnapshotReader {
         // No schema creation, user-data mutations or completion writes here.
         // A transaction gives all queries one SQLite snapshot, including WAL.
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
-            if (db.version !in 3..10) return null // Dart owns schema upgrades; these versions share reminder tables.
+            if (db.version !in 3..11) return null // Dart owns schema upgrades; these versions share reminder tables.
             db.beginTransactionNonExclusive()
             try {
                 val generation = db.rawQuery("SELECT generation FROM runtime WHERE id=1", null).use { c ->

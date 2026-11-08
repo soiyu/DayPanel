@@ -205,7 +205,7 @@ class HabitStatistics {
   }
 
   Map<String, List<QuantityPoint>> quantities(Day start, Day end) {
-    if (habit.kind != HabitKind.quantity) return {};
+    if (!habit.kind.isNumeric) return {};
     final grouped = <String, List<QuantityPoint>>{};
     for (final d in days(start, end)) {
       final value = values[d];
@@ -286,9 +286,7 @@ List<TimelineEvent> timeline({
         id: h.id,
         title: h.title,
         value: e.value,
-        unit: h.kind == HabitKind.quantity
-            ? (versions.lastOrNull?.unit ?? h.unit)
-            : null,
+        unit: h.kind.isNumeric ? (versions.lastOrNull?.unit ?? h.unit) : null,
       ),
     );
   }

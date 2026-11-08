@@ -91,3 +91,7 @@ P1代表主要任务的明确路径缺口，不代表已发现数据损坏。处
 
 - [AppWidgetManager](https://developer.android.com/reference/android/appwidget/AppWidgetManager)：`isRequestPinAppWidgetSupported`与`requestPinAppWidget`。支持取决于Launcher；请求返回true不等于已添加；取消可能无回调；系统此路径不会自动打开provider配置页，必须设计自己的配置和真实widgetId绑定。不得在确认前落成虚假的组件实例。
 - [通知权限](https://developer.android.com/develop/ui/compose/notifications/notification-permission)：在用户理解用途并主动启用相关功能时请求，不能让拒绝权限阻断正常记录。
+
+## 2026-11-08 实施更新
+
+PM04已按ADR0015完成上述确定范围，实际结果见STATUS及PM04-PRODUCT-PATHS。整数计次、数量/次数本次输入预览与总量纠正、主要路径修复已实现；本次输入最终保存日合计，没有逐条事件历史/撤销某次，周累计次数/数量也未混入既有周达标天数。审查文中的“未实施”描述对应评审时基线，不代表PM04后的当前能力。回顾总入口合并和真实用户效果研究仍未宣称完成。

@@ -334,7 +334,7 @@ void main() {
           factory: databaseFactoryFfi,
           path: path,
         );
-        expect(await migrated.db.getVersion(), 10);
+        expect(await migrated.db.getVersion(), 11);
         expect((await migrated.notes()).single.toMap(), {
           'id': 'old',
           'body': '原始手记 🌙',

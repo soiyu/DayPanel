@@ -76,11 +76,18 @@ class AppController extends ChangeNotifier {
     int? value,
     int epoch, {
     bool requireToday = false,
+    int? expectedRevision,
   }) async {
     var completed = false;
     final ok = await run(() async {
       if (requireToday && day != today) throw StateError('Widget date expired');
-      completed = await store.setRecord(habit.id, day, value, today: today);
+      completed = await store.setRecord(
+        habit.id,
+        day,
+        value,
+        today: today,
+        expectedRevision: expectedRevision,
+      );
     }, expectedGeneration: epoch);
     if (ok &&
         completed &&
@@ -146,6 +153,7 @@ class AppController extends ChangeNotifier {
   HabitBreak? restOn(Habit h, Day day) => breakOn(rests, h.id, day);
   List<HabitGroup> groups = [];
   int generation = 0;
+  int revision = 0;
   String? groupFilter;
   HabitContext? contextFilter;
   bool ready = false;
@@ -164,6 +172,7 @@ class AppController extends ChangeNotifier {
     final versions = await store.plans();
     final g = await store.groups();
     final epoch = await store.generation();
+    final mutationRevision = await store.revision();
     final remindersSaved = await store.reminders();
     final savedCards = await store.cards();
     final activityHistory = await store.activity();
@@ -176,6 +185,7 @@ class AppController extends ChangeNotifier {
     plans = versions;
     groups = g;
     generation = epoch;
+    revision = mutationRevision;
     reminders = remindersSaved;
     cards = savedCards;
     activity = activityHistory;
@@ -219,6 +229,14 @@ class AppController extends ChangeNotifier {
       await syncReminders();
       await syncWidgets();
       return true;
+    } on RecordRevisionConflict {
+      try {
+        await load();
+        error = 'record_conflict';
+      } catch (_) {
+        error = 'storage';
+      }
+      return false;
     } catch (_) {
       error = 'storage'; // UI localizes; no personal content in logs.
       return false;

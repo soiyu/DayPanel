@@ -37,7 +37,9 @@ class CardHabit {
       planDay: Day.parse(m['plan_day'] as String),
     );
     if (h.value < h.target ||
-        (h.kind == HabitKind.check && (h.target != 1000 || h.value != 1000))) {
+        (h.kind == HabitKind.check && (h.target != 1000 || h.value != 1000)) ||
+        (h.kind == HabitKind.count &&
+            (h.target % 1000 != 0 || h.value % 1000 != 0))) {
       throw const FormatException('Invalid card evidence');
     }
     return h;

@@ -139,6 +139,12 @@ class _CardCollectionState extends State<CardCollection> {
     listenable: widget.app,
     builder: (context, _) {
       final s = AppLocalizations.of(context);
+      final hasDailyObligation = widget.app.habits.any(
+        (h) =>
+            widget.app.scheduled(h, widget.app.today) &&
+            widget.app.planAt(h, widget.app.today).schedule !=
+                ScheduleKind.weekly,
+      );
       final cards = widget.app.cards
           .where((c) => !favorites || c.favorite)
           .toList();
@@ -182,8 +188,16 @@ class _CardCollectionState extends State<CardCollection> {
                     if (cards.isEmpty)
                       EmptyState(
                         icon: Icons.collections_bookmark_outlined,
-                        title: favorites ? s.noFavoriteCards : s.noCards,
-                        body: favorites ? s.favoriteHint : s.cardUnlockHint,
+                        title: favorites
+                            ? s.noFavoriteCards
+                            : hasDailyObligation
+                            ? s.noCards
+                            : s.cardCollection,
+                        body: favorites
+                            ? s.favoriteHint
+                            : hasDailyObligation
+                            ? s.cardUnlockHint
+                            : s.pmCardsNoDaily,
                         tone: UiTone.violet,
                       ),
                   ],

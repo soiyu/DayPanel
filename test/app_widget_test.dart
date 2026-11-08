@@ -5,6 +5,7 @@ import 'package:daypanel/application/app_controller.dart';
 import 'package:daypanel/data/app_store.dart';
 import 'package:daypanel/domain/models.dart';
 import 'package:daypanel/main.dart';
+import 'package:daypanel/presentation/habits.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -39,7 +40,22 @@ void main() {
     await tester.tap(find.byKey(const Key('save-entry')));
     await tester.pumpAndSettle();
     expect(app.habits.single.title, 'Read a page');
-    expect(find.text('Read a page'), findsOneWidget);
+    final created = app.habits.single;
+    final details = tester.widget<HabitDetails>(find.byType(HabitDetails));
+    expect(details.id, created.id);
+    expect(details.initialDay, app.today);
+    expect(app.entries, isEmpty);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.text('Read a page'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(Key('habit-detail-action-${created.id}')),
+      findsOneWidget,
+    );
     await tester.ensureVisible(find.text('Complete'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Complete'));
@@ -48,6 +64,11 @@ void main() {
     await tester.tap(find.text('Reopen'));
     await tester.pumpAndSettle();
     expect(app.entries, isEmpty);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(HabitDetails), findsNothing);
+    expect(find.byKey(Key('habit-action-${created.id}')), findsOneWidget);
+    expect(find.text('Read a page'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 

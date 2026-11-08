@@ -189,7 +189,7 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
               app: app,
               id: h.id,
               initialDay: day,
-              logOnOpen: h.kind == HabitKind.quantity,
+              logOnOpen: h.kind.isNumeric,
             ),
           ),
         ),

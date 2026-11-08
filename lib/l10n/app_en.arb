@@ -17,7 +17,7 @@
   "daysLabel": "days",
   "dailyCompletionRate": "Daily plan completion",
   "noDenominator": "No completed planned days",
-  "dailyRateHint": "Achieved / planned days through yesterday. Today, flexible weekly goals, archived and unknown dates are excluded.",
+  "dailyRateHint": "Qualifying days / planned days, counting ended days only. Today, weekly goals, archived periods and unknown history are excluded.",
   "currentRun": "Current planned-day run",
   "bestRun": "Best planned-day run",
   "streakRangeHint": "Within this date range only. Rest days are skipped; today's unfinished plan does not break a run.",
@@ -276,7 +276,7 @@
   "noteBody": "What's on your mind?",
   "type": "Tracking",
   "checkHabit": "Check off",
-  "quantityHabit": "Quantity",
+  "quantityHabit": "Track an amount",
   "target": "Daily target",
   "unit": "Unit",
   "schedule": "Repeat on",
@@ -628,5 +628,86 @@
     }
   },
   "pmTaskUnavailable": "This task is no longer available",
-  "widgetsHelpTitle": "How to add widgets"
+  "widgetsHelpTitle": "How to add widgets",
+  "allHabitsProgress": "All daily habits",
+  "filterEmptyHelp": "Clear the filters to see your habits.",
+  "emptyDayHelp": "No habits are planned for this day. Choose another date or record an unplanned activity.",
+  "recordOtherHabit": "Record another habit",
+  "extraRecordHelp": "Record what you did on this day without changing its schedule.",
+  "historicalRestReadonly": "This past break has ended. This day keeps its original rest status.",
+  "restSkippedRecordHint": "Remove this day’s skip before recording it.",
+  "restManageRecordHint": "This day is on a break. Manage current or upcoming breaks in habit settings.",
+  "reminderSharedGoal": "These times remind you about one daily goal. Reminders stop when it is met; each time is not a separate completion.",
+  "backupLocalStatus": "Your data is on this device",
+  "backupNeverExported": "No successful export on this device yet",
+  "backupExportFact": "This records a past export. Keep the exported file outside the app.",
+  "restoreNextSteps": "Next steps",
+  "restoreCheckReminders": "Check reminders and permissions",
+  "restoreWidgets": "Reconnect home screen widgets",
+  "widgetAddTitle": "Add to home screen",
+  "widgetChooseHint": "Choose an item, then confirm in the system dialog.",
+  "widgetPinRequested": "Requested. Confirm on your home screen; cancelling adds no widget.",
+  "widgetPinUnavailable": "Your launcher does not support adding here. Follow the steps below to add from your home screen.",
+  "widgetPinFailed": "Unable to request a widget. Retry or add it from your home screen.",
+  "widgetPinEmpty": "Create a habit or task first, then choose it for your widget.",
+  "widgetPinSelect": "Choose widget content",
+  "widgetPinConfirm": "Request widget",
+  "backupLastExport": "Last successful export on this device",
+  "countHabit": "Count repetitions",
+  "countUnit": "times",
+  "countWholeError": "Enter a non-negative whole count.",
+  "countTargetError": "The count target must be a positive whole number.",
+  "recordingCheckHelp": "Mark it done once for the day.",
+  "recordingQuantityHelp": "Record the day total; decimal amounts are allowed.",
+  "recordingCountHelp": "Record the day count using whole numbers.",
+  "chooseSchedule": "Choose your schedule",
+  "chooseScheduleHelp": "Choose a schedule, then set the days or goal that suits you.",
+  "recordingRuleTitle": "Your completion rule",
+  "weeklyCountingHint": "Weekly progress counts qualifying days; several sessions on one day still count as one day.",
+  "quantitySetMode": "Set day total",
+  "quantityAddMode": "Add this amount",
+  "countSetMode": "Set day count",
+  "countAddMode": "Add this count",
+  "quantityAddHint": "Enter this amount and confirm the new day total.",
+  "quantityAddPreview": "Recorded {previous} {unit}; adding {amount} {unit}. Saving sets the day total to {total} {unit}.",
+  "@quantityAddPreview": {
+    "placeholders": {
+      "previous": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "recordChanged": "The record or plan changed. Reload and check the latest values.",
+  "reloadRecord": "Reload record",
+  "createNamedHabit": "Create “{name}”",
+  "@createNamedHabit": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pmSearchScope": "Search in {scope}",
+  "@pmSearchScope": {
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      }
+    }
+  },
+  "pmSearchAllMonths": "Search all months",
+  "pmReviewEmptyTitle": "No records in these seven days",
+  "pmReviewEmptyBody": "Your records will appear here. Open a day to view it or correct a past record.",
+  "pmCardsNoDaily": "Your earned daily cards are kept here. There are no daily habits to complete today; weekly goals and rest days do not count toward today's card.",
+  "pmRecentStatistics": "Latest",
+  "widgetReconnectHelp": "Return to your home screen. Open settings or refresh on each existing widget, choose its habit or task again, and save. Restoring data requires reconnecting existing widgets; you do not need to add duplicates."
 }

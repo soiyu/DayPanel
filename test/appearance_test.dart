@@ -160,7 +160,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: '${dir.path}/data.db',
       );
-      expect(await store.db.getVersion(), 10);
+      expect(await store.db.getVersion(), 11);
       expect((await store.habits()).single.toMap(), h.toMap());
       expect((await store.entries()).single.value, 1000);
       expect((await store.cards()).length, 1);
@@ -186,7 +186,7 @@ void main() {
       final payload = jsonDecode(
         jsonDecode(utf8.decode(snap.encode()))['payload'],
       );
-      expect(payload['schema'], 10);
+      expect(payload['schema'], 11);
       await store.saveAppearance(const Appearance());
       await store.saveHabit(h);
       await store.restoreSnapshot(snap);

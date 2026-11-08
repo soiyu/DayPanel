@@ -10,6 +10,7 @@ import 'editors.dart';
 import 'tasks.dart';
 import 'theme.dart';
 import 'refined_components.dart';
+import 'rest_days.dart';
 
 HabitStatistics statsFor(AppController app, Habit h) => HabitStatistics(
   h,
@@ -44,12 +45,13 @@ Future<void> correctRecord(
   final epoch = app.generation;
   final stats = statsFor(app, h);
   final current = stats.values[day];
+  final rest = app.restOn(h, day);
   final canWrite =
       !h.archived &&
       app.restOn(h, day) == null &&
       day.compareTo(h.startDay) >= 0 &&
       day.compareTo(app.today) <= 0;
-  if (canWrite && h.kind == HabitKind.quantity) {
+  if (canWrite && h.kind.isNumeric) {
     await openQuantity(context, app, h, day);
     return;
   }
@@ -72,7 +74,7 @@ Future<void> correctRecord(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  current != null && h.kind == HabitKind.quantity
+                  current != null && h.kind.isNumeric
                       ? '${quantityText(current)} / ${quantityText(stats.plan(day).target)} ${stats.plan(day).unit}'
                       : current == null
                       ? s.notRecorded
@@ -83,8 +85,8 @@ Future<void> correctRecord(
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  app.restOn(h, day) != null
-                      ? s.restRecordBlocked
+                  rest != null
+                      ? restRecordHint(s, rest, day, app.today)
                       : s.correctionHint,
                 ),
                 if (h.archived) Text(s.restoreToCorrect),
@@ -189,17 +191,19 @@ class StatisticsPage extends StatefulWidget {
     required this.app,
     this.habitId,
     this.initialTab = 0,
+    this.initialDay,
   });
   final AppController app;
   final String? habitId;
   final int initialTab;
+  final Day? initialDay;
   @override
   State<StatisticsPage> createState() => _StatisticsPageState();
 }
 
 class _StatisticsPageState extends State<StatisticsPage> {
   late int tab, year, calendarMonth;
-  late Day week, month;
+  late Day week, month, through;
   Day? timelineDay;
   String? habitId;
   TimelineKind? timelineKind;
@@ -210,14 +214,19 @@ class _StatisticsPageState extends State<StatisticsPage> {
     super.initState();
     tab = widget.initialTab;
     habitId = widget.habitId;
-    week = app.today.monday;
-    month = Day(DateTime(app.today.date.year, app.today.date.month));
-    year = app.today.date.year;
-    calendarMonth = app.today.date.month;
+    final requested = widget.initialDay ?? app.today;
+    through = requested.compareTo(app.today) > 0 ? app.today : requested;
+    week = through.monday;
+    month = Day(DateTime(through.date.year, through.date.month));
+    year = through.date.year;
+    calendarMonth = through.date.month;
+    timelineDay = widget.initialDay == null ? null : through;
   }
 
   Future<void> locate() async {
-    final initial = tab == 3
+    final initial = tab == 1
+        ? through
+        : tab == 3
         ? timelineDay ?? month
         : tab == 2
         ? Day(DateTime(year))
@@ -232,7 +241,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
     if (picked != null && mounted) {
       setState(() {
-        week = Day(picked).monday;
+        through = Day(picked);
+        week = through.monday;
         month = Day(DateTime(picked.year, picked.month));
         year = picked.year;
         calendarMonth = picked.month;
@@ -251,7 +261,35 @@ class _StatisticsPageState extends State<StatisticsPage> {
       return AppCanvas(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          appBar: AppBar(title: Text(s.statisticsTitle)),
+          appBar: AppBar(
+            title: Text(s.statisticsTitle),
+            actions: [
+              if (through != app.today ||
+                  week != app.today.monday ||
+                  month !=
+                      Day(
+                        DateTime(app.today.date.year, app.today.date.month),
+                      ) ||
+                  year != app.today.date.year ||
+                  calendarMonth != app.today.date.month ||
+                  timelineDay != null)
+                IconButton(
+                  key: const Key('statistics-latest'),
+                  tooltip: s.pmRecentStatistics,
+                  icon: const Icon(Icons.today_outlined),
+                  onPressed: () => setState(() {
+                    through = app.today;
+                    week = app.today.monday;
+                    month = Day(
+                      DateTime(app.today.date.year, app.today.date.month),
+                    );
+                    year = app.today.date.year;
+                    calendarMonth = app.today.date.month;
+                    timelineDay = null;
+                  }),
+                ),
+            ],
+          ),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
             children: [
@@ -620,13 +658,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
       ];
     }
     final stats = statsFor(app, selected);
-    final start = app.today.plus(1 - range);
-    final result = stats.daily(start, app.today);
-    final weeks = stats.weeks(start, app.today);
-    final weekly = WeeklySummary(weeks, app.today, stats);
-    final quantities = stats.quantities(start, app.today);
+    final start = through.plus(1 - range);
+    final result = stats.daily(start, through);
+    final weeks = stats.weeks(start, through);
+    final weekly = WeeklySummary(weeks, through, stats);
+    final quantities = stats.quantities(start, through);
     final hasDailyPlan = stats
-        .days(start, app.today)
+        .days(start, through)
         .any(
           (d) =>
               d.compareTo(selected.startDay) >= 0 &&
@@ -647,12 +685,21 @@ class _StatisticsPageState extends State<StatisticsPage> {
         ],
       ),
       const SizedBox(height: 14),
-      Text(
-        '${start.key} — ${app.today.key}',
-        style: Theme.of(context).textTheme.bodySmall,
+      period(
+        context,
+        '${start.key} — ${through.key}',
+        through.plus(-range).date.year < 1900
+            ? null
+            : () => setState(() => through = through.plus(-range)),
+        through == app.today
+            ? null
+            : () => setState(() {
+                final next = through.plus(range);
+                through = next.compareTo(app.today) > 0 ? app.today : next;
+              }),
       ),
       const SizedBox(height: 12),
-      if (selected.kind == HabitKind.quantity) ...[
+      if (selected.kind.isNumeric) ...[
         const SizedBox(height: 20),
         SectionTitle(
           s.quantityStatistics,
@@ -764,7 +811,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       ],
       const SizedBox(height: 20),
       if (stats
-          .days(start, app.today)
+          .days(start, through)
           .any((d) => stats.state(d) == DayPlanState.unknown))
         Text(
           s.statisticsKnownHint,
@@ -774,7 +821,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       SectionTitle(s.history, tone: UiTone.violet),
       for (final d
           in stats
-              .days(start, app.today)
+              .days(start, through)
               .reversed
               .where((d) => stats.values[d] != null))
         Padding(

@@ -12,11 +12,13 @@ class HabitTemplate {
     this.unitZh = '',
     this.unitEn = '',
     this.context = HabitContext.anytime,
+    this.chooseSchedule = false,
   });
   final String id, zh, en, unitZh, unitEn;
   final int icon, target;
   final List<String> keywords;
   final HabitContext context;
+  final bool chooseSchedule;
   HabitKind get kind => unitEn.isEmpty ? HabitKind.check : HabitKind.quantity;
   String title(bool chinese) => chinese ? zh : en;
   String unit(bool chinese) => chinese ? unitZh : unitEn;
@@ -99,6 +101,7 @@ const habitTemplates = [
     target: 3000,
     unitZh: '公里',
     unitEn: 'km',
+    chooseSchedule: true,
   ),
   HabitTemplate(
     'cycling',
@@ -109,6 +112,7 @@ const habitTemplates = [
     target: 5000,
     unitZh: '公里',
     unitEn: 'km',
+    chooseSchedule: true,
   ),
   HabitTemplate(
     'language',
@@ -127,7 +131,7 @@ const habitTemplates = [
     'plant',
     'plants',
     'garden',
-  ]),
+  ], chooseSchedule: true),
   HabitTemplate(
     'music',
     12,
@@ -153,7 +157,7 @@ const habitTemplates = [
     'strength',
     'workout',
     'gym',
-  ]),
+  ], chooseSchedule: true),
   HabitTemplate('unplug', 22, '放下手机', 'Put the phone away', [
     '手机',
     '屏幕',
@@ -203,7 +207,18 @@ int? suggestedHabitIcon(String title) {
 
 /// Explicit total suggestions in thousandths, using the selected day's unit.
 /// These values only fill the editor; they never accumulate or write records.
-List<int> quantitySuggestions(int target, String unit) {
+List<int> quantitySuggestions(
+  int target,
+  String unit, {
+  bool wholeCounts = false,
+}) {
+  if (wholeCounts) {
+    final wholeTarget = target ~/ 1000;
+    return {
+      for (final n in [1, 2, 3, wholeTarget ~/ 2, wholeTarget])
+        if (n > 0 && n <= wholeTarget) n * 1000,
+    }.toList()..sort();
+  }
   final values = switch (unit.trim().toLowerCase()) {
     'ml' || '毫升' => [250000, 500000, 1000000],
     '页' || 'page' || 'pages' => [1000, 5000, 10000],

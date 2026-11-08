@@ -10,6 +10,7 @@ import 'package:daypanel/domain/models.dart';
 import 'package:daypanel/l10n/app_localizations.dart';
 import 'package:daypanel/main.dart';
 import 'package:daypanel/presentation/backup_page.dart';
+import 'package:daypanel/presentation/habits.dart';
 import 'package:daypanel/presentation/organization.dart';
 import 'package:daypanel/presentation/theme.dart';
 
@@ -169,9 +170,20 @@ void main() {
       await tester.enterText(find.byKey(const Key('schedule-number')), '3');
       await tester.tap(find.byKey(const Key('save-entry')));
       await tester.pumpAndSettle();
-      expect(app.habits.single.schedule, ScheduleKind.weekly);
+      final created = app.habits.single;
+      expect(created.schedule, ScheduleKind.weekly);
+      expect(created.weeklyGoal, 3);
+      expect(app.planned, isEmpty);
+      expect(app.entries, isEmpty);
+      final detail = tester.widget<HabitDetails>(find.byType(HabitDetails));
+      expect(detail.id, created.id);
+      expect(detail.initialDay, app.today);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(HabitDetails), findsNothing);
       expect(app.planned, isEmpty);
       expect(find.text('Flexible this week'), findsOneWidget);
+      expect(find.byKey(Key('habit-action-${created.id}')), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     },
   );

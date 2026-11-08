@@ -69,7 +69,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dailyRateHint =>
-      'Achieved / planned days through yesterday. Today, flexible weekly goals, archived and unknown dates are excluded.';
+      'Qualifying days / planned days, counting ended days only. Today, weekly goals, archived periods and unknown history are excluded.';
 
   @override
   String get currentRun => 'Current planned-day run';
@@ -904,7 +904,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkHabit => 'Check off';
 
   @override
-  String get quantityHabit => 'Quantity';
+  String get quantityHabit => 'Track an amount';
 
   @override
   String get target => 'Daily target';
@@ -1841,4 +1841,189 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get widgetsHelpTitle => 'How to add widgets';
+
+  @override
+  String get allHabitsProgress => 'All daily habits';
+
+  @override
+  String get filterEmptyHelp => 'Clear the filters to see your habits.';
+
+  @override
+  String get emptyDayHelp =>
+      'No habits are planned for this day. Choose another date or record an unplanned activity.';
+
+  @override
+  String get recordOtherHabit => 'Record another habit';
+
+  @override
+  String get extraRecordHelp =>
+      'Record what you did on this day without changing its schedule.';
+
+  @override
+  String get historicalRestReadonly =>
+      'This past break has ended. This day keeps its original rest status.';
+
+  @override
+  String get restSkippedRecordHint =>
+      'Remove this day’s skip before recording it.';
+
+  @override
+  String get restManageRecordHint =>
+      'This day is on a break. Manage current or upcoming breaks in habit settings.';
+
+  @override
+  String get reminderSharedGoal =>
+      'These times remind you about one daily goal. Reminders stop when it is met; each time is not a separate completion.';
+
+  @override
+  String get backupLocalStatus => 'Your data is on this device';
+
+  @override
+  String get backupNeverExported => 'No successful export on this device yet';
+
+  @override
+  String get backupExportFact =>
+      'This records a past export. Keep the exported file outside the app.';
+
+  @override
+  String get restoreNextSteps => 'Next steps';
+
+  @override
+  String get restoreCheckReminders => 'Check reminders and permissions';
+
+  @override
+  String get restoreWidgets => 'Reconnect home screen widgets';
+
+  @override
+  String get widgetAddTitle => 'Add to home screen';
+
+  @override
+  String get widgetChooseHint =>
+      'Choose an item, then confirm in the system dialog.';
+
+  @override
+  String get widgetPinRequested =>
+      'Requested. Confirm on your home screen; cancelling adds no widget.';
+
+  @override
+  String get widgetPinUnavailable =>
+      'Your launcher does not support adding here. Follow the steps below to add from your home screen.';
+
+  @override
+  String get widgetPinFailed =>
+      'Unable to request a widget. Retry or add it from your home screen.';
+
+  @override
+  String get widgetPinEmpty =>
+      'Create a habit or task first, then choose it for your widget.';
+
+  @override
+  String get widgetPinSelect => 'Choose widget content';
+
+  @override
+  String get widgetPinConfirm => 'Request widget';
+
+  @override
+  String get backupLastExport => 'Last successful export on this device';
+
+  @override
+  String get countHabit => 'Count repetitions';
+
+  @override
+  String get countUnit => 'times';
+
+  @override
+  String get countWholeError => 'Enter a non-negative whole count.';
+
+  @override
+  String get countTargetError =>
+      'The count target must be a positive whole number.';
+
+  @override
+  String get recordingCheckHelp => 'Mark it done once for the day.';
+
+  @override
+  String get recordingQuantityHelp =>
+      'Record the day total; decimal amounts are allowed.';
+
+  @override
+  String get recordingCountHelp => 'Record the day count using whole numbers.';
+
+  @override
+  String get chooseSchedule => 'Choose your schedule';
+
+  @override
+  String get chooseScheduleHelp =>
+      'Choose a schedule, then set the days or goal that suits you.';
+
+  @override
+  String get recordingRuleTitle => 'Your completion rule';
+
+  @override
+  String get weeklyCountingHint =>
+      'Weekly progress counts qualifying days; several sessions on one day still count as one day.';
+
+  @override
+  String get quantitySetMode => 'Set day total';
+
+  @override
+  String get quantityAddMode => 'Add this amount';
+
+  @override
+  String get countSetMode => 'Set day count';
+
+  @override
+  String get countAddMode => 'Add this count';
+
+  @override
+  String get quantityAddHint =>
+      'Enter this amount and confirm the new day total.';
+
+  @override
+  String quantityAddPreview(
+    String previous,
+    String unit,
+    String amount,
+    String total,
+  ) {
+    return 'Recorded $previous $unit; adding $amount $unit. Saving sets the day total to $total $unit.';
+  }
+
+  @override
+  String get recordChanged =>
+      'The record or plan changed. Reload and check the latest values.';
+
+  @override
+  String get reloadRecord => 'Reload record';
+
+  @override
+  String createNamedHabit(String name) {
+    return 'Create “$name”';
+  }
+
+  @override
+  String pmSearchScope(String scope) {
+    return 'Search in $scope';
+  }
+
+  @override
+  String get pmSearchAllMonths => 'Search all months';
+
+  @override
+  String get pmReviewEmptyTitle => 'No records in these seven days';
+
+  @override
+  String get pmReviewEmptyBody =>
+      'Your records will appear here. Open a day to view it or correct a past record.';
+
+  @override
+  String get pmCardsNoDaily =>
+      'Your earned daily cards are kept here. There are no daily habits to complete today; weekly goals and rest days do not count toward today\'s card.';
+
+  @override
+  String get pmRecentStatistics => 'Latest';
+
+  @override
+  String get widgetReconnectHelp =>
+      'Return to your home screen. Open settings or refresh on each existing widget, choose its habit or task again, and save. Restoring data requires reconnecting existing widgets; you do not need to add duplicates.';
 }

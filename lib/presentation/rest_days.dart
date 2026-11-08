@@ -9,6 +9,16 @@ import 'components.dart';
 import 'theme.dart';
 import 'refined_components.dart';
 
+String restRecordHint(AppLocalizations s, HabitBreak rest, Day day, Day today) {
+  if (rest.kind == BreakKind.skip) return s.restSkippedRecordHint;
+  if (day.compareTo(today) < 0 &&
+      rest.end != null &&
+      rest.end!.compareTo(today) < 0) {
+    return s.historicalRestReadonly;
+  }
+  return s.restManageRecordHint;
+}
+
 String restName(AppLocalizations s, HabitBreak rest) => switch (rest.kind) {
   BreakKind.pause => s.restPaused,
   BreakKind.vacation => s.restVacation,

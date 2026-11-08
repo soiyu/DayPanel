@@ -62,7 +62,7 @@ class WidgetSnapshotTest {
         val snap=WidgetSnapshotReader.read(c,day)!!
         assertEquals(3L,snap.generation);assertTrue(snap.chinese);assertTrue(snap.dark);assertTrue(snap.items["habit:h"]!!.archived)
         db.execSQL("DELETE FROM habits");assertNull(WidgetSnapshotReader.read(c,day)!!.items["habit:h"])
-        db.version=11;assertNull(WidgetSnapshotReader.read(c,day));assertEquals(11,db.version)
+        db.version=12;assertNull(WidgetSnapshotReader.read(c,day));assertEquals(12,db.version)
     }
     @Test fun pendingIntentsSeparateInstancesConfigurationDayAndAction() {
         val a=WidgetBinding(101,"habit","h",0,"a")
@@ -107,6 +107,29 @@ class WidgetSnapshotTest {
         assertEquals("vacation",WidgetSnapshotReader.read(c,day.plusDays(1))!!.items["habit:h"]!!.rest)
         assertNull(WidgetSnapshotReader.read(c,day.plusDays(2))!!.items["habit:h"]!!.rest)
         assertEquals(250001L,WidgetSnapshotReader.read(c,day)!!.items["habit:h"]!!.value)
+    }
+
+    @Test fun schemaElevenCountUsesNumericInputAndKeepsRevisionWithoutWrites() {
+        db.execSQL("ALTER TABLE runtime ADD COLUMN revision INTEGER NOT NULL DEFAULT 42")
+        db.execSQL("ALTER TABLE habits ADD COLUMN icon INTEGER NOT NULL DEFAULT 6")
+        db.execSQL("ALTER TABLE habits ADD COLUMN color TEXT NOT NULL DEFAULT 'auto'")
+        db.execSQL("ALTER TABLE habits ADD COLUMN frame TEXT NOT NULL DEFAULT 'auto'")
+        db.execSQL("CREATE TABLE habit_breaks(id TEXT,habit_id TEXT,start_day TEXT,end_day TEXT,kind TEXT)")
+        db.execSQL("UPDATE habits SET kind='count'")
+        db.execSQL("UPDATE plans SET target=3000,unit='times'")
+        db.execSQL("UPDATE entries SET value=1000")
+        db.version=11
+        val snapshot=WidgetSnapshotReader.read(c,day)!!
+        val count=snapshot.items["habit:h"]!!
+        assertTrue(count.quantity)
+        assertEquals(1000L,count.value)
+        assertEquals(3000L,count.target)
+        assertEquals("times",count.unit)
+        assertFalse(count.done)
+        assertEquals(42L,snapshot.revision)
+        db.execSQL("UPDATE entries SET value=3000")
+        assertTrue(WidgetSnapshotReader.read(c,day)!!.items["habit:h"]!!.done)
+        assertEquals(11,db.version)
     }
 
 }

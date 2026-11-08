@@ -73,15 +73,15 @@ class ReminderEngineTest {
         raw.put(id,e.json());prefs.edit().putString("scheduled",raw.toString()).commit()
         return e
     }
-    @Test fun schemaThreeThroughTenRemainReadableWithoutUserDataWrites() {
-        for(version in 3..10) {
+    @Test fun schemaThreeThroughElevenRemainReadableWithoutUserDataWrites() {
+        for(version in 3..11) {
             db.version=version
             val snapshot=SnapshotReader.read(c)
             assertNotNull(snapshot)
             assertEquals(id,snapshot!!.habits.single().id)
             assertEquals(version,db.version)
         }
-        db.version=11
+        db.version=12
         assertNull(SnapshotReader.read(c))
         db.version=7
         db.rawQuery("SELECT COUNT(*) FROM entries",null).use { it.moveToFirst();assertEquals(0,it.getInt(0)) }
@@ -157,6 +157,20 @@ class ReminderEngineTest {
         assertNull(ReminderEngine.openRequest(c,e.json().toString()))
         db.execSQL("DELETE FROM habit_breaks");ReminderEngine.sync(c)
         assertEquals(1,ReminderEngine.status(c)["pending"])
+    }
+
+    @Test fun schemaElevenCountKeepsRemainingRemindersUntilWholeTargetIsReached() {
+        db.version=11
+        db.execSQL("UPDATE habits SET kind='count'")
+        db.execSQL("UPDATE plans SET target=3000")
+        val day=LocalDate.now()
+        db.execSQL("INSERT INTO entries VALUES(?,?,1000)",arrayOf(id,day.toString()))
+        val partial=SnapshotReader.read(c)!!.habits.single()
+        assertEquals("count",partial.kind)
+        assertTrue(ReminderRules.eligible(partial,day))
+        db.execSQL("UPDATE entries SET value=3000")
+        assertFalse(ReminderRules.eligible(SnapshotReader.read(c)!!.habits.single(),day))
+        assertEquals(11,db.version)
     }
 
 }

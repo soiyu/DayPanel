@@ -154,6 +154,10 @@ class _ReminderEditorState extends State<ReminderEditor> {
             s.reminderPermissionHint,
             style: Theme.of(context).textTheme.bodySmall,
           ),
+          Text(
+            s.reminderSharedGoal,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
           SectionTitle(s.reminderTimes, tone: UiTone.peach),
           for (final minute in times)
             Padding(

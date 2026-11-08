@@ -1,6 +1,11 @@
 import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
 
+// Schema 11 adds the count enum to existing rows without changing their shape.
+// The version marker prevents older native readers from treating it as check.
+// No quantity values or units are inferred, converted, or rounded on upgrade.
+Future<void> upgradeToV11(DatabaseExecutor db) async {}
+
 Future<void> upgradeToV10(DatabaseExecutor db) async {
   final columns = await db.rawQuery('PRAGMA table_info(runtime)');
   if (!columns.any((c) => c['name'] == 'revision')) {

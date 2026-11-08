@@ -34,7 +34,7 @@ class WidgetDirectActionDeviceTest {
         c.startActivity(Intent(c,app.daypanel.next.MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         awaitCondition("App must create/upgrade the real database") {
             if(!c.getDatabasePath("daypanel_flutter.db").exists()) false else try {
-                SQLiteDatabase.openDatabase(c.getDatabasePath("daypanel_flutter.db").path,null,SQLiteDatabase.OPEN_READWRITE).use { it.version==10 }
+                SQLiteDatabase.openDatabase(c.getDatabasePath("daypanel_flutter.db").path,null,SQLiteDatabase.OPEN_READWRITE).use { it.version==11 }
             }catch(_:Exception){false}
         }
         shell("input keyevent 3")

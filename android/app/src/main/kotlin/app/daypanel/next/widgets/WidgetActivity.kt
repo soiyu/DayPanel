@@ -27,6 +27,13 @@ class WidgetBridge(private val activity: MainActivity, engine: FlutterEngine) {
     init {
         MethodChannel(engine.dartExecutor.binaryMessenger, "app.daypanel.next/widgets").setMethodCallHandler { call, reply ->
             when (call.method) {
+                "canPin" -> reply.success(WidgetPin.supported(activity))
+                "hasWidgets" -> work(reply) { WidgetBindings.ids(activity).isNotEmpty() }
+                "pin" -> try {
+                    require(activity !is WidgetActivity)
+                    reply.success(WidgetPin.request(activity, call.argument<String>("kind") ?: error("Missing kind"),
+                        call.argument<String>("id") ?: error("Missing item"), call.argument<Number>("generation")?.toLong() ?: error("Missing generation")))
+                } catch (_: Exception) { reply.error("widgets", "Widget request unavailable", null) }
                 "refresh" -> work(reply) { refresh(); null }
                 "launch" -> work(reply) { launch() }
                 "validate" -> work(reply) { WidgetBindings.valid(activity, call.arguments as? Map<*, *> ?: emptyMap<Any, Any>()) }

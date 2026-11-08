@@ -410,7 +410,7 @@ void main() {
           path: '${dir.path}/db',
           migrationDay: today,
         );
-        expect(await store.db.getVersion(), 10);
+        expect(await store.db.getVersion(), 11);
         expect((await store.activity()).single.day, today);
         final s = stats(
           (await store.habits()).single,

@@ -74,7 +74,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: path,
       );
-      expect(await migrated.db.getVersion(), 10);
+      expect(await migrated.db.getVersion(), 11);
       final task = (await migrated.tasks()).single;
       expect(task.resident, isFalse);
       expect(task.startDay, isNull);

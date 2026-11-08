@@ -8,11 +8,20 @@ import 'components.dart';
 import 'theme.dart';
 import 'legacy_import.dart';
 import 'refined_components.dart';
+import 'reminders.dart';
+import 'home_widgets.dart';
+import '../data/widget_platform.dart';
 
 class BackupPage extends StatefulWidget {
-  const BackupPage({super.key, required this.app, this.files});
+  const BackupPage({
+    super.key,
+    required this.app,
+    this.files,
+    this.onReturnToday,
+  });
   final AppController app;
   final DocumentFiles? files;
+  final VoidCallback? onReturnToday;
   @override
   State<BackupPage> createState() => _BackupPageState();
 }
@@ -21,6 +30,8 @@ class _BackupPageState extends State<BackupPage> {
   bool working = false, committing = false;
   String? message;
   bool failed = false;
+  bool restored = false, hasWidgets = false;
+  DateTime? lastExport;
   BackupSnapshot? recovery;
   int recoveryEpoch = 0;
   DocumentFiles get files => widget.files ?? AndroidDocumentFiles();
@@ -28,6 +39,24 @@ class _BackupPageState extends State<BackupPage> {
   void initState() {
     super.initState();
     loadRecovery();
+    loadDeviceFacts();
+  }
+
+  Future<void> loadDeviceFacts() async {
+    final exported = await DeviceExportHistory().lastExport();
+    var bound = false;
+    final platform = widget.app.widgetPlatform;
+    if (platform is WidgetPinning) {
+      try {
+        bound = await (platform as WidgetPinning).hasWidgets();
+      } catch (_) {}
+    }
+    if (mounted) {
+      setState(() {
+        lastExport = exported;
+        hasWidgets = bound;
+      });
+    }
   }
 
   Future<void> loadRecovery() async {
@@ -86,6 +115,8 @@ class _BackupPageState extends State<BackupPage> {
       'DayPanel-${widget.app.today.key}.json',
     );
     if (saved && mounted) {
+      await loadDeviceFacts();
+      if (!mounted) return;
       setState(() => message = AppLocalizations.of(context).backupSaved);
     }
   });
@@ -156,6 +187,7 @@ class _BackupPageState extends State<BackupPage> {
     if (!mounted) return;
     setState(() {
       failed = !ok;
+      restored = ok;
       message = ok
           ? (rollback
                 ? AppLocalizations.of(context).rollbackDone
@@ -217,6 +249,80 @@ class _BackupPageState extends State<BackupPage> {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
             children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.backupLocalStatus,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      lastExport == null
+                          ? s.backupNeverExported
+                          : '${s.backupLastExport} · ${MaterialLocalizations.of(context).formatMediumDate(lastExport!)} ${TimeOfDay.fromDateTime(lastExport!).format(context)}',
+                      key: const Key('device-export-status'),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    if (lastExport != null)
+                      Text(
+                        s.backupExportFact,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                  ],
+                ),
+              ),
+              if (restored) ...[
+                SoftPanel(
+                  tone: UiTone.teal,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        s.restoreNextSteps,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      if (widget.app.reminders.any((r) => r.enabled))
+                        SettingRow(
+                          icon: Icons.notifications_none_rounded,
+                          title: s.restoreCheckReminders,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => RemindersPage(app: widget.app),
+                            ),
+                          ),
+                        ),
+                      if (hasWidgets)
+                        SettingRow(
+                          icon: Icons.widgets_outlined,
+                          title: s.restoreWidgets,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => WidgetsHelpPage(
+                                app: widget.app,
+                                reconnect: true,
+                              ),
+                            ),
+                          ),
+                        ),
+                      AppAction(
+                        label: s.todayLabel,
+                        icon: Icons.home_outlined,
+                        onTap: () {
+                          widget.app.select(widget.app.today);
+                          widget.onReturnToday?.call();
+                          Navigator.popUntil(context, (route) => route.isFirst);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               ActionTile(
                 key: const Key('export-backup'),
                 title: s.exportBackup,

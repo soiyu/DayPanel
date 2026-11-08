@@ -11,6 +11,7 @@ import 'appearance.dart';
 import 'refined_components.dart';
 import 'habit_catalog.dart';
 import 'habit_icon.dart';
+import 'habits.dart';
 import '../domain/habit_templates.dart';
 
 String noteHabitLabel(BuildContext context, AppController app, String? id) {
@@ -96,6 +97,7 @@ Future<void> openEditor(
 }) async {
   final epoch = expectedGeneration ?? app.generation;
   HabitTemplate? template;
+  var draftTitle = '';
   if (type == 'habit' && habit == null) {
     final choice = await Navigator.push<HabitStarter>(
       context,
@@ -103,9 +105,10 @@ Future<void> openEditor(
     );
     if (choice == null || !context.mounted) return;
     template = choice.template;
+    draftTitle = choice.title;
   }
   if (!context.mounted) return;
-  await showModalBottomSheet<void>(
+  final createdId = await showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -119,9 +122,19 @@ Future<void> openEditor(
       noteDay: noteDay,
       expectedGeneration: epoch,
       template: template,
+      draftTitle: draftTitle,
       chinese: Localizations.localeOf(context).languageCode == 'zh',
     ),
   );
+  if (createdId != null && context.mounted && epoch == app.generation) {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            HabitDetails(app: app, id: createdId, initialDay: app.today),
+      ),
+    );
+  }
 }
 
 class EntryEditor extends StatefulWidget {
@@ -136,6 +149,7 @@ class EntryEditor extends StatefulWidget {
     this.noteDay,
     this.expectedGeneration,
     this.template,
+    this.draftTitle = '',
     this.chinese = false,
   });
   final AppController app;
@@ -147,6 +161,7 @@ class EntryEditor extends StatefulWidget {
   final Day? noteDay;
   final int? expectedGeneration;
   final HabitTemplate? template;
+  final String draftTitle;
   final bool chinese;
   @override
   State<EntryEditor> createState() => _EntryEditorState();
@@ -159,6 +174,7 @@ class _EntryEditorState extends State<EntryEditor> {
   late int weekdays, icon;
   late String decorationColor, decorationFrame;
   late ScheduleKind schedule;
+  bool scheduleChosen = true;
   late HabitContext habitContext;
   String? groupId;
   String? noteHabitId;
@@ -181,7 +197,7 @@ class _EntryEditorState extends State<EntryEditor> {
           widget.task?.title ??
           widget.note?.body ??
           widget.template?.title(widget.chinese) ??
-          '',
+          widget.draftTitle,
     );
     target = TextEditingController(
       text: quantityText(
@@ -200,6 +216,8 @@ class _EntryEditorState extends State<EntryEditor> {
     due = widget.task?.dueDay;
     resident = widget.task?.resident ?? false;
     schedule = widget.habit?.schedule ?? ScheduleKind.weekdays;
+    scheduleChosen =
+        widget.habit != null || !(widget.template?.chooseSchedule ?? false);
     habitContext =
         widget.habit?.context ??
         widget.template?.context ??
@@ -227,6 +245,10 @@ class _EntryEditorState extends State<EntryEditor> {
     if (saving) return;
     final s = AppLocalizations.of(context);
     if (!form.currentState!.validate()) return;
+    if (isHabit && !scheduleChosen) {
+      setState(() => error = s.chooseScheduleHelp);
+      return;
+    }
     if (isHabit && schedule == ScheduleKind.weekdays && weekdays == 0) {
       setState(() => error = s.selectWeekday);
       return;
@@ -236,18 +258,19 @@ class _EntryEditorState extends State<EntryEditor> {
       error = null;
     });
     final app = widget.app;
+    final createdId = isHabit && widget.habit == null
+        ? const Uuid().v4()
+        : null;
     final ok = await app.run(() async {
       if (isHabit) {
         await app.store.saveHabit(
           Habit(
-            id: widget.habit?.id ?? const Uuid().v4(),
+            id: widget.habit?.id ?? createdId!,
             title: title.text.trim(),
             kind: kind,
             startDay: widget.habit?.startDay ?? app.today,
-            target: kind == HabitKind.quantity
-                ? parseQuantity(target.text)!
-                : 1000,
-            unit: kind == HabitKind.quantity ? unit.text.trim() : '',
+            target: kind.isNumeric ? parseQuantity(target.text)! : 1000,
+            unit: kind.isNumeric ? unit.text.trim() : '',
             weekdays: weekdays == 0 ? 127 : weekdays,
             icon: icon,
             color: decorationColor,
@@ -298,7 +321,7 @@ class _EntryEditorState extends State<EntryEditor> {
       if (isNote) {
         app.revealNoteDay(noteDay);
       }
-      Navigator.pop(context);
+      Navigator.pop(context, createdId);
     } else {
       setState(() {
         saving = false;
@@ -480,29 +503,46 @@ class _EntryEditorState extends State<EntryEditor> {
               const SizedBox(height: 22),
               if (widget.habit == null) ...[
                 fieldLabel(s.type),
-                LayoutBuilder(
-                  builder: (context, constraints) => Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: [
-                      for (final k in HabitKind.values)
-                        SizedBox(
-                          width: (constraints.maxWidth - 10) / 2,
-                          child: _TypeChoice(
-                            label: k == HabitKind.check
-                                ? s.checkHabit
-                                : s.quantityHabit,
-                            icon: k == HabitKind.check
-                                ? Icons.task_alt_rounded
-                                : Icons.water_drop_outlined,
-                            selected: kind == k,
-                            enabled: !saving && widget.habit == null,
-                            onTap: () => setState(() => kind = k),
-                          ),
-                        ),
-                    ],
-                  ),
+                ResponsiveChoices(
+                  minWidth: 120,
+                  maxColumns: 3,
+                  children: [
+                    for (final k in HabitKind.values)
+                      QuietChoice(
+                        key: Key('habit-kind-${k.name}'),
+                        label: switch (k) {
+                          HabitKind.check => s.checkHabit,
+                          HabitKind.quantity => s.quantityHabit,
+                          HabitKind.count => s.countHabit,
+                        },
+                        icon: switch (k) {
+                          HabitKind.check => Icons.task_alt_rounded,
+                          HabitKind.quantity => Icons.straighten_rounded,
+                          HabitKind.count => Icons.pin_outlined,
+                        },
+                        selected: kind == k,
+                        onTap: saving
+                            ? null
+                            : () => setState(() {
+                                if (kind == k) return;
+                                if (k == HabitKind.count) {
+                                  target.text = '1';
+                                  unit.text = s.countUnit;
+                                } else if (kind == HabitKind.count &&
+                                    k == HabitKind.quantity) {
+                                  unit.clear();
+                                }
+                                kind = k;
+                              }),
+                      ),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                Text(switch (kind) {
+                  HabitKind.check => s.recordingCheckHelp,
+                  HabitKind.quantity => s.recordingQuantityHelp,
+                  HabitKind.count => s.recordingCountHelp,
+                }, style: Theme.of(context).textTheme.bodySmall),
               ] else
                 Padding(
                   key: const Key('habit-type-readonly'),
@@ -511,7 +551,11 @@ class _EntryEditorState extends State<EntryEditor> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${s.type}: ${kind == HabitKind.quantity ? s.quantityHabit : s.checkHabit}',
+                        '${s.type}: ${switch (kind) {
+                          HabitKind.check => s.checkHabit,
+                          HabitKind.quantity => s.quantityHabit,
+                          HabitKind.count => s.countHabit,
+                        }}',
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       const SizedBox(height: 4),
@@ -522,7 +566,7 @@ class _EntryEditorState extends State<EntryEditor> {
                     ],
                   ),
                 ),
-              if (widget.habit != null && kind == HabitKind.quantity)
+              if (widget.habit != null && kind.isNumeric)
                 Padding(
                   key: const Key('plan-tomorrow-target'),
                   padding: const EdgeInsets.only(top: 8),
@@ -531,29 +575,36 @@ class _EntryEditorState extends State<EntryEditor> {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),
-              if (kind == HabitKind.quantity) ...[
+              if (kind.isNumeric) ...[
                 const SizedBox(height: 20),
                 fieldLabel(s.target),
                 TextFormField(
                   key: const Key('habit-target'),
                   controller: target,
                   enabled: !saving,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: kind != HabitKind.count,
                   ),
+                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: s.target,
                     prefixIcon: const Icon(Icons.flag_outlined),
                   ),
-                  validator: (v) => (parseQuantity(v ?? '') ?? 0) <= 0
-                      ? s.invalidTarget
-                      : null,
+                  validator: (v) {
+                    final n = parseQuantity(v ?? '');
+                    if (kind == HabitKind.count &&
+                        (n == null || n <= 0 || n % 1000 != 0)) {
+                      return s.countTargetError;
+                    }
+                    return n == null || n <= 0 ? s.invalidTarget : null;
+                  },
                 ),
                 const SizedBox(height: 14),
                 fieldLabel(s.unit),
                 TextFormField(
                   key: const Key('habit-unit'),
                   controller: unit,
+                  onChanged: (_) => setState(() {}),
                   enabled: !saving,
                   maxLength: 12,
                   decoration: InputDecoration(
@@ -573,6 +624,11 @@ class _EntryEditorState extends State<EntryEditor> {
                   ),
                 ),
               fieldLabel(s.frequency),
+              if (!scheduleChosen)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Text(s.chooseScheduleHelp),
+                ),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -584,13 +640,16 @@ class _EntryEditorState extends State<EntryEditor> {
                         ScheduleKind.interval => s.everyNDays,
                         ScheduleKind.weekly => s.weeklyTarget,
                       },
-                      icon: schedule == mode
+                      key: Key('habit-schedule-${mode.name}'),
+                      icon: scheduleChosen && schedule == mode
                           ? Icons.check_circle_rounded
                           : Icons.circle_outlined,
                       tone: UiTone.violet,
                       onTap: saving
                           ? null
                           : () => setState(() {
+                              scheduleChosen = true;
+                              error = null;
                               if (schedule == mode) return;
                               schedule = mode;
                               scheduleNumber.text =
@@ -604,6 +663,7 @@ class _EntryEditorState extends State<EntryEditor> {
                 TextFormField(
                   key: const Key('schedule-number'),
                   controller: scheduleNumber,
+                  onChanged: (_) => setState(() {}),
                   enabled: !saving,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
@@ -649,6 +709,8 @@ class _EntryEditorState extends State<EntryEditor> {
                                   onTap: saving
                                       ? null
                                       : () => setState(() {
+                                          scheduleChosen = true;
+                                          error = null;
                                           weekdays = (weekdays & (1 << i)) == 0
                                               ? weekdays | (1 << i)
                                               : weekdays & ~(1 << i);
@@ -697,6 +759,54 @@ class _EntryEditorState extends State<EntryEditor> {
                     ],
                   ),
                 ),
+              const SizedBox(height: 14),
+              SoftPanel(
+                key: const Key('habit-rule-preview'),
+                padding: const EdgeInsets.all(12),
+                tinted: true,
+                tone: UiTone.violet,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.recordingRuleTitle,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      !scheduleChosen
+                          ? s.chooseSchedule
+                          : scheduleText(
+                              s,
+                              HabitPlan(
+                                habitId: widget.habit?.id ?? 'draft',
+                                effectiveDay: widget.habit == null
+                                    ? widget.app.today
+                                    : widget.app.today.plus(1),
+                                target: parseQuantity(target.text) ?? 1000,
+                                unit: unit.text.trim(),
+                                weekdays: weekdays,
+                                schedule: schedule,
+                                intervalDays:
+                                    int.tryParse(scheduleNumber.text) ?? 1,
+                                weeklyGoal:
+                                    int.tryParse(scheduleNumber.text) ?? 1,
+                              ),
+                            ),
+                    ),
+                    Text(
+                      kind == HabitKind.check
+                          ? s.recordingCheckHelp
+                          : '${s.target}: ${target.text} ${unit.text.trim()}',
+                    ),
+                    if (scheduleChosen && schedule == ScheduleKind.weekly)
+                      Text(
+                        s.weeklyCountingHint,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 14),
               Material(
                 color: Colors.transparent,
@@ -989,23 +1099,31 @@ class QuantityEditor extends StatefulWidget {
   final AppController app;
   final Habit habit;
   final Day day;
-  final Future<bool> Function(int? value)? onSave;
+  final Future<bool> Function(int? value, int expectedRevision)? onSave;
   @override
   State<QuantityEditor> createState() => _QuantityEditorState();
 }
 
 class _QuantityEditorState extends State<QuantityEditor> {
   late final TextEditingController value;
+  late final int epoch;
+  late int revision;
+  late Habit snapshot;
+  int? previous;
   String? error;
   bool saving = false;
-  late int epoch;
+  bool adding = false;
+  bool stale = false;
+
   @override
   void initState() {
     super.initState();
     epoch = widget.app.generation;
-    final current = widget.app.value(widget.habit, widget.day);
+    revision = widget.app.revision;
+    snapshot = widget.app.forDay(widget.habit, widget.day);
+    previous = widget.app.value(widget.habit, widget.day);
     value = TextEditingController(
-      text: current == null ? '' : quantityText(current),
+      text: previous == null ? '' : quantityText(previous!),
     );
   }
 
@@ -1015,25 +1133,99 @@ class _QuantityEditorState extends State<QuantityEditor> {
     super.dispose();
   }
 
+  int? get inputAmount {
+    final parsed = parseQuantity(value.text);
+    if (parsed == null ||
+        (snapshot.kind == HabitKind.count && parsed % 1000 != 0)) {
+      return null;
+    }
+    return parsed;
+  }
+
+  int? get result {
+    final amount = inputAmount;
+    if (amount == null || (adding && amount == 0)) return null;
+    final total = adding ? (previous ?? 0) + amount : amount;
+    return total > 999999999999 ? null : total;
+  }
+
+  Future<void> reload() async {
+    if (saving || widget.app.generation != epoch) return;
+    setState(() => saving = true);
+    try {
+      await widget.app.load();
+      if (!mounted) return;
+      final h = widget.app.habits
+          .where((h) => h.id == widget.habit.id)
+          .firstOrNull;
+      if (widget.app.generation != epoch || h == null || !h.kind.isNumeric) {
+        setState(() {
+          saving = false;
+          stale = true;
+          error = AppLocalizations.of(context).recordChanged;
+        });
+        return;
+      }
+      setState(() {
+        snapshot = widget.app.forDay(h, widget.day);
+        previous = widget.app.value(h, widget.day);
+        revision = widget.app.revision;
+        value.text = previous == null ? '' : quantityText(previous!);
+        adding = false;
+        stale = false;
+        saving = false;
+        error = null;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          saving = false;
+          error = AppLocalizations.of(context).storageError;
+        });
+      }
+    }
+  }
+
   Future<void> save({bool clear = false}) async {
-    if (saving) return;
+    if (saving || stale) return;
     final s = AppLocalizations.of(context);
-    final amount = clear ? null : parseQuantity(value.text);
+    final amount = clear ? null : result;
     if (!clear && amount == null) {
-      setState(() => error = s.invalidQuantity);
+      setState(
+        () => error = snapshot.kind == HabitKind.count
+            ? s.countWholeError
+            : s.invalidQuantity,
+      );
+      return;
+    }
+    if (epoch != widget.app.generation || revision != widget.app.revision) {
+      setState(() {
+        stale = true;
+        error = s.recordChanged;
+      });
       return;
     }
     setState(() => saving = true);
     final ok = widget.onSave != null
-        ? await widget.onSave!(amount)
-        : await widget.app.recordHabit(widget.habit, widget.day, amount, epoch);
+        ? await widget.onSave!(amount, revision)
+        : await widget.app.recordHabit(
+            snapshot,
+            widget.day,
+            amount,
+            epoch,
+            expectedRevision: revision,
+          );
     if (!mounted) return;
     if (ok) {
       Navigator.pop(context);
     } else {
       setState(() {
         saving = false;
-        error = s.storageError;
+        stale =
+            widget.app.generation != epoch ||
+            widget.app.revision != revision ||
+            widget.app.error == 'record_conflict';
+        error = stale ? s.recordChanged : s.storageError;
       });
     }
   }
@@ -1041,8 +1233,8 @@ class _QuantityEditorState extends State<QuantityEditor> {
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
-    final h = widget.app.forDay(widget.habit, widget.day);
-    final current = widget.app.value(h, widget.day);
+    final h = snapshot;
+    final count = h.kind == HabitKind.count;
     final tone = habitTone(h.icon, h.color);
     return SheetFrame(
       title: h.title,
@@ -1056,21 +1248,54 @@ class _QuantityEditorState extends State<QuantityEditor> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          ResponsiveChoices(
+            minWidth: 140,
+            maxColumns: 2,
+            children: [
+              for (final add in [false, true])
+                AppAction(
+                  key: Key(add ? 'quantity-mode-add' : 'quantity-mode-total'),
+                  label: add
+                      ? (count ? s.countAddMode : s.quantityAddMode)
+                      : (count ? s.countSetMode : s.quantitySetMode),
+                  icon: adding == add
+                      ? Icons.check_circle_rounded
+                      : Icons.circle_outlined,
+                  tone: tone,
+                  onTap: saving || stale
+                      ? null
+                      : () => setState(() {
+                          if (adding == add) return;
+                          adding = add;
+                          value.text = add
+                              ? (count ? '1' : '')
+                              : (previous == null
+                                    ? ''
+                                    : quantityText(previous!));
+                          error = null;
+                        }),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Text(
-            s.quantityReplaceTotal,
+            adding
+                ? (count ? s.countAddMode : s.quantityAddMode)
+                : (count ? s.countSetMode : s.quantityReplaceTotal),
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 8),
           TextField(
             key: const Key('quantity-input'),
             controller: value,
-            enabled: !saving,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            enabled: !saving && !stale,
+            keyboardType: TextInputType.numberWithOptions(decimal: !count),
             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
               hintText: '0',
               suffixText: h.unit,
               errorText: error,
+              errorMaxLines: 3,
             ),
             onChanged: (_) => setState(() => error = null),
           ),
@@ -1082,7 +1307,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
             children: [
               Text(
                 s.quantitySavedTotal(
-                  current == null ? '—' : quantityText(current),
+                  previous == null ? '—' : quantityText(previous!),
                   h.unit,
                 ),
                 style: Theme.of(context).textTheme.bodySmall,
@@ -1097,31 +1322,53 @@ class _QuantityEditorState extends State<QuantityEditor> {
           Semantics(
             liveRegion: true,
             child: Text(
-              parseQuantity(value.text) == null
-                  ? s.quantityTotalHint
-                  : s.quantityReplacePreview(
-                      quantityText(parseQuantity(value.text)!),
+              result == null
+                  ? (adding ? s.quantityAddHint : s.quantityTotalHint)
+                  : adding
+                  ? s.quantityAddPreview(
+                      quantityText(previous ?? 0),
                       h.unit,
-                    ),
+                      quantityText(inputAmount!),
+                      quantityText(result!),
+                    )
+                  : s.quantityReplacePreview(quantityText(result!), h.unit),
               key: const Key('quantity-replace-preview'),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
+          if (stale && widget.app.generation == epoch) ...[
+            const SizedBox(height: 10),
+            AppAction(
+              key: const Key('quantity-reload'),
+              label: s.reloadRecord,
+              icon: Icons.refresh_rounded,
+              onTap: saving ? null : reload,
+            ),
+          ],
           const SizedBox(height: 16),
-          Text(s.prefillTotal, style: Theme.of(context).textTheme.titleSmall),
+          Text(
+            adding
+                ? (count ? s.countAddMode : s.quantityAddMode)
+                : s.prefillTotal,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
           const SizedBox(height: 8),
           LayoutBuilder(
             builder: (context, constraints) => Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final total in quantitySuggestions(h.target, h.unit))
+                for (final total in quantitySuggestions(
+                  h.target,
+                  h.unit,
+                  wholeCounts: count,
+                ))
                   SizedBox(
                     width: (constraints.maxWidth - 8) / 2,
                     child: AppAction(
                       label: '${quantityText(total)} ${h.unit}',
                       tone: tone,
-                      onTap: saving
+                      onTap: saving || stale
                           ? null
                           : () => setState(() {
                               value.text = quantityText(total);
@@ -1133,12 +1380,12 @@ class _QuantityEditorState extends State<QuantityEditor> {
             ),
           ),
           const SizedBox(height: 12),
-          if (current != null)
+          if (previous != null)
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
                 key: const Key('quantity-clear'),
-                onPressed: saving ? null : () => save(clear: true),
+                onPressed: saving || stale ? null : () => save(clear: true),
                 icon: const Icon(Icons.restart_alt_rounded, size: 18),
                 label: Text(s.clearRecord),
               ),
@@ -1163,7 +1410,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
               icon: Icons.check_rounded,
               primary: true,
               busy: saving,
-              onTap: saving ? null : save,
+              onTap: saving || stale ? null : save,
             ),
           ),
         ],

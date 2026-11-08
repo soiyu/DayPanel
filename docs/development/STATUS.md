@@ -1014,3 +1014,70 @@ git diff --cached --check
 3/3诊断通过：中英次数单位的分数快捷值、1.5次实际存入内存SQLite、同日依次保存1/2/3次最终一行总数3且周达标1/3天。日志`.local/reports/pm03-recording-modes-probe.log`，诊断文件`.local/pm03_recording_modes_probe_test.dart`，均ignored；固定日期，无真实用户或设备行为结论。通过只表示上述行为复现，未新增专门计次/周累计/逐次事件。
 
 本轮仅文档，不改App/数据库/安装包、不操作主用户记录、不推送或关闭电脑/模拟器。PM02A既定路径修复继续待实施，验收扩大为完成、页数、距离、分钟、次数、一次性及常驻；计次与逐次模型先明确规则、历史/备份/原生边界。FL19/FL20状态不变。
+
+
+## 2026-11-08 PM04 产品路径与记录方式修复
+
+用户授权汇总PM02/PM03后先设计再开始实现，随后补充“没有旧数据”。基线40ba0ce，起始git status干净。先写ADR0015和PM04-PRODUCT-PATHS，再分领域实现与独立复查；以新产品清晰语义为优先，不迁就旧使用习惯，也未把用户说明解释为清空主用户数据库的指令。旧原生工程源码未修改。
+
+### 本批实际行为
+
+- 完成打卡、数量、整数次数三种记录方式。count使用现有千分位存储但目标/值必须整千；quantity保留小数。输入、预览、快捷值、统计、卡片和组件明确区分，3次目标快捷值为1/2/3，无0.75次等分数。
+- 数量/次数默认修改日总量，可主动切换记录本次。界面显示已记录、本次与新合计，确认后写明确最终值；取消不写。表单捕获generation/revision，同事务检查并发和ABA，过期要求明确重载，恢复跨generation拒绝旧页。没有盲加，也不虚构逐次事件或撤销某一笔；周目标仍是达标天数，说明多次同日仍算一天。
+- 新建习惯保存后到新项今天详情，返回保留旧日期/筛选；模板搜索带入自定义标题。跑步/骑行/植物/力量模板要求主动选安排；完成方式与频率分别说明，不按名称自动迁移。
+- 首页空态按原因给新建/清筛选/回今天或管理；非计划日可从“记录其他习惯”进入合法记录。历史休息首页先看该日事实，已结束休息无不可能的解除指引；当前管理独立。详情七天/统计以所选历史日为截止，可回最近。
+- 手记本月关键词无结果可保留关键词/习惯条件扩至全部月份；搜索范围只在实际搜索时显示，避免挤掉首屏正文。七日回顾日期直达日明细并有真实空态。常驻放今天/逾期后、未来项前；卡册空态按日义务适用性展示。
+- 提醒说明多个时刻服务同一天目标、达标取消，不代表独立多次任务。成就卡/历史补记/常驻最多一天一次等规则保持。
+- Android真实SAF导出成功后记设备本机时间，取消/失败/PNG均不计备份；不进业务备份，不声称文件仍存在。恢复后按需提供提醒/旧组件重新连接帮助和回日常Today；返回确实切主标签0，重连帮助隐藏新增按钮，避免重复组件。
+- 应用内桌面添加先选真实对象，再走Launcher系统确认。随机请求标识/真实widgetId/provider/generation验证，成功回调才绑定，取消不生成实例，恢复后迟到回调不绑定新数据。原桌面配置/重配保留；窄组件数字入口缩为“记录/Record”。API页面核对requestPinAppWidget传PendingIntent，非IntentSender，来源为Android官方AppWidgetManager文档。
+- SQLite11/schema11仅版本兼容标记，无业务表列改变；严格兼容schema2–10并拒绝旧schema夹带count，记录/计划/卡片验证和恢复前副本同步；提醒读取3..11，组件7..11，count按数字输入不走布尔后台完成。实际导出/恢复支持count。
+
+### 工程检查
+
+```powershell
+./scripts/dev.ps1 pub
+./scripts/dev.ps1 format
+./scripts/dev.ps1 verify
+./scripts/dev.ps1 test -Extra '--concurrency=2','test/pm04_root_paths_test.dart','test/pm04_editor_flows_test.dart','test/home_widgets_ui_test.dart'
+./scripts/dev.ps1 analyze
+./scripts/dev.ps1 native-test
+./scripts/dev.ps1 assemble
+git diff --check
+git diff --cached --check
+```
+
+完整verify日志`pm04-verify-delivery.log`：91文件格式无变化、analyze无问题10.1秒、**344 Flutter/Dart通过**（2:58）、APK构建成功、**14 Kotlin JVM**通过（XML核对14/0失败/0错误，pm04-jvm-summary.txt）。随后仅补计次数量标签区分和窄组件按钮文字：相关Flutter **23项通过**7秒（pm04-labels-focused.log），最后analyze无问题8.5秒；native-test成功12秒（pm04-native-compact.log），最终assemble成功18.8秒（pm04-build-compact.log）。没有重复累计重叠专项的测试数量。
+
+阶段检查：模型52项+后补count套件12项；编辑器32项；路径40项/17项；恢复5项；首屏/手记25项；创建路由15项。这些均为不同阶段、部分重叠，不加到344上。新增测试覆盖整数/小数、次日计划、严格备份、双连接竞争、CAS/ABA/恢复、创建后可见、搜索/历史/常驻、无日义务卡、系统添加请求/取消、恢复后根标签等。
+
+失败记录：首轮verify被3处本次新增if缺大括号静态提示阻塞，已修；第二轮本地化生成中两项临时编译失败和两项旧创建路由断言失败，更新断言为新建详情→返回首页，未删除原行为要求；下一轮发现英文大字号搜索范围说明挤掉首屏手记，修生产布局仅搜索时显示范围，再25项通过后完整344成功。首个数据保留脚本在主Activity刚显示、Flutter尚未完成打开数据库前即停进程，读到v10，版本断言失败；等到真实首页加载后重新归档，最终v11及逐表一致通过。失败未记作通过。
+
+最终APK `build/app/outputs/flutter-apk/app-debug.apk`：**174981212 bytes**，SHA-256 **ef96360c97ea391c408d0e3d1e7e817df8fd1794b1583f256e3da75e20caf658**；已覆盖安装。保留既有Kotlin/Gradle迁移警告，非release。合并manifest核对包名app.daypanel.next.debug、allowBackup=false、WidgetPinReceiver exported=false；未新增权限（debug既有INTERNET等保持）。
+
+### API28与真实操作
+
+可见emulator-5554/API28，隔离用户11 DayPanelPM04QA；记录写入只在测试用户。应用主进程关闭后先归档`pre-pm04-db.tar`再覆盖安装。首次隔离用户冷启动UI较慢，实际界面加载后才操作，不将Activity返回当页面完成。
+
+```powershell
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/flutter-apk/app-debug.apk
+& $adb -s emulator-5554 install --no-streaming -r build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+& $adb -s emulator-5554 shell am instrument --user 11 -w -e class 'app.daypanel.next.reminders.ReminderEngineTest,app.daypanel.next.CompletionFeedbackDeviceTest,app.daypanel.next.widgets.WidgetSnapshotTest,app.daypanel.next.widgets.WidgetLifecycleTest,app.daypanel.next.importing.LegacyReaderTest,app.daypanel.next.CardImageDeviceTest,app.daypanel.next.widgets.WidgetDirectActionDeviceTest,app.daypanel.next.widgets.WidgetPinDeviceTest' app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+最终原生 **OK(32 tests)**，34.501秒，`pm04-api28-final.log`，含schema11次数提醒/快照、后台显式完成/取消/ABA、真实widgetId独立绑定与一次性回调、恢复后的迟到callback拒绝、旧库与图片。fixture只在隔离用户，原生通过不代替Launcher操作。
+
+实际UI：自定义Practice次数目标3，保存直接看到今日概览；填1→本次1预览2→保存2/3，取消下一次仍为2；桌面直接输入本次1后回桌面显示3/3。阅读模板保存5页，本次1页预览6，确认后6/10。早餐完成/恢复待做真实往返，模板目录跑步/骑行/植物显示选择安排。所有数量/次数写入均确认，不自动创建完成记录。
+
+真实Launcher：新用户首次尚未打开Launcher时系统报告pin不支持，页面显示操作说明；启动Launcher后重新进入可请求。系统弹窗取消一次后无新增实例，确认后真实实例绑定；将一个实例缩窄3列到2列、重新配置为阅读，再新增Practice，两实例分别6/10页和3/3次。窄按钮换行经实测改为Record/记录并在最终安装包截图确认。缩短高度的拖动未实际生效，只将已观察到的宽度变化记作验收，不将文件名“2x2”当作尺寸证据。恢复文件后两旧实例均显示内容已变，分别重配后保留独立内容；英文深色与中文浅色实际截图。
+
+SAF：取消导出仍显示本机未导出，保存成功显示本机成功导出时间；从该文件预览恢复含count的2习惯/2记录，成功后无提醒数据不提示权限，有旧组件显示重新选择帮助，Today真实回日常；提醒未自动申请、旧组件未自动复制。无AndroidRuntime/flutter错误日志（pm04-device-errors.log，仅日志分区头）。
+
+环境异常：一次覆盖最终包后qemu全系统不响应，ADB shell/screencap超时，控制台也超时；保留userdata、无wipe/快照覆盖地重启可见API28，冷启动66秒。此后包安装状态需重新覆盖修复，原2个测试记录仍为Practice3次/阅读6页，但Launcher此前实例已丢失。未断言原因是App或模拟器，也未将这段异常当成重启/覆盖安装桌面完整验收通过；重新安装并sync后重建真实实例完成缩放/重配/恢复/原生回归。此组合场景及厂商Launcher继续开放。
+
+真实截图ignored `.local/reports`：`pm04-overview.png`（三模式/阅读/次数）、`pm04-three-recording-modes.png`、`pm04-template-schedules.png`、`pm04-reading-add-preview.png`、`pm04-count-add-preview.png`、`pm04-count-dark-en.png`、`pm04-check-completion.png`、`pm04-widget-system-confirm.png`、`pm04-widget-count-input.png`、`pm04-widgets-two.png`、`pm04-widgets-final-dark.png`、`pm04-backup-cancelled.png`、`pm04-backup-export-fact.png`、`pm04-restore-next-steps.png`、`pm04-reconnect-existing.png`。组合图为真实截图缩放排列，不是生成mockup。
+
+### 收尾与边界
+
+切回0，实际首页加载后关闭进程归档post-pm04-db.tar；`python .local/pm04_retention.py`确认 **15张表逐行所有字段完全一致**（包括runtime/generation/revision），版本10→11、foreign_key_check为空，日志pm04-retention-final.log。测试用户11已停止删除，主用户再次启动；电脑和可见模拟器保持运行，不推送。APK/数据库/截图/机器路径不提交。
+
+本批设计范围已落地并完成上述限定验收。没有承诺每次事件时间/独立流水/撤销某笔、周累计次数/周累计量；本次输入是计算新日合计，旧weekly仍按达标天数。七日回顾总导航合并、实际用户研究收益、API35/36本批完整路径、厂商真机/TalkBack与大数据手机性能仍待。FL19开放、FL20发布未开始。

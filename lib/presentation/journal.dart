@@ -98,6 +98,11 @@ class _JournalPageState extends State<JournalPage> {
           : DateFormat.yMMMM(
               Localizations.localeOf(context).languageCode,
             ).format(currentMonth.date);
+      final canExpandSearch =
+          q.text.trim().isNotEmpty && (q.month != null || q.day != null);
+      final searchScope = q.day == null
+          ? monthName
+          : MaterialLocalizations.of(context).formatMediumDate(q.day!.date);
       final hasFilter =
           q.text.trim().isNotEmpty ||
           q.habitId != null ||
@@ -156,6 +161,14 @@ class _JournalPageState extends State<JournalPage> {
                         ),
                       ),
                     ),
+                    if (q.text.trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        s.pmSearchScope(searchScope),
+                        key: const Key('note-search-scope'),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -300,8 +313,14 @@ class _JournalPageState extends State<JournalPage> {
                       : Icons.edit_note_rounded,
                   title: hasFilter ? s.noNotesFound : s.emptyNoteMonth,
                   body: hasFilter ? s.noNotesFoundHint : s.emptyNoteMonthHint,
-                  action: hasFilter ? s.resetFilter : s.newNote,
-                  onAction: hasFilter
+                  action: canExpandSearch
+                      ? s.pmSearchAllMonths
+                      : hasFilter
+                      ? s.resetFilter
+                      : s.newNote,
+                  onAction: canExpandSearch
+                      ? () => month(null)
+                      : hasFilter
                       ? () => app.filterNotes(JournalQuery(month: q.month))
                       : () => openEditor(context, app, 'note'),
                   tone: UiTone.violet,

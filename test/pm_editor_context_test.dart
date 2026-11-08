@@ -174,7 +174,7 @@ void main() {
           app: app,
           habit: water,
           day: app.today,
-          onSave: (_) {
+          onSave: (_, _) {
             writes++;
             return waiting.future;
           },

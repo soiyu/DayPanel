@@ -58,6 +58,7 @@
             <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme" />
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
         </activity>
+        <receiver android:name=".widgets.WidgetPinReceiver" android:exported="false" />
         <receiver android:name=".widgets.HabitWidgetProvider" android:label="@string/habit_widget_name" android:exported="false">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/daypanel_widget_info" />

@@ -65,7 +65,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noDenominator => '没有可统计的已结束计划日';
 
   @override
-  String get dailyRateHint => '达标日 / 应做日，统计至昨天。今天、弹性周目标、归档期与未知履历不计入。';
+  String get dailyRateHint => '达标日 / 应做日；只统计已结束的日期。今天、弹性周目标、归档期与未知履历不计入。';
 
   @override
   String get currentRun => '当前连续计划日';
@@ -840,7 +840,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkHabit => '完成打卡';
 
   @override
-  String get quantityHabit => '数量目标';
+  String get quantityHabit => '记录数量';
 
   @override
   String get target => '每日目标';
@@ -1725,4 +1725,169 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get widgetsHelpTitle => '如何添加桌面组件';
+
+  @override
+  String get allHabitsProgress => '全部习惯进度';
+
+  @override
+  String get filterEmptyHelp => '清除筛选可查看已有习惯。';
+
+  @override
+  String get emptyDayHelp => '这天没有计划内习惯。可以查看其他日期，或记录计划外的活动。';
+
+  @override
+  String get recordOtherHabit => '记录其他习惯';
+
+  @override
+  String get extraRecordHelp => '记录这天实际做过的事，不改变原来的安排。';
+
+  @override
+  String get historicalRestReadonly => '这段休息已结束，这天按当时的休息安排保留，不需要再结束一次。';
+
+  @override
+  String get restSkippedRecordHint => '先取消这天的跳过，再记录这天的完成情况。';
+
+  @override
+  String get restManageRecordHint => '这天处于休息安排中。可在习惯设置中管理当前或未来的休息。';
+
+  @override
+  String get reminderSharedGoal => '这些时刻都提醒同一个当天目标，达标后当天不再提醒。多个时刻不会分别计为多次完成。';
+
+  @override
+  String get backupLocalStatus => '数据保存在本机';
+
+  @override
+  String get backupNeverExported => '本机尚未成功导出备份';
+
+  @override
+  String get backupExportFact => '仅表示曾成功导出，请自行保留App之外的文件。';
+
+  @override
+  String get restoreNextSteps => '接下来';
+
+  @override
+  String get restoreCheckReminders => '检查提醒与权限';
+
+  @override
+  String get restoreWidgets => '重新选择桌面内容';
+
+  @override
+  String get widgetAddTitle => '添加到桌面';
+
+  @override
+  String get widgetChooseHint => '先选择内容，再在系统提示中确认。';
+
+  @override
+  String get widgetPinRequested => '已请求系统添加。请在桌面确认；取消不会添加组件。';
+
+  @override
+  String get widgetPinUnavailable => '当前桌面不支持应用内添加，请按下方步骤长按桌面添加。';
+
+  @override
+  String get widgetPinFailed => '暂时无法添加，请重试或从桌面添加。';
+
+  @override
+  String get widgetPinEmpty => '先创建一个习惯或小事，再选择桌面内容。';
+
+  @override
+  String get widgetPinSelect => '选择桌面内容';
+
+  @override
+  String get widgetPinConfirm => '请求添加';
+
+  @override
+  String get backupLastExport => '本机上次成功导出';
+
+  @override
+  String get countHabit => '记录次数';
+
+  @override
+  String get countUnit => '次';
+
+  @override
+  String get countWholeError => '请输入非负整数次数。';
+
+  @override
+  String get countTargetError => '目标次数必须为正整数。';
+
+  @override
+  String get recordingCheckHelp => '做过就算完成，一天一个状态。';
+
+  @override
+  String get recordingQuantityHelp => '记录当天累计数量，可输入小数。';
+
+  @override
+  String get recordingCountHelp => '记录当天累计次数，只接受整数。';
+
+  @override
+  String get chooseSchedule => '选择适合你的安排';
+
+  @override
+  String get chooseScheduleHelp => '先选择安排方式，再确认适合自己的日期或目标。';
+
+  @override
+  String get recordingRuleTitle => '完成标准';
+
+  @override
+  String get weeklyCountingHint => '每周按达标天数统计，同一天多次仍只算一个达标日。';
+
+  @override
+  String get quantitySetMode => '修改当天总量';
+
+  @override
+  String get quantityAddMode => '记录本次量';
+
+  @override
+  String get countSetMode => '修改当天次数';
+
+  @override
+  String get countAddMode => '记录本次次数';
+
+  @override
+  String get quantityAddHint => '填写本次量，确认后加入当天合计。';
+
+  @override
+  String quantityAddPreview(
+    String previous,
+    String unit,
+    String amount,
+    String total,
+  ) {
+    return '已记 $previous $unit，本次 $amount $unit。保存后当天合计为 $total $unit。';
+  }
+
+  @override
+  String get recordChanged => '记录或计划已变化。请重新载入并核对最新数值。';
+
+  @override
+  String get reloadRecord => '重新载入记录';
+
+  @override
+  String createNamedHabit(String name) {
+    return '创建“$name”';
+  }
+
+  @override
+  String pmSearchScope(String scope) {
+    return '查找范围：$scope';
+  }
+
+  @override
+  String get pmSearchAllMonths => '在全部月份查找';
+
+  @override
+  String get pmReviewEmptyTitle => '这七天还没有记录';
+
+  @override
+  String get pmReviewEmptyBody => '之后的记录会出现在这里。也可以点开某一天，查看或补记当时的内容。';
+
+  @override
+  String get pmCardsNoDaily => '这里保存获得的每日成就卡。目前没有需要按日完成的习惯；周目标和休息日不参与当天领卡。';
+
+  @override
+  String get pmRecentStatistics => '回到最近';
+
+  @override
+  String get widgetReconnectHelp =>
+      '回到桌面，点击已有组件的设置或更新入口，重新选择习惯或小事并保存。恢复后旧绑定需要重新确认；这里不需要再添加一份组件。';
 }
