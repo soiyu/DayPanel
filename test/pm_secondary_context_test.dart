@@ -237,6 +237,7 @@ void main() {
       await store.saveTask(
         SmallTask(id: 'r', title: 'Tidy up', resident: true, startDay: today),
         create: true,
+        today: today,
       );
       await app.load();
       await t.pumpWidget(shell(ResidentTaskPage(app: app, id: 'r')));

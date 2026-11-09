@@ -595,9 +595,10 @@ class EmptyState extends StatelessWidget {
     required this.body,
     this.action,
     this.onAction,
+    this.actionIcon = Icons.add,
     this.tone = UiTone.blue,
   });
-  final IconData icon;
+  final IconData icon, actionIcon;
   final String title, body;
   final String? action;
   final VoidCallback? onAction;
@@ -674,7 +675,7 @@ class EmptyState extends StatelessWidget {
           const SizedBox(height: 20),
           AppAction(
             label: action!,
-            icon: Icons.add,
+            icon: actionIcon,
             onTap: onAction,
             tone: tone,
           ),

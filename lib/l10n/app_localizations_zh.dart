@@ -1890,4 +1890,25 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get widgetReconnectHelp =>
       '回到桌面，点击已有组件的设置或更新入口，重新选择习惯或小事并保存。恢复后旧绑定需要重新确认；这里不需要再添加一份组件。';
+
+  @override
+  String get cardGuide => '成就卡说明';
+
+  @override
+  String get cardPurpose => '成就卡是当天达标的纪念。可以收藏、写卡背心得，也可以保存成图片或自行分享；不分享也不影响任何功能。';
+
+  @override
+  String get cardGuideEligibility =>
+      '只有当天有至少一项适用的日习惯，并且全部达标时才获得。小事、手记和弹性周目标不计入；休息项不要求完成。撤销或删除习惯后，已经获得的卡片和快照仍保留。';
+
+  @override
+  String get cardArtPreviewTitle => '六款原创卡面';
+
+  @override
+  String get cardArtPreviewHint =>
+      '下面是卡面预览，不代表已获得。卡面按日期循环出现，六款使用相同解锁规则，不是六种等级或分享奖励。';
+
+  @override
+  String get cardGuideShare =>
+      '打开一张已获得的卡片 → 分享卡片 → 保存图片或分享。习惯名称与心得摘录默认不包含；只有你主动开启才会出现在图片里。分享摘录不改原心得，系统分享面板由你选择接收应用，不会自动发送。';
 }

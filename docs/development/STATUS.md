@@ -1146,3 +1146,48 @@ API28可见emulator-5554，临时Android用户10 DayPanelUI05QA。创建阅读10
 HTML支持模块、阶段、结果、全局关键词与首轮40项筛选；通过/问题/待观察/不适用和备注仅保存在当前浏览器，支持带版本校验的JSON导入/导出与问题摘要。无用户输入、手机号、截图或真实结果预置。静态JS语法检查通过；隔离Node VM内存DOM验证145项/40核心、全局搜索、状态计数、本地保存调用和完整JSON导出通过，日志ignored `.local/reports/real-device-checklist-validation.log`。浏览器工具因当前Work本地浏览器设置禁用未做可视UI验收；没有改该设置，不声称浏览器/真机实测完成。
 
 本批仅文档及离线清单，没有改App、构建或安装；APK仍为UI05最终包SHA-256 `11b9e2aa948c59c7291d1967ef1412c5072fcfb46c80c9fee94ab784388bbfe8`。`git diff --check`与`git diff --cached --check`交接时执行。用户填的机型和结果在浏览器/导出文件中，不进入仓库。电脑与模拟器不关闭，不推送。真机后续按编号反馈定位缺陷，FL19仍开放。
+
+
+## RT01 真机删除反馈与成就卡说明（2026-11-09起）
+
+用户真机截图显示删除后管理习惯页停在“这项习惯已不存在”，内容偏左、正文贴边、返回带加号；同时询问成就卡有哪些/是否用于分享。基线151b7bf，开始git状态无改动。当前权限只读Flutter项目，必要写入/构建/模拟器操作按实际环境授权执行；Git使用单次`-c safe.directory=<本项目绝对路径>`，未改全局safe.directory或Java/SDK设置。外部图片仅作为问题证据。
+
+### 根因与修复
+
+HabitDetails压入管理页，管理页删除成功只退一层，仍留下已失效详情；监听更新也会替换builder子树，使异步结束时使用该builder context不可靠。现在管理页捕获自身State的Navigator和route，成功返回HabitManagementResult.deleted；详情等待明确结果后仅退自身。管理列表直接进设置也用匹配result类型，正常保留列表层级，避免全局popUntil根页。取消/失败/普通返回/归档不额外退出，失败在设置页显示存储提示。删除确认的generation保护保留。
+
+失效页此前直接把有松宽度的EmptyState放Scaffold.body，内容按子项宽度缩窄且无水平padding。现用AppCanvas、SafeArea、全宽ListView与20dp留白，短屏/160%字号可滚动。EmptyState新增可选actionIcon；新建默认加号不变，失效返回使用箭头并文案“返回”。同类任务失效页同步修正。缺失/恢复同ID旧页仍不能写入。
+
+卡片册新增可选说明页（右上问号）：六款真实卡面预览、同一日达标规则、日期循环、收藏/心得与可选PNG/系统分享、默认隐藏习惯名/心得、预览非已获卡。浏览不改变任何业务数据，解锁算法/数据库/备份规则均不改。六款为一点晨光、慢慢生根、自有去处、向前一步、窗边有光、点点成星。
+
+### 工程验证
+
+最初按`./scripts/dev.ps1 pub`联网检查遇GitHub连接重置/依赖等待，停止本次检查后用已缓存依赖：`flutter --suppress-analytics --no-version-check pub get --offline`、`gen-l10n`。格式化仍由scripts/dev.ps1执行；测试/构建使用`--no-pub`避免与本次修复无关的网络停滞。
+
+```powershell
+./scripts/dev.ps1 format
+./scripts/dev.ps1 test -Extra '--no-pub','--concurrency=2','test/delete_navigation_test.dart','test/card_guide_test.dart','test/pm_habit_context_test.dart','test/journal_ui_test.dart','test/pm_secondary_context_test.dart'
+./scripts/dev.ps1 test -Extra '--no-pub','--concurrency=1','test/process_recovery_test.dart'
+# 其余test/*test.dart排除process_recovery_test.dart，以--no-pub --concurrency=2运行
+flutter --suppress-analytics --no-version-check analyze --no-pub
+./scripts/dev.ps1 native-test -Extra '--offline'
+./scripts/dev.ps1 assemble -Extra '--no-pub'
+git diff --check
+git diff --cached --check
+```
+
+专项 **42项通过**15秒（rt01-focused-final.log）。最终全覆盖分两批无重叠：常规 **351项通过**2:27（rt01-suite-tests.log），进程恢复 **6项通过**25秒（rt01-process-tests.log），共357；analyze无问题21.1秒，93文件格式化无变化。Kotlin JVM **14/0失败/0错误**，native-test成功34秒。新增测试含来源/列表/新建/桌面删除、最后一项/其它项保留、取消、数据库真实失败、320×568与414×921的中英文160%居中边距返回，以及六款卡面浏览前后所有表一致。
+
+失败记录如实保留：新卡片测试中文返回按钮不能用默认英文pageBack查找，改用实际本地化tooltip；两份旧常驻夹具漏传冻结today，跨日期时违反创建日规则，补传而未改产品规则。第一次全量运行356通过1旧夹具失败；修正后一次运行到进程恢复处停滞，未计通过。恢复子进程禁用无关联网版本检查后单独6通过，其他351全部通过；不掩盖中断日志。既有Kotlin/Gradle迁移提示仍在。
+
+最终APK `build/app/outputs/flutter-apk/app-debug.apk`，**174989811 bytes**，SHA-256 **b849f9b9ecdcf643e1afefec96f7f80a7d75623d35f58254d8be3a49ba3cc0d5**，最终assemble14.8秒，已覆盖模拟器安装。没有修改业务库，SQLite11/schema11保持。
+
+### 设备、数据与关机交接
+
+本次开始无连接设备，启动既有API28可见AVD，无wipe/快照覆盖，冷启动177.435秒。先关闭主用户App并归档pre-rt01-db.tar，再安装；用户10 DayPanelRT01QA中建立测试阅读，从新建今日详情→设置→取消删除（保持）→确认删除，实际回日常空态；再建项，从我的→管理习惯→设置删除最后一项，实际回正常满宽管理空列表。卡片册右上说明可看六款和分享隐私说明；仅浏览无已获卡。截图rt01-delete-returns-daily.png、rt01-delete-returns-library.png、rt01-card-guide-top.png、rt01-six-card-artworks-final.png均为真实模拟器，ignored。
+
+最终API28原生回归 **OK(37 tests)**，36.15秒（rt01-api28.log），包含提醒/反馈/组件快照/生命周期/旧库/图片/后台直接动作/固定回调/视觉测试。命令为`am instrument --user 10 -w -e class`沿UI05九个测试类运行，runner为`app.daypanel.next.debug.test/androidx.test.runner.AndroidJUnitRunner`。没有把这些原生通过当用户手机复测已完成。
+
+切回0并停止删除临时用户10。主用户第一次启动出现“暂时无法读取或保存数据，请重试”，与既有系统切换异常一致但本次日志只有分区头、无具体错误栈，不能断言已定位原因；关闭进程重新打开后首页正常。post-rt01-db.tar与pre逐表比较 **15表所有字段一致**（包括generation/revision）、SQLite11、FK空（rt01-retention-final.log）。这一启动稳定性问题留FL19继续核查，不因页面修复而关闭。
+
+用户最后明确“做完帮我关机”，取代此前保持电脑/模拟器运行要求。本批提交和文件保存后执行不强制关闭未保存应用的关机流程；未推送远端。用户手机需覆盖安装本包复测删除和卡片说明，真机/TalkBack/API35/36本批新增页面未自动验收。日期以用户提供的真机截图/执行日志为准，模拟器使用自身本地日期，未修改系统时钟凑测试。

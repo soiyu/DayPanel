@@ -491,7 +491,7 @@ class HabitLibrary extends StatelessWidget {
                               : s.checkHabit,
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute<void>(
+                            MaterialPageRoute<HabitManagementResult>(
                               builder: (_) =>
                                   HabitManagementPage(app: app, id: h.id),
                             ),
@@ -568,12 +568,21 @@ class _HabitDetailsState extends State<HabitDetails> {
           app.value(h, day) == null &&
           rest == null &&
           plan.scheduled(day);
-      void manage() => Navigator.push(
-        context,
-        MaterialPageRoute<void>(
-          builder: (_) => HabitManagementPage(app: app, id: h.id, noteDay: day),
-        ),
-      );
+      Future<void> manage() async {
+        final navigator = Navigator.of(this.context);
+        final origin = ModalRoute.of(this.context);
+        final result = await navigator.push<HabitManagementResult>(
+          MaterialPageRoute<HabitManagementResult>(
+            builder: (_) =>
+                HabitManagementPage(app: app, id: h.id, noteDay: day),
+          ),
+        );
+        if (!mounted || result != HabitManagementResult.deleted) return;
+        if (origin?.isCurrent == true && navigator.canPop()) {
+          navigator.pop();
+        }
+      }
+
       return AppCanvas(
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -772,18 +781,32 @@ class HabitUnavailable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(s.manageHabits)),
-      body: EmptyState(
-        icon: Icons.info_outline_rounded,
-        title: changed ? s.contextChanged : s.habitUnavailable,
-        body: s.reopenContext,
-        action: s.backToList,
-        onAction: () => Navigator.maybePop(context),
+    return AppCanvas(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: Text(s.manageHabits)),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            children: [
+              EmptyState(
+                key: const Key('habit-unavailable'),
+                icon: Icons.info_outline_rounded,
+                title: changed ? s.contextChanged : s.habitUnavailable,
+                body: s.reopenContext,
+                action: s.back,
+                actionIcon: Icons.arrow_back_rounded,
+                onAction: () => Navigator.maybePop(context),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
+
+enum HabitManagementResult { deleted }
 
 /// Whole-habit choices are deliberately separate from a day's recording flow.
 class HabitManagementPage extends StatefulWidget {
@@ -827,6 +850,16 @@ class _HabitManagementPageState extends State<HabitManagementPage> {
             padding: const EdgeInsets.all(20),
             children: [
               Text(h.title, style: Theme.of(context).textTheme.titleLarge),
+              if (app.error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(
+                    s.storageError,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 12),
               SettingRow(
                 key: const Key('edit-habit-settings'),
@@ -980,12 +1013,22 @@ class _HabitManagementPageState extends State<HabitManagementPage> {
                 onTap: app.busy
                     ? null
                     : () async {
-                        if (!await confirmDelete(context, habit: true)) return;
+                        final navigator = Navigator.of(this.context);
+                        final origin = ModalRoute.of(this.context);
+                        if (!await confirmDelete(this.context, habit: true) ||
+                            !mounted) {
+                          return;
+                        }
                         final ok = await app.run(
                           () => app.store.remove('habits', h.id),
                           expectedGeneration: epoch,
                         );
-                        if (ok && context.mounted) Navigator.pop(context);
+                        if (ok &&
+                            mounted &&
+                            origin?.isCurrent == true &&
+                            navigator.canPop()) {
+                          navigator.pop(HabitManagementResult.deleted);
+                        }
                       },
               ),
             ],

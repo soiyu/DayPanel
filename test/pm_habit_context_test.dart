@@ -152,7 +152,7 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('Data has changed'), findsOneWidget);
     expect(find.byKey(const Key('edit-habit-settings')), findsNothing);
-    await tap(t, find.text('Back to list'));
+    await tap(t, find.text('Back'));
     expect(find.text('Data has changed'), findsOneWidget);
     expect(find.byKey(const Key('habit-detail-action-water')), findsNothing);
   });
@@ -164,7 +164,7 @@ void main() {
     await app.run(() => store.remove('habits', 'water'));
     await t.pumpAndSettle();
     expect(find.text('This habit is no longer available'), findsOneWidget);
-    expect(find.text('Back to list'), findsOneWidget);
+    expect(find.text('Back'), findsOneWidget);
   });
   testWidgets(
     'non-scheduled day offers no meaningless skip, weekly skip explains the week',

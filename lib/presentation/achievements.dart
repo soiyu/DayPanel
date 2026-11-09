@@ -8,6 +8,7 @@ import 'card_art.dart';
 import 'components.dart';
 import 'theme.dart';
 import 'card_share.dart';
+import 'refined_components.dart';
 
 String cardTitle(AppLocalizations s, int art) => [
   s.cardDawn,
@@ -151,7 +152,22 @@ class _CardCollectionState extends State<CardCollection> {
       return AppCanvas(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-          appBar: AppBar(title: Text(s.cardCollection)),
+          appBar: AppBar(
+            title: Text(s.cardCollection),
+            actions: [
+              IconButton(
+                key: const Key('card-guide'),
+                tooltip: s.cardGuide,
+                icon: const Icon(Icons.help_outline_rounded),
+                onPressed: () => Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const CardGuidePage(),
+                  ),
+                ),
+              ),
+            ],
+          ),
           body: ListView.builder(
             padding: const EdgeInsets.all(20),
             itemCount: cards.length + 1,
@@ -256,6 +272,73 @@ class _CardCollectionState extends State<CardCollection> {
       );
     },
   );
+}
+
+/// Artwork previews explain the feature; they are not earned card records.
+class CardGuidePage extends StatelessWidget {
+  const CardGuidePage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
+    return AppCanvas(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: Text(s.cardGuide)),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Text(s.cardPurpose, style: Theme.of(context).textTheme.bodyLarge),
+              const SizedBox(height: 16),
+              Text(s.cardUnlockHint),
+              const SizedBox(height: 8),
+              Text(
+                s.cardGuideEligibility,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                s.cardArtPreviewTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                s.cardArtPreviewHint,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              ResponsiveChoices(
+                minWidth: 155,
+                maxColumns: 2,
+                children: [
+                  for (var art = 0; art < 6; art++)
+                    SoftPanel(
+                      key: Key('card-art-preview-$art'),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          CardArt(artwork: art, height: 105),
+                          const SizedBox(height: 8),
+                          Text(
+                            cardTitle(s, art),
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(s.cardShare, style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text(s.cardGuideShare),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class CardDetails extends StatefulWidget {

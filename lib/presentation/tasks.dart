@@ -308,13 +308,21 @@ Widget taskContextUnavailable(BuildContext context, {required bool stale}) {
     child: Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(title: Text(s.task)),
-      body: EmptyState(
-        icon: Icons.info_outline_rounded,
-        title: stale ? s.contextChanged : s.pmTaskUnavailable,
-        body: s.reopenContext,
-        action: s.backToList,
-        onAction: () => Navigator.maybePop(context),
-        tone: UiTone.peach,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          children: [
+            EmptyState(
+              icon: Icons.info_outline_rounded,
+              title: stale ? s.contextChanged : s.pmTaskUnavailable,
+              body: s.reopenContext,
+              action: s.back,
+              actionIcon: Icons.arrow_back_rounded,
+              onAction: () => Navigator.maybePop(context),
+              tone: UiTone.peach,
+            ),
+          ],
+        ),
       ),
     ),
   );

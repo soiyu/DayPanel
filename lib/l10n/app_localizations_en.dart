@@ -2026,4 +2026,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get widgetReconnectHelp =>
       'Return to your home screen. Open settings or refresh on each existing widget, choose its habit or task again, and save. Restoring data requires reconnecting existing widgets; you do not need to add duplicates.';
+
+  @override
+  String get cardGuide => 'About daily cards';
+
+  @override
+  String get cardPurpose =>
+      'A daily card keeps a memory of meeting your goals. Favorite it, write on the back, or save and share an image. Sharing is optional.';
+
+  @override
+  String get cardGuideEligibility =>
+      'Earn one when at least one daily habit is due and all due habits meet their goals. Tasks, notes and flexible weekly goals are excluded; habits on a break are not required. Earned cards and their snapshots stay after undoing or deleting a habit.';
+
+  @override
+  String get cardArtPreviewTitle => 'Six original artworks';
+
+  @override
+  String get cardArtPreviewHint =>
+      'These are artwork previews, not earned cards. The six designs rotate by date and share one earning rule; they are not achievement tiers or sharing rewards.';
+
+  @override
+  String get cardGuideShare =>
+      'Open an earned card → Share card → Save image or Share. Habit names and reflection excerpts are hidden by default; include them only if you choose. The excerpt does not edit your original reflection. You select the receiving app in the system share sheet; nothing is sent automatically.';
 }

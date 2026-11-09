@@ -3792,6 +3792,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Return to your home screen. Open settings or refresh on each existing widget, choose its habit or task again, and save. Restoring data requires reconnecting existing widgets; you do not need to add duplicates.'**
   String get widgetReconnectHelp;
+
+  /// No description provided for @cardGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'About daily cards'**
+  String get cardGuide;
+
+  /// No description provided for @cardPurpose.
+  ///
+  /// In en, this message translates to:
+  /// **'A daily card keeps a memory of meeting your goals. Favorite it, write on the back, or save and share an image. Sharing is optional.'**
+  String get cardPurpose;
+
+  /// No description provided for @cardGuideEligibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn one when at least one daily habit is due and all due habits meet their goals. Tasks, notes and flexible weekly goals are excluded; habits on a break are not required. Earned cards and their snapshots stay after undoing or deleting a habit.'**
+  String get cardGuideEligibility;
+
+  /// No description provided for @cardArtPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Six original artworks'**
+  String get cardArtPreviewTitle;
+
+  /// No description provided for @cardArtPreviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'These are artwork previews, not earned cards. The six designs rotate by date and share one earning rule; they are not achievement tiers or sharing rewards.'**
+  String get cardArtPreviewHint;
+
+  /// No description provided for @cardGuideShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Open an earned card → Share card → Save image or Share. Habit names and reflection excerpts are hidden by default; include them only if you choose. The excerpt does not edit your original reflection. You select the receiving app in the system share sheet; nothing is sent automatically.'**
+  String get cardGuideShare;
 }
 
 class _AppLocalizationsDelegate

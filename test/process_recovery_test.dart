@@ -89,6 +89,7 @@ void main() {
               [
                 p.join(sdk, 'bin', 'cache', 'flutter_tools.snapshot'),
                 '--suppress-analytics',
+                '--no-version-check',
                 'test',
                 '--no-pub',
                 'test/support/restore_worker.dart',

@@ -146,7 +146,7 @@ void main() {
         resident: resident,
         startDay: resident ? app.today : null,
       );
-      await store.saveTask(task, create: true);
+      await store.saveTask(task, create: true, today: app.today);
       await app.load();
       await t.pumpWidget(
         shell(EntryEditor(app: app, type: 'task', task: task)),
