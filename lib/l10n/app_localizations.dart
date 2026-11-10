@@ -2069,13 +2069,13 @@ abstract class AppLocalizations {
   /// No description provided for @freeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your everyday, always free'**
+  /// **'Your core tools and data'**
   String get freeTitle;
 
   /// No description provided for @freeBody.
   ///
   /// In en, this message translates to:
-  /// **'No ads, subscriptions or paid feature gates.'**
+  /// **'Core recording, full backup, restore and export remain available. Your saved records are always yours.'**
   String get freeBody;
 
   /// No description provided for @localData.
@@ -3828,6 +3828,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open an earned card → Share card → Save image or Share. Habit names and reflection excerpts are hidden by default; include them only if you choose. The excerpt does not edit your original reflection. You select the receiving app in the system share sheet; nothing is sent automatically.'**
   String get cardGuideShare;
+
+  /// No description provided for @weeklyTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly total'**
+  String get weeklyTotalLabel;
+
+  /// No description provided for @weeklyTotalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach an amount or count over the week, without a daily quota.'**
+  String get weeklyTotalHint;
+
+  /// No description provided for @weeklyTotalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Week total'**
+  String get weeklyTotalProgress;
+
+  /// No description provided for @weeklyTargetAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly target'**
+  String get weeklyTargetAmount;
+
+  /// No description provided for @eventTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual records'**
+  String get eventTitle;
+
+  /// No description provided for @eventAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a record'**
+  String get eventAdd;
+
+  /// No description provided for @eventUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous total · time unknown'**
+  String get eventUnknown;
+
+  /// No description provided for @eventAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Total correction'**
+  String get eventAdjustment;
+
+  /// No description provided for @eventEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No individual records yet'**
+  String get eventEmpty;
+
+  /// No description provided for @eventWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get eventWhen;
+
+  /// No description provided for @eventNoTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time unknown'**
+  String get eventNoTime;
+
+  /// No description provided for @eventNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get eventNote;
+
+  /// No description provided for @eventClearHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing or deleting affects this record and updates the daily total.'**
+  String get eventClearHelp;
+
+  /// No description provided for @eventConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Records changed. Reopen and confirm the current values.'**
+  String get eventConflict;
+
+  /// No description provided for @calendarAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to calendar'**
+  String get calendarAdd;
+
+  /// No description provided for @calendarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and save in your calendar. This is a separate copy; later edits are not synchronized.'**
+  String get calendarHint;
+
+  /// No description provided for @calendarOpened.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and save in your calendar'**
+  String get calendarOpened;
+
+  /// No description provided for @calendarUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No calendar app is available to add an event'**
+  String get calendarUnavailable;
+
+  /// No description provided for @plusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'DayPanel Plus'**
+  String get plusTitle;
+
+  /// No description provided for @plusBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy once'**
+  String get plusBuy;
+
+  /// No description provided for @plusRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchase'**
+  String get plusRestore;
+
+  /// No description provided for @plusOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus unlocked'**
+  String get plusOwned;
+
+  /// No description provided for @plusDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined widgets, individual records, weekly totals, review cards and original styles. One purchase, no subscription.'**
+  String get plusDescription;
+
+  /// No description provided for @plusUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This purchase is currently unavailable on Google Play. Please try again later.'**
+  String get plusUnavailable;
+
+  /// No description provided for @plusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment pending. Plus unlocks after payment completes.'**
+  String get plusPending;
+
+  /// No description provided for @plusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase cancelled'**
+  String get plusCancelled;
+
+  /// No description provided for @plusBase.
+  ///
+  /// In en, this message translates to:
+  /// **'Core recording, full backup, restore and export remain available. Your saved records are always yours.'**
+  String get plusBase;
+
+  /// No description provided for @plusTesting.
+  ///
+  /// In en, this message translates to:
+  /// **'Test build · advanced features available; no purchase made'**
+  String get plusTesting;
+
+  /// No description provided for @reviewBuilder.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a review card'**
+  String get reviewBuilder;
+
+  /// No description provided for @reviewWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly review'**
+  String get reviewWeek;
+
+  /// No description provided for @reviewMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly review'**
+  String get reviewMonth;
+
+  /// No description provided for @reviewChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose up to 6 habits'**
+  String get reviewChoose;
+
+  /// No description provided for @reviewPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview review card'**
+  String get reviewPreview;
+
+  /// No description provided for @panelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined widget'**
+  String get panelTitle;
+
+  /// No description provided for @panelChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose 1–4 items in the order you want on your home screen'**
+  String get panelChoose;
+
+  /// No description provided for @csvExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export readable CSV'**
+  String get csvExport;
+
+  /// No description provided for @csvHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes logs, individual records, tasks and notes. For full restore, use the complete backup.'**
+  String get csvHint;
+
+  /// No description provided for @styleExtra.
+  ///
+  /// In en, this message translates to:
+  /// **'Original collections'**
+  String get styleExtra;
+
+  /// No description provided for @paletteSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Apricot study'**
+  String get paletteSunrise;
+
+  /// No description provided for @paletteOcean.
+  ///
+  /// In en, this message translates to:
+  /// **'Coastal blue'**
+  String get paletteOcean;
+
+  /// No description provided for @iconHeadphones.
+  ///
+  /// In en, this message translates to:
+  /// **'Headphones'**
+  String get iconHeadphones;
+
+  /// No description provided for @iconLaptop.
+  ///
+  /// In en, this message translates to:
+  /// **'Laptop'**
+  String get iconLaptop;
+
+  /// No description provided for @iconHike.
+  ///
+  /// In en, this message translates to:
+  /// **'Hiking'**
+  String get iconHike;
+
+  /// No description provided for @iconInk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ink pen'**
+  String get iconInk;
+
+  /// No description provided for @panelAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add widget'**
+  String get panelAdd;
+
+  /// No description provided for @privateHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit'**
+  String get privateHabit;
+
+  /// No description provided for @reminderSharedWeekGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'These times remind you about one weekly total. Remaining reminders stop when the weekly target is reached; it is not split into daily tasks.'**
+  String get reminderSharedWeekGoal;
 }
 
 class _AppLocalizationsDelegate

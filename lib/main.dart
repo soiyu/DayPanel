@@ -124,6 +124,7 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    app.plus.refresh();
     app.reminderPlatform?.onOpen(openReminder);
     final updates = app.widgetPlatform;
     if (updates is WidgetUpdates) {
@@ -157,6 +158,7 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
   }
 
   Future<void> refreshForeground() async {
+    app.plus.refresh();
     if (app.busy || app.closing) return;
     try {
       await app.load();

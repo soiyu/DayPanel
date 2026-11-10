@@ -41,7 +41,7 @@ class DailyCardPanel extends StatelessWidget {
     final hasDailyObligation = app.habits.any(
       (h) =>
           app.scheduled(h, day) &&
-          app.planAt(h, day).schedule != ScheduleKind.weekly,
+          app.planAt(h, day).schedule.isWeekly == false,
     );
     if (card == null && !hasDailyObligation) return const SizedBox.shrink();
     final epoch = app.generation;
@@ -143,8 +143,7 @@ class _CardCollectionState extends State<CardCollection> {
       final hasDailyObligation = widget.app.habits.any(
         (h) =>
             widget.app.scheduled(h, widget.app.today) &&
-            widget.app.planAt(h, widget.app.today).schedule !=
-                ScheduleKind.weekly,
+            widget.app.planAt(h, widget.app.today).schedule.isWeekly == false,
       );
       final cards = widget.app.cards
           .where((c) => !favorites || c.favorite)

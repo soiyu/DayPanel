@@ -23,10 +23,12 @@ class WeekResult {
     this.eligible,
     this.pending, {
     this.resting = false,
+    this.unit,
   });
   final Day start;
   final int achieved, goal;
   final bool eligible, pending, resting;
+  final String? unit;
   bool get complete => achieved >= goal;
 }
 
@@ -101,7 +103,7 @@ class HabitStatistics {
     }
     if (a == null) return DayPlanState.unknown;
     final p = plan(day);
-    if (p.schedule == ScheduleKind.weekly) return DayPlanState.weekly;
+    if (p.schedule.isWeekly) return DayPlanState.weekly;
     return p.scheduled(day) ? DayPlanState.daily : DayPlanState.rest;
   }
 
@@ -157,7 +159,7 @@ class HabitStatistics {
                 d.compareTo(start) >= 0 &&
                 d.compareTo(end) <= 0 &&
                 d.compareTo(today) <= 0 &&
-                plan(d).schedule == ScheduleKind.weekly,
+                plan(d).schedule.isWeekly,
           )
           .toList();
       if (weekDays.isEmpty) continue;
@@ -181,10 +183,19 @@ class HabitStatistics {
       result.add(
         WeekResult(
           monday,
-          achievedDays,
-          p.weeklyGoal,
+          p.schedule == ScheduleKind.weeklyTotal
+              ? weekDays
+                    .where(
+                      (d) =>
+                          plan(d).effectiveDay == p.effectiveDay &&
+                          state(d) == DayPlanState.weekly,
+                    )
+                    .fold<int>(0, (sum, d) => sum + (values[d] ?? 0))
+              : achievedDays,
+          p.schedule == ScheduleKind.weeklyTotal ? p.target : p.weeklyGoal,
           eligible,
           monday.plus(6).compareTo(today) >= 0,
+          unit: p.schedule == ScheduleKind.weeklyTotal ? p.unit : null,
           resting:
               daysInWeek.any((d) => breakOn(breaks, habit.id, d) != null) &&
               monday.compareTo(start) >= 0 &&

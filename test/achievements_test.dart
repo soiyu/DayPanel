@@ -1,3 +1,4 @@
+import 'schema_fixture.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
@@ -245,13 +246,14 @@ void main() {
       await store.db.execute('ALTER TABLE habits DROP COLUMN color');
       await store.db.execute('ALTER TABLE habits DROP COLUMN frame');
       await store.db.execute('DROP TABLE habit_breaks');
+      await discardV12Fixture(store.db);
       await store.db.setVersion(5);
       await store.close();
       store = await AppStore.open(
         factory: databaseFactoryFfi,
         path: '${dir.path}/data.db',
       );
-      expect(await store.db.getVersion(), 11);
+      expect(await store.db.getVersion(), 12);
       expect(await store.cards(), isEmpty);
       expect((await store.entries()).single.value, 1000);
       expect((await store.notes()).single.habitId, 'a');
@@ -318,6 +320,7 @@ void main() {
         final snapshot = await store.exportSnapshot();
         final old = alter(snapshot, (p) {
           p['schema'] = schema;
+          (p['tables'] as Map).remove('record_events');
           (p['tables'] as Map).remove('habit_breaks');
           for (final h in p['tables']['habits'] as List) {
             (h as Map).remove('color');

@@ -13,12 +13,23 @@ extension StoreWidgetActions on AppStore {
     required int generation,
     required int revision,
     required Object? expectedValue,
+    int? itemRevision,
     required bool completed,
     DateTime Function()? clock,
     Future<bool> Function()? bindingStillValid,
   }) => inGeneration(generation, () async {
     Day today() => Day((clock ?? DateTime.now)());
-    if (day != today() || revision != await widgetRevision()) return false;
+    if (day != today()) return false;
+    if (itemRevision != null) {
+      final rows = await _executor.query(
+        'item_revisions',
+        where: 'kind=? AND id=?',
+        whereArgs: [kind, id],
+      );
+      if (rows.isEmpty || rows.single['revision'] != itemRevision) return false;
+    } else if (revision != await widgetRevision()) {
+      return false;
+    }
     if (bindingStillValid != null && !await bindingStillValid()) return false;
     if (kind == 'habit') {
       final rows = await _executor.query(

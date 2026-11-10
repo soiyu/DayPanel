@@ -53,7 +53,7 @@ Future<void> skipDay(
       body: Text(
         old != null
             ? s.restConfirmUnskip
-            : app.planAt(h, day).schedule == ScheduleKind.weekly
+            : app.planAt(h, day).schedule.isWeekly
             ? s.restWeeklySkipHint
             : s.restConfirmSkip,
       ),

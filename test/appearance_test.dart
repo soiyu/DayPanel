@@ -1,3 +1,4 @@
+import 'schema_fixture.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
@@ -134,7 +135,7 @@ void main() {
         );
       }
       for (final update in [
-        {'icon': 24},
+        {'icon': Appearance.iconCount},
         {'icon': -1},
         {'color': '#bad'},
         {'frame': 'invalid'},
@@ -144,7 +145,7 @@ void main() {
           throwsArgumentError,
         );
       }
-      expect((await store.habits()).single.icon, 23);
+      expect((await store.habits()).single.icon, Appearance.iconCount - 1);
     },
   );
   test(
@@ -154,13 +155,14 @@ void main() {
       await store.db.execute('ALTER TABLE habits DROP COLUMN color');
       await store.db.execute('ALTER TABLE habits DROP COLUMN frame');
       await store.db.execute('DROP TABLE habit_breaks');
+      await discardV12Fixture(store.db);
       await store.db.setVersion(7);
       await store.close();
       store = await AppStore.open(
         factory: databaseFactoryFfi,
         path: '${dir.path}/data.db',
       );
-      expect(await store.db.getVersion(), 11);
+      expect(await store.db.getVersion(), 12);
       expect((await store.habits()).single.toMap(), h.toMap());
       expect((await store.entries()).single.value, 1000);
       expect((await store.cards()).length, 1);
@@ -186,7 +188,7 @@ void main() {
       final payload = jsonDecode(
         jsonDecode(utf8.decode(snap.encode()))['payload'],
       );
-      expect(payload['schema'], 11);
+      expect(payload['schema'], 12);
       await store.saveAppearance(const Appearance());
       await store.saveHabit(h);
       await store.restoreSnapshot(snap);
@@ -201,7 +203,7 @@ void main() {
       for (final mutation in <void Function(Map)>[
         (p) => p['tables']['habits'][0]['color'] = 'unknown',
         (p) => p['tables']['habits'][0]['frame'] = 'unknown',
-        (p) => p['tables']['habits'][0]['icon'] = 24,
+        (p) => p['tables']['habits'][0]['icon'] = Appearance.iconCount,
         (p) => (p['tables']['habits'][0] as Map).remove('color'),
         (p) => p['tables']['settings'][0]['value'] = 'unknown',
         (p) => p['tables']['settings'].add({'key': 'font', 'value': 'url'}),
@@ -220,6 +222,7 @@ void main() {
         final snap = await store.exportSnapshot();
         final bytes = change(snap, (p) {
           p['schema'] = version;
+          (p['tables'] as Map).remove('record_events');
           (p['tables'] as Map).remove('habit_breaks');
           for (final row in p['tables']['habits']) {
             (row as Map).remove('color');

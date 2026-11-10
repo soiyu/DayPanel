@@ -47,7 +47,11 @@ class WidgetActionReceiver:BroadcastReceiver() {
                     WidgetActionStatus.set(context,id,if(queued==JobScheduler.RESULT_SUCCESS) "pending" else "failed")
                 }
                 WidgetEngine.refresh(context)
-            } catch(_:Exception) { /* Invalid external inputs cannot start a writer. */ }
+            } catch(error:Exception) {
+                if(app.daypanel.next.BuildConfig.DEBUG) android.util.Log.w("DayPanelWidget","Action could not be queued: ${error.javaClass.simpleName}",error)
+                val id=try {JSONObject(encoded ?: "{}").optInt("widgetId",-1)}catch(_:Exception){-1}
+                if(id>=0)WidgetActionStatus.set(context,id,"failed")
+            }
             finally {pending.finish()}
         }
     }

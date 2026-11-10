@@ -1063,10 +1063,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get back => 'Back';
 
   @override
-  String get freeTitle => 'Your everyday, always free';
+  String get freeTitle => 'Your core tools and data';
 
   @override
-  String get freeBody => 'No ads, subscriptions or paid feature gates.';
+  String get freeBody =>
+      'Core recording, full backup, restore and export remain available. Your saved records are always yours.';
 
   @override
   String get localData => 'Stored on this device';
@@ -2048,4 +2049,158 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cardGuideShare =>
       'Open an earned card → Share card → Save image or Share. Habit names and reflection excerpts are hidden by default; include them only if you choose. The excerpt does not edit your original reflection. You select the receiving app in the system share sheet; nothing is sent automatically.';
+
+  @override
+  String get weeklyTotalLabel => 'Weekly total';
+
+  @override
+  String get weeklyTotalHint =>
+      'Reach an amount or count over the week, without a daily quota.';
+
+  @override
+  String get weeklyTotalProgress => 'Week total';
+
+  @override
+  String get weeklyTargetAmount => 'Weekly target';
+
+  @override
+  String get eventTitle => 'Individual records';
+
+  @override
+  String get eventAdd => 'Add a record';
+
+  @override
+  String get eventUnknown => 'Previous total · time unknown';
+
+  @override
+  String get eventAdjustment => 'Total correction';
+
+  @override
+  String get eventEmpty => 'No individual records yet';
+
+  @override
+  String get eventWhen => 'Time';
+
+  @override
+  String get eventNoTime => 'Time unknown';
+
+  @override
+  String get eventNote => 'Note (optional)';
+
+  @override
+  String get eventClearHelp =>
+      'Editing or deleting affects this record and updates the daily total.';
+
+  @override
+  String get eventConflict =>
+      'Records changed. Reopen and confirm the current values.';
+
+  @override
+  String get calendarAdd => 'Add to calendar';
+
+  @override
+  String get calendarHint =>
+      'Review and save in your calendar. This is a separate copy; later edits are not synchronized.';
+
+  @override
+  String get calendarOpened => 'Review and save in your calendar';
+
+  @override
+  String get calendarUnavailable =>
+      'No calendar app is available to add an event';
+
+  @override
+  String get plusTitle => 'DayPanel Plus';
+
+  @override
+  String get plusBuy => 'Buy once';
+
+  @override
+  String get plusRestore => 'Restore purchase';
+
+  @override
+  String get plusOwned => 'Plus unlocked';
+
+  @override
+  String get plusDescription =>
+      'Combined widgets, individual records, weekly totals, review cards and original styles. One purchase, no subscription.';
+
+  @override
+  String get plusUnavailable =>
+      'This purchase is currently unavailable on Google Play. Please try again later.';
+
+  @override
+  String get plusPending =>
+      'Payment pending. Plus unlocks after payment completes.';
+
+  @override
+  String get plusCancelled => 'Purchase cancelled';
+
+  @override
+  String get plusBase =>
+      'Core recording, full backup, restore and export remain available. Your saved records are always yours.';
+
+  @override
+  String get plusTesting =>
+      'Test build · advanced features available; no purchase made';
+
+  @override
+  String get reviewBuilder => 'Create a review card';
+
+  @override
+  String get reviewWeek => 'Weekly review';
+
+  @override
+  String get reviewMonth => 'Monthly review';
+
+  @override
+  String get reviewChoose => 'Choose up to 6 habits';
+
+  @override
+  String get reviewPreview => 'Preview review card';
+
+  @override
+  String get panelTitle => 'Combined widget';
+
+  @override
+  String get panelChoose =>
+      'Choose 1–4 items in the order you want on your home screen';
+
+  @override
+  String get csvExport => 'Export readable CSV';
+
+  @override
+  String get csvHint =>
+      'Includes logs, individual records, tasks and notes. For full restore, use the complete backup.';
+
+  @override
+  String get styleExtra => 'Original collections';
+
+  @override
+  String get paletteSunrise => 'Apricot study';
+
+  @override
+  String get paletteOcean => 'Coastal blue';
+
+  @override
+  String get iconHeadphones => 'Headphones';
+
+  @override
+  String get iconLaptop => 'Laptop';
+
+  @override
+  String get iconHike => 'Hiking';
+
+  @override
+  String get iconInk => 'Ink pen';
+
+  @override
+  String get panelAdd => 'Add widget';
+
+  @override
+  String get privateHabit => 'Habit';
+
+  @override
+  String get reminderSharedWeekGoal =>
+      'These times remind you about one weekly total. Remaining reminders stop when the weekly target is reached; it is not split into daily tasks.';
 }

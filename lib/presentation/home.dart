@@ -11,6 +11,9 @@ import '../application/app_controller.dart';
 import '../domain/models.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
+import 'plus_page.dart';
+import 'review_card.dart';
+import 'privacy_page.dart';
 import 'editors.dart';
 import 'habits.dart';
 import 'review.dart';
@@ -588,6 +591,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 onTap: () => open(StatisticsPage(app: app)),
               ),
               SettingRow(
+                icon: Icons.auto_graph_outlined,
+                title: s.reviewBuilder,
+                tone: UiTone.violet,
+                onTap: () => open(ReviewCardPage(app: app)),
+              ),
+              SettingRow(
                 icon: Icons.bar_chart_rounded,
                 title: s.review,
                 tone: UiTone.violet,
@@ -625,16 +634,27 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ),
         ),
         const SizedBox(height: 12),
+        SettingRow(
+          icon: Icons.auto_awesome_outlined,
+          title: s.plusTitle,
+          subtitle: s.plusBase,
+          tone: UiTone.violet,
+          onTap: () => open(PlusPage(app: app)),
+        ),
         DetailDisclosure(title: s.freeTitle, child: Text(s.freeBody)),
+        SettingRow(
+          icon: Icons.privacy_tip_outlined,
+          title: Localizations.localeOf(context).languageCode == 'zh'
+              ? '隐私与支持'
+              : 'Privacy & support',
+          onTap: () => open(const PrivacyPage()),
+        ),
         SettingRow(
           icon: Icons.code_rounded,
           title: s.licenses,
           tone: UiTone.violet,
-          onTap: () => showLicensePage(
-            context: context,
-            applicationName: 'DayPanel',
-            applicationVersion: '0.1.0-dev',
-          ),
+          onTap: () =>
+              showLicensePage(context: context, applicationName: 'DayPanel'),
         ),
       ],
     );

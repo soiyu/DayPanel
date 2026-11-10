@@ -1,5 +1,5 @@
 param(
-  [ValidateSet('doctor','pub','format','analyze','test','assemble','verify','run','native-test')]
+  [ValidateSet('doctor','pub','format','analyze','test','assemble','verify','run','native-test','fix','bundle','release-check')]
   [string]$Command = 'verify',
   [string[]]$Extra = @()
 )
@@ -45,6 +45,9 @@ try {
   switch ($Command) {
     'doctor' { Invoke-Flutter @('doctor','-v') }
     'pub' { Invoke-Flutter @('pub','get'); Invoke-Flutter @('gen-l10n') }
+    'fix' { & $dart fix --apply --code=curly_braces_in_flow_control_structures,use_null_aware_elements; if($LASTEXITCODE -ne 0){throw 'Fix failed'} }
+    'bundle' { if($Extra -contains '--offline'){ Invoke-Gradle @(':app:bundleRelease','--offline') }else{ Invoke-Flutter (@('build','appbundle','--release')+$Extra) } }
+    'release-check' { & (Join-Path $PSScriptRoot 'release-check.ps1') }
     'format' { & $dart format lib test; if ($LASTEXITCODE -ne 0) { throw 'Format failed' } }
     'analyze' { Invoke-Flutter @('analyze') }
     'test' { Invoke-Flutter (@('test') + $Extra) }

@@ -1,6 +1,49 @@
 import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
 
+Future<void> upgradeToV12(DatabaseExecutor db) async {
+  await db.execute(
+    'CREATE TABLE item_revisions(kind TEXT NOT NULL,id TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(kind,id))',
+  );
+  await db.execute(
+    "INSERT INTO item_revisions(kind,id) SELECT 'habit',id FROM habits",
+  );
+  await db.execute(
+    "INSERT INTO item_revisions(kind,id) SELECT 'task',id FROM tasks",
+  );
+  for (final entry in {
+    'habits': 'id',
+    'plans': 'habit_id',
+    'entries': 'habit_id',
+    'habit_breaks': 'habit_id',
+    'tasks': 'id',
+    'task_entries': 'task_id',
+  }.entries) {
+    final kind = entry.key.startsWith('task') ? 'task' : 'habit';
+    for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
+      final row = event == 'DELETE' ? 'OLD' : 'NEW';
+      await db.execute(
+        "CREATE TRIGGER item_${entry.key}_${event.toLowerCase()} AFTER $event ON ${entry.key} BEGIN INSERT INTO item_revisions(kind,id,revision) SELECT '$kind',$row.${entry.value},0 WHERE NOT EXISTS(SELECT 1 FROM item_revisions WHERE kind='$kind' AND id=$row.${entry.value}); UPDATE item_revisions SET revision=revision+1 WHERE kind='$kind' AND id=$row.${entry.value}; END",
+      );
+    }
+  }
+
+  await db.execute(
+    "CREATE TABLE record_events(id TEXT PRIMARY KEY, habit_id TEXT NOT NULL REFERENCES habits(id) ON DELETE CASCADE, day TEXT NOT NULL, value INTEGER NOT NULL, minute INTEGER, note TEXT NOT NULL, kind TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 0, deleted INTEGER NOT NULL DEFAULT 0)",
+  );
+  await db.execute(
+    'CREATE INDEX record_events_day ON record_events(habit_id,day)',
+  );
+  await db.execute(
+    "INSERT INTO record_events(id,habit_id,day,value,minute,note,kind) SELECT 'baseline-'||lower(hex(randomblob(16))),e.habit_id,e.day,e.value,NULL,'','baseline' FROM entries e JOIN habits h ON e.habit_id=h.id WHERE h.kind IN ('quantity','count')",
+  );
+  for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
+    await db.execute(
+      'CREATE TRIGGER event_${event.toLowerCase()} AFTER $event ON record_events BEGIN UPDATE runtime SET revision=revision+1 WHERE id=1; END',
+    );
+  }
+}
+
 // Schema 11 adds the count enum to existing rows without changing their shape.
 // The version marker prevents older native readers from treating it as check.
 // No quantity values or units are inferred, converted, or rounded on upgrade.

@@ -15,6 +15,7 @@ class WidgetBindingProvider : ContentProvider() {
         val prefs = c.getSharedPreferences("daypanel_widgets", 0)
         return Bundle().apply {
             when (method) {
+                "plusAccess" -> putBoolean("owned",app.daypanel.next.PlusReceipt.owned(c))
                 "actionFinished" -> {
                     app.daypanel.next.reminders.ReminderEngine.worker.submit { app.daypanel.next.reminders.ReminderEngine.sync(c) }.get()
                     WidgetEngine.worker.submit {

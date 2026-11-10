@@ -37,7 +37,7 @@ class WidgetBridge(private val activity: MainActivity, engine: FlutterEngine) {
                 "refresh" -> work(reply) { refresh(); null }
                 "launch" -> work(reply) { launch() }
                 "validate" -> work(reply) { WidgetBindings.valid(activity, call.arguments as? Map<*, *> ?: emptyMap<Any, Any>()) }
-                "configure" -> work(reply) {
+                "configure", "configurePanel" -> work(reply) {
                     check(activity is WidgetActivity)
                     val widgetId = call.argument<Int>("widgetId") ?: error("Missing widget")
                     require(widgetId == activity.intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1))

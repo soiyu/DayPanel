@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,12 +7,20 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val playConfig = Properties().apply {
+    val config = rootProject.file("../.local/play-release.properties")
+    if (config.isFile) config.inputStream().use { load(it) }
+}
+fun playValue(name: String, fallback: String = "") = playConfig.getProperty(name, fallback)
+fun quoted(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
 android {
     namespace = "app.daypanel.next"
     compileSdk = 36
     ndkVersion = "28.2.13676358"
     buildFeatures {
         resValues = true
+        buildConfig = true
     }
 
     compileOptions {
@@ -20,7 +30,11 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "app.daypanel.next"
+        applicationId = playValue("applicationId", "app.daypanel.next")
+        buildConfigField("String", "PLAY_PUBLIC_KEY", quoted(playValue("billingPublicKey")))
+        buildConfigField("String", "PLUS_PRODUCT_ID", quoted(playValue("productId", "daypanel_plus")))
+        buildConfigField("String", "PRIVACY_URL", quoted(playValue("privacyUrl")))
+        buildConfigField("String", "SUPPORT_EMAIL", quoted(playValue("supportEmail")))
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 28
@@ -34,6 +48,16 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (playValue("storeFile").isNotBlank()) {
+            create("playRelease") {
+                storeFile = rootProject.file(playValue("storeFile"))
+                storePassword = playValue("storePassword")
+                keyAlias = playValue("keyAlias")
+                keyPassword = playValue("keyPassword")
+            }
+        }
+    }
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -41,7 +65,8 @@ android {
         }
         release {
             resValue("string", "app_name", "DayPanel")
-            // Release signing is configured only when preparing actual distribution.
+            signingConfig = signingConfigs.findByName("playRelease")
+            isMinifyEnabled = true
         }
     }
 }
@@ -57,6 +82,7 @@ flutter {
 }
 
 dependencies {
+    implementation("com.android.billingclient:billing:9.1.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

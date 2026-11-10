@@ -78,7 +78,7 @@ void main() {
       factory: databaseFactoryFfi,
       path: path,
     );
-    expect(await migrated.db.getVersion(), 11);
+    expect(await migrated.db.getVersion(), 12);
     expect((await migrated.entries()).single.value, 250001);
     expect(
       (await migrated.plans()).single.effectiveDay,

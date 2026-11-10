@@ -3,6 +3,7 @@ import '../application/app_controller.dart';
 import '../domain/appearance.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
+import 'plus_page.dart';
 import 'theme.dart';
 import 'habit_icon.dart';
 import 'refined_components.dart';
@@ -46,6 +47,10 @@ List<String> iconLabels(AppLocalizations s) => [
   s.iconSleep,
   s.iconUnplug,
   s.iconCare,
+  s.iconHeadphones,
+  s.iconLaptop,
+  s.iconHike,
+  s.iconInk,
 ];
 
 class StyleChoices extends StatelessWidget {
@@ -98,6 +103,11 @@ class _AppearancePageState extends State<AppearancePage> {
 
   Future<void> save() async {
     if (saving) return;
+    if (['apricot', 'coast'].contains(draft.palette) &&
+        !await requirePlus(context, widget.app)) {
+      return;
+    }
+    if (!mounted) return;
     setState(() => saving = true);
     final ok = await widget.app.run(
       () => widget.app.store.saveAppearance(draft),
@@ -238,6 +248,8 @@ class _AppearancePageState extends State<AppearancePage> {
                                     label: switch (palette) {
                                       'teal' => s.paletteTeal,
                                       'violet' => s.paletteViolet,
+                                      'apricot' => s.paletteSunrise,
+                                      'coast' => s.paletteOcean,
                                       _ => s.paletteBlue,
                                     },
                                     selected: draft.palette == palette,

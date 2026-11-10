@@ -7,8 +7,8 @@ class Appearance {
     this.frame = 'soft',
   });
   final String mode, palette, font, frame;
-  static const iconCount = 24;
-  static const palettes = ['blue', 'teal', 'violet'];
+  static const iconCount = 28;
+  static const palettes = ['blue', 'teal', 'violet', 'apricot', 'coast'];
   static const fonts = ['system', 'serif'];
   static const frames = ['soft', 'ring', 'plain'];
   static const habitColors = [

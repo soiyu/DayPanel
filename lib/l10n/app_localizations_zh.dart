@@ -997,10 +997,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get back => '返回';
 
   @override
-  String get freeTitle => '你的日常，始终免费';
+  String get freeTitle => '基础功能与数据自由';
 
   @override
-  String get freeBody => '没有广告、订阅和功能付费墙。';
+  String get freeBody => '基础记录、完整备份、恢复与导出一直可用。已有记录不会因购买状态丢失。';
 
   @override
   String get localData => '数据保存在这台设备';
@@ -1911,4 +1911,146 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get cardGuideShare =>
       '打开一张已获得的卡片 → 分享卡片 → 保存图片或分享。习惯名称与心得摘录默认不包含；只有你主动开启才会出现在图片里。分享摘录不改原心得，系统分享面板由你选择接收应用，不会自动发送。';
+
+  @override
+  String get weeklyTotalLabel => '每周累计目标';
+
+  @override
+  String get weeklyTotalHint => '在一周内累计达到数量或次数，不要求每天完成。';
+
+  @override
+  String get weeklyTotalProgress => '本周累计';
+
+  @override
+  String get weeklyTargetAmount => '本周目标';
+
+  @override
+  String get eventTitle => '每次记录';
+
+  @override
+  String get eventAdd => '记一次';
+
+  @override
+  String get eventUnknown => '此前累计 · 时间未知';
+
+  @override
+  String get eventAdjustment => '总量调整';
+
+  @override
+  String get eventEmpty => '还没有逐次记录';
+
+  @override
+  String get eventWhen => '发生时间';
+
+  @override
+  String get eventNoTime => '时间未知';
+
+  @override
+  String get eventNote => '备注（可选）';
+
+  @override
+  String get eventClearHelp => '修改或删除只影响这一条；当天总量同时更新。';
+
+  @override
+  String get eventConflict => '记录已发生变化，请重新打开后确认。';
+
+  @override
+  String get calendarAdd => '加入日历';
+
+  @override
+  String get calendarHint => '打开系统日历确认保存。这是独立副本，不会同步后续改动。';
+
+  @override
+  String get calendarOpened => '请在日历中确认保存';
+
+  @override
+  String get calendarUnavailable => '未找到可添加事件的日历应用';
+
+  @override
+  String get plusTitle => 'DayPanel Plus';
+
+  @override
+  String get plusBuy => '一次购买';
+
+  @override
+  String get plusRestore => '恢复购买';
+
+  @override
+  String get plusOwned => '已解锁 Plus';
+
+  @override
+  String get plusDescription => '组合桌面、每次记录、周累计目标、复盘卡和原创装扮。一次购买，没有订阅。';
+
+  @override
+  String get plusUnavailable => '暂时无法从 Google Play 获取商品，请稍后重试。';
+
+  @override
+  String get plusPending => '付款处理中，完成后会解锁';
+
+  @override
+  String get plusCancelled => '已取消购买';
+
+  @override
+  String get plusBase => '基础记录、完整备份、恢复与导出一直可用。已有记录不会因购买状态丢失。';
+
+  @override
+  String get plusTesting => '测试版本 · 高级功能已开放，未产生购买';
+
+  @override
+  String get reviewBuilder => '制作复盘卡';
+
+  @override
+  String get reviewWeek => '周复盘';
+
+  @override
+  String get reviewMonth => '月复盘';
+
+  @override
+  String get reviewChoose => '选择内容（最多6个习惯）';
+
+  @override
+  String get reviewPreview => '预览复盘卡';
+
+  @override
+  String get panelTitle => '组合桌面面板';
+
+  @override
+  String get panelChoose => '选 1–4 个事项，按顺序放上桌面';
+
+  @override
+  String get csvExport => '导出可读表格 CSV';
+
+  @override
+  String get csvHint => '包含记录、每次明细、小事和手记；这是可读表格，完整恢复请使用完整备份。';
+
+  @override
+  String get styleExtra => '原创精选';
+
+  @override
+  String get paletteSunrise => '杏色书房';
+
+  @override
+  String get paletteOcean => '海岸蓝绿';
+
+  @override
+  String get iconHeadphones => '耳机';
+
+  @override
+  String get iconLaptop => '电脑';
+
+  @override
+  String get iconHike => '山野';
+
+  @override
+  String get iconInk => '钢笔';
+
+  @override
+  String get panelAdd => '添加面板';
+
+  @override
+  String get privateHabit => '习惯';
+
+  @override
+  String get reminderSharedWeekGoal =>
+      '这些时刻提醒同一个本周累计目标；本周达标后停止本周后续提醒，不自动拆成每天的任务。';
 }

@@ -126,6 +126,7 @@ class _LegacyImportPageState extends State<LegacyImportPage> {
       : switch (choice.kind) {
           ScheduleKind.weekdays => s.legacyDaily,
           ScheduleKind.weekly => '${s.legacyWeekly} · ${choice.count}',
+          ScheduleKind.weeklyTotal => s.weeklyTotalLabel,
           ScheduleKind.interval => '${s.legacyInterval} · ${choice.count}',
         };
   @override
@@ -630,6 +631,7 @@ class _ScheduleEditorState extends State<_ScheduleEditor> {
                 label: switch (k) {
                   ScheduleKind.weekdays => s.legacyDaily,
                   ScheduleKind.weekly => s.legacyWeekly,
+                  ScheduleKind.weeklyTotal => s.weeklyTotalLabel,
                   ScheduleKind.interval => s.legacyInterval,
                 },
                 icon: kind == k

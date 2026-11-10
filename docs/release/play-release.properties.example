@@ -1,0 +1,11 @@
+# Copy to ignored .local/play-release.properties. Never commit actual credentials.
+# Paths use forward slashes. Relative storeFile paths resolve from android/.
+applicationId=app.daypanel.next
+productId=daypanel_plus
+billingPublicKey=
+storeFile=
+storePassword=
+keyAlias=
+keyPassword=
+privacyUrl=
+supportEmail=

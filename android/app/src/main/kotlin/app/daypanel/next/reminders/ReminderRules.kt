@@ -19,10 +19,15 @@ object ReminderRules {
         val scheduled = when (p.schedule) {
             "weekdays" -> p.weekdays and (1 shl (day.dayOfWeek.value - 1)) != 0
             "interval" -> p.interval > 0 && ChronoUnit.DAYS.between(p.start, day) % p.interval == 0L
-            "weekly" -> true
+            "weekly", "weeklyTotal" -> true
             else -> false
         }
         if (!scheduled || (h.entries[day] ?: -1) >= p.target) return false
+        if (p.schedule == "weeklyTotal") {
+            val start = maxOf(p.start, day.minusDays((day.dayOfWeek.value - 1).toLong()))
+            val total = h.entries.filter { (date, _) -> date >= start && date <= day && h.breaks.none { it.contains(date) } }.values.sum()
+            return total < p.target
+        }
         if (p.schedule == "weekly") {
             val monday = day.minusDays((day.dayOfWeek.value - 1).toLong())
             val from = maxOf(monday, p.start)

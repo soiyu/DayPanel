@@ -4,6 +4,7 @@ import '../domain/models.dart';
 import '../data/widget_platform.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
+import 'panel_widgets.dart';
 import 'theme.dart';
 import 'editors.dart';
 import 'habits.dart';
@@ -39,7 +40,7 @@ class _WidgetFlowState extends State<WidgetFlow> {
     if (widget.request['generation'] == epoch) {
       selected = widget.request['id'] as String?;
     }
-    if (!configuring) {
+    if (!configuring && widget.request['kind'] != 'panel') {
       WidgetsBinding.instance.addPostFrameCallback((_) => open());
     }
   }
@@ -92,6 +93,18 @@ class _WidgetFlowState extends State<WidgetFlow> {
             app: app,
             habit: habit,
             day: day,
+            onSaveEvent: (event, revision) async {
+              if (!await valid() || day != app.today) {
+                if (mounted) setState(() => failed = true);
+                return false;
+              }
+              return app.recordIndividual(
+                event,
+                epoch,
+                expectedRevision: revision,
+                requireToday: true,
+              );
+            },
             onSave: (value, revision) async {
               if (!await valid() || day != app.today) {
                 if (mounted) setState(() => failed = true);
@@ -169,6 +182,13 @@ class _WidgetFlowState extends State<WidgetFlow> {
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
+    if (widget.request['kind'] == 'panel') {
+      return PanelWidgetPage(
+        app: app,
+        request: widget.request,
+        release: widget.release,
+      );
+    }
     final choices = <(String, String, String)>[
       if (widget.request['kind'] == 'habit')
         for (final h in app.habits.where((h) => !h.archived))
@@ -435,6 +455,19 @@ class _WidgetsHelpPageState extends State<WidgetsHelpPage> {
               ),
               const SizedBox(height: 12),
               Text(s.widgetChooseHint),
+              const SizedBox(height: 16),
+            ],
+            if (widget.app != null) ...[
+              AppAction(
+                label: s.panelTitle,
+                icon: Icons.dashboard_customize_outlined,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => PanelWidgetPage(app: widget.app!),
+                  ),
+                ),
+              ),
               const SizedBox(height: 16),
             ],
             if (message != null)

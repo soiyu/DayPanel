@@ -708,7 +708,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
         .any(
           (d) =>
               d.compareTo(selected.startDay) >= 0 &&
-              stats.plan(d).schedule != ScheduleKind.weekly,
+              stats.plan(d).schedule.isWeekly == false,
         );
     return [
       Wrap(
@@ -836,7 +836,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
-                    '${w.start.key}  ${w.achieved}/${w.goal} · ${w.pending
+                    '${w.start.key}  ${w.unit == null ? w.achieved : quantityText(w.achieved)}/${w.unit == null ? w.goal : quantityText(w.goal)} ${w.unit ?? ''} · ${w.pending
                         ? s.inProgress
                         : !w.eligible
                         ? s.partialPeriod

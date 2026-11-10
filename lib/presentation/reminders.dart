@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../application/app_controller.dart';
 import '../domain/models.dart';
 import '../domain/reminder.dart';
+import '../data/calendar_platform.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
@@ -149,13 +150,18 @@ class _ReminderEditorState extends State<ReminderEditor> {
               ),
             ),
           ),
+          const SizedBox(height: 10),
+          Text(s.calendarHint, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 18),
           Text(
             s.reminderPermissionHint,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           Text(
-            s.reminderSharedGoal,
+            widget.app.planAt(widget.habit, widget.app.today).schedule ==
+                    ScheduleKind.weeklyTotal
+                ? s.reminderSharedWeekGoal
+                : s.reminderSharedGoal,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           SectionTitle(s.reminderTimes, tone: UiTone.peach),
@@ -172,12 +178,51 @@ class _ReminderEditorState extends State<ReminderEditor> {
                   ).format(context),
                   tone: UiTone.peach,
                   onTap: saving ? null : () => pick(minute),
-                  trailing: IconButton(
-                    tooltip: s.removeTime,
-                    onPressed: saving || times.length == 1
-                        ? null
-                        : () => setState(() => times.remove(minute)),
-                    icon: const Icon(Icons.remove_circle_outline),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: s.calendarAdd,
+                        icon: const Icon(Icons.event_available_outlined),
+                        onPressed: saving
+                            ? null
+                            : () async {
+                                try {
+                                  final opened = await CalendarPlatform().add(
+                                    widget.habit.id,
+                                    epoch,
+                                    minute,
+                                  );
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          opened
+                                              ? s.calendarOpened
+                                              : s.calendarUnavailable,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } catch (_) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(s.calendarUnavailable),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                      ),
+                      IconButton(
+                        tooltip: s.removeTime,
+                        onPressed: saving || times.length == 1
+                            ? null
+                            : () => setState(() => times.remove(minute)),
+                        icon: const Icon(Icons.remove_circle_outline),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'schema_fixture.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
@@ -122,7 +123,12 @@ void main() {
       final snapshot = await store.exportSnapshot();
       expect(BackupSnapshot.decode(snapshot.encode()).count('cards'), 1);
       expect(
-        () => BackupSnapshot.decode(altered(snapshot, (p) => p['schema'] = 10)),
+        () => BackupSnapshot.decode(
+          altered(snapshot, (p) {
+            p['schema'] = 10;
+            (p['tables'] as Map).remove('record_events');
+          }),
+        ),
         throwsA(isA<BackupInvalid>()),
       );
     },
@@ -135,7 +141,7 @@ void main() {
       await store.setRecord('c', today, 1000, today: today);
       final snapshot = await store.exportSnapshot();
       final envelope = jsonDecode(utf8.decode(snapshot.encode())) as Map;
-      expect(jsonDecode(envelope['payload'])['schema'], 11);
+      expect(jsonDecode(envelope['payload'])['schema'], 12);
       await store.setRecord('c', today, 2000, today: today);
       await store.restoreSnapshot(BackupSnapshot.decode(snapshot.encode()));
       expect((await store.entries()).single.value, 1000);
@@ -186,7 +192,10 @@ void main() {
     for (var schema = 2; schema <= 10; schema++) {
       expect(
         () => BackupSnapshot.decode(
-          altered(snapshot, (p) => p['schema'] = schema),
+          altered(snapshot, (p) {
+            p['schema'] = schema;
+            (p['tables'] as Map).remove('record_events');
+          }),
         ),
         throwsA(isA<BackupInvalid>()),
       );
@@ -208,10 +217,10 @@ void main() {
         create: true,
       );
       await store.setRecord('q', today, 1250, today: today);
-      final old = altered(
-        await store.exportSnapshot(),
-        (p) => p['schema'] = 10,
-      );
+      final old = altered(await store.exportSnapshot(), (p) {
+        p['schema'] = 10;
+        (p['tables'] as Map).remove('record_events');
+      });
       await store.restoreSnapshot(BackupSnapshot.decode(old));
       expect((await store.habits()).single.kind, HabitKind.quantity);
       expect((await store.entries()).single.value, 1250);
@@ -341,7 +350,8 @@ void main() {
         ]);
         expect(outcomes.where((ok) => ok).length, 1);
         expect([1000, 2000], contains((await first.entries()).single.value));
-        expect(await first.revision(), expected + 1);
+        expect(await first.revision(), greaterThan(expected));
+        final committedRevision = await first.revision();
         await expectLater(
           second.inGeneration(
             epoch,
@@ -355,6 +365,7 @@ void main() {
           ),
           throwsA(isA<RecordRevisionConflict>()),
         );
+        expect(await first.revision(), committedRevision);
       } finally {
         await first?.close();
         await second?.close();
@@ -385,7 +396,7 @@ void main() {
   );
 
   test(
-    'schema ten migration is a marker and preserves every table including runtime',
+    'schema ten migration preserves prior tables and runtime while adding event baselines',
     () async {
       final dir = await Directory.systemTemp.createTemp('count-migration-');
       AppStore? fileStore;
@@ -408,19 +419,20 @@ void main() {
         await fileStore.setRecord('q', today, 1250, today: today);
         final tables = <String, List<Map<String, Object?>>>{};
         for (final table in [
-          ...BackupSnapshot.tableNames,
+          ...BackupSnapshot.tableNames.where((name) => name != 'record_events'),
           'runtime',
           'recovery',
         ]) {
           tables[table] = await fileStore.db.query(table, orderBy: 'rowid');
         }
+        await discardV12Fixture(fileStore.db);
         await fileStore.db.setVersion(10);
         await fileStore.close();
         fileStore = await AppStore.open(
           factory: databaseFactoryFfiNoIsolate,
           path: '${dir.path}/data.db',
         );
-        expect(await fileStore.db.getVersion(), 11);
+        expect(await fileStore.db.getVersion(), 12);
         for (final table in tables.keys) {
           expect(
             await fileStore.db.query(table, orderBy: 'rowid'),

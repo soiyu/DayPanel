@@ -37,6 +37,8 @@ String scheduleText(AppLocalizations s, HabitPlan p) => switch (p.schedule) {
           ].join(' · '),
   ScheduleKind.interval => '${s.intervalLabel}: ${p.intervalDays}',
   ScheduleKind.weekly => '${s.weeklyGoalLabel}: ${p.weeklyGoal}',
+  ScheduleKind.weeklyTotal =>
+    '${s.weeklyTotalLabel}: ${quantityText(p.target)} ${p.unit}',
 };
 
 Future<void> showHabitFilter(BuildContext context, AppController app) async {

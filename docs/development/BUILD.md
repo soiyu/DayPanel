@@ -17,3 +17,7 @@ FL11 后 `verify` 同时运行 Kotlin `:app:testDebugUnitTest`；`native-test` �
 APK 位于 `build/app/outputs/flutter-apk/app-debug.apk`，应用 ID 与旧 DayPanel 分开。若提示 Android licenses，使用本机 SDK 的标准 sdkmanager 检查；不伪造许可文件。
 
 FL19本机回归期间系统临时目录耗尽空间且多模拟器并发触发内存不足。脚本现将TEMP/TMP仅对子进程指向本项目`.local/tmp`，verify以2个并发运行Flutter测试，不修改全局设置。设备矩阵串行执行；保留主可见模拟器，辅助API环境测试后关闭。系统目录没有自动清理。
+
+2026-11-11新增`bundle`构建release AAB，`release-check`核对ignored `.local/play-release.properties`必填发布资料；未配置真实签名时AAB为未签名检查产物，禁止当作可上传。`bundle -Extra '--offline'`直接通过本地Gradle构建，适用于已核验缓存齐全的环境，不跳过编译。`fix`仅运行两个指定Dart格式规则修复。Google Play配置/身份/商品/付款测试见`docs/release/GOOGLE-PLAY.md`。
+
+本轮一次官方Flutter x86_64_release依赖下载停滞；从同一Google Storage官方地址分段下载并与响应中的CRC32C核对后放入ignored本地Maven缓存，未修改依赖源码/版本或全局仓库设置。该机器缓存不是项目运行功能；其他机器可直接正常联网解析同版本依赖。

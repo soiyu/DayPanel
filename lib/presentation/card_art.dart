@@ -162,6 +162,67 @@ class _Scene extends CustomPainter {
         rect(const Rect.fromLTWH(76, 145, 168, 9), orange, radius: 4);
         rect(const Rect.fromLTWH(116, 154, 70, 12), ink, radius: 3);
         line(const Offset(125, 159), const Offset(175, 159), bg, 2);
+      case 6: // Original review illustration: an open journal, warm mug and leaf.
+        oval(const Rect.fromLTWH(54, 150, 214, 20), wash);
+        path(
+          Path()
+            ..moveTo(70, 46)
+            ..quadraticBezierTo(115, 31, 158, 56)
+            ..lineTo(158, 145)
+            ..quadraticBezierTo(115, 120, 70, 137)
+            ..close(),
+          purple,
+        );
+        path(
+          Path()
+            ..moveTo(162, 56)
+            ..quadraticBezierTo(205, 31, 250, 46)
+            ..lineTo(250, 137)
+            ..quadraticBezierTo(205, 120, 162, 145)
+            ..close(),
+          ink,
+        );
+        for (var i = 0; i < 4; i++) {
+          line(Offset(86, 65 + i * 16), Offset(139, 72 + i * 16), bg, 3);
+          line(Offset(181, 72 + i * 16), Offset(233, 65 + i * 16), bg, 3);
+        }
+        oval(const Rect.fromLTWH(31, 102, 43, 44), orange);
+        line(const Offset(49, 116), const Offset(58, 92), purple, 3);
+      case 7: // Original review illustration: a small coastal lighthouse.
+        path(
+          Path()
+            ..moveTo(0, 145)
+            ..quadraticBezierTo(80, 98, 164, 143)
+            ..quadraticBezierTo(250, 183, 320, 122)
+            ..lineTo(320, 190)
+            ..lineTo(0, 190)
+            ..close(),
+          wash,
+        );
+        path(
+          Path()
+            ..moveTo(0, 167)
+            ..quadraticBezierTo(130, 127, 229, 164)
+            ..quadraticBezierTo(280, 178, 320, 157)
+            ..lineTo(320, 190)
+            ..lineTo(0, 190)
+            ..close(),
+          purple,
+        );
+        path(
+          Path()
+            ..moveTo(127, 144)
+            ..lineTo(141, 57)
+            ..lineTo(179, 57)
+            ..lineTo(194, 144)
+            ..close(),
+          ink,
+        );
+        rect(const Rect.fromLTWH(136, 40, 49, 25), orange, radius: 5);
+        line(const Offset(132, 38), const Offset(190, 38), purple, 5);
+        line(const Offset(146, 89), const Offset(176, 89), bg, 6);
+        line(const Offset(141, 118), const Offset(182, 118), bg, 6);
+        oval(const Rect.fromLTWH(225, 25, 37, 37), orange);
       default: // Constellation of small moments.
         final points = [
           const Offset(69, 125),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'models.dart';
+import 'record_event.dart';
 import 'backup.dart';
 import 'activity.dart';
 
@@ -16,6 +17,7 @@ class LegacySchedule {
   bool get valid => switch (kind) {
     ScheduleKind.weekdays => count == 1,
     ScheduleKind.weekly => count >= 1 && count <= 7,
+    ScheduleKind.weeklyTotal => false,
     ScheduleKind.interval => count >= 1 && count <= 365,
   };
 }
@@ -312,6 +314,17 @@ class LegacyImport {
             'day': e.day.key,
             'value': e.value,
           });
+          if (habit.kind.isNumeric) {
+            tables['record_events']!.add(
+              RecordEvent(
+                id: noteId('baseline-${h.id}-${e.day.key}'),
+                habitId: h.id,
+                day: e.day,
+                value: e.value!,
+                kind: RecordEventKind.baseline,
+              ).toMap(),
+            );
+          }
         }
         if (e.notes.trim().isNotEmpty || e.skipped) {
           final prefix = e.skipped

@@ -36,7 +36,7 @@ class HabitIcon extends StatelessWidget {
             : null,
       ),
       child: Image.asset(
-        'assets/habit_icons/${index.clamp(0, 23).toString().padLeft(2, '0')}.png',
+        'assets/habit_icons/${index.clamp(0, 27).toString().padLeft(2, '0')}.png',
         excludeFromSemantics: true,
         filterQuality: FilterQuality.high,
       ),

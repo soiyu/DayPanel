@@ -14,6 +14,29 @@ import android.net.Uri
 import app.daypanel.next.reminders.ReminderEngine
 
 open class MainActivity : FlutterActivity() {
+    // Keep the main Dart owner alive across Activity recreation. sqflite's native
+    // handles outlive a detached engine; destroying Dart mid-transaction could
+    // strand a lock until process death. Widget flows explicitly close their store.
+    companion object { private var mainEngine: FlutterEngine? = null }
+    private var nativeReleased=false
+    override fun provideFlutterEngine(context:android.content.Context):FlutterEngine? =
+        if(this is app.daypanel.next.widgets.WidgetActivity)null else mainEngine
+    override fun shouldDestroyEngineWithHost():Boolean = this is app.daypanel.next.widgets.WidgetActivity
+    override fun cleanUpFlutterEngine(flutterEngine:FlutterEngine) {
+        if(!nativeReleased) {
+            nativeReleased=true
+            plusBilling?.close();plusBilling=null
+            dataReceiver?.let { unregisterReceiver(it) };dataReceiver=null;widgetChanges=null
+            completionFeedback?.release();completionFeedback=null
+            pending?.error("closed","Document activity closed",null);pending=null;exportBytes=null
+            permissionReply?.error("closed","Permission activity closed",null);permissionReply=null
+            for(name in listOf("widgets","reminders","documents","feedback","calendar","about","card-image"))
+                MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"app.daypanel.next/$name").setMethodCallHandler(null)
+            worker.shutdown()
+        }
+        super.cleanUpFlutterEngine(flutterEngine)
+    }
+    private var plusBilling: PlusBilling? = null
     private var pending: MethodChannel.Result? = null
     private var exportBytes: ByteArray? = null
     private val worker = Executors.newSingleThreadExecutor()
@@ -28,6 +51,7 @@ open class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        if(this !is app.daypanel.next.widgets.WidgetActivity)mainEngine=flutterEngine
         app.daypanel.next.widgets.WidgetBridge(this, flutterEngine)
         widgetChanges=MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"app.daypanel.next/widgets")
         dataReceiver=object:android.content.BroadcastReceiver() {
@@ -35,6 +59,16 @@ open class MainActivity : FlutterActivity() {
         }.also {
             androidx.core.content.ContextCompat.registerReceiver(this,it,android.content.IntentFilter("app.daypanel.next.DATA_CHANGED"),androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
         }
+        plusBilling = PlusBilling(this,flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"app.daypanel.next/about").setMethodCallHandler { call,reply ->
+            when(call.method){
+                "info" -> reply.success(mapOf("version" to BuildConfig.VERSION_NAME,"code" to BuildConfig.VERSION_CODE,"debug" to BuildConfig.DEBUG,"privacy" to BuildConfig.PRIVACY_URL,"support" to BuildConfig.SUPPORT_EMAIL))
+                "privacy" -> try { require(BuildConfig.PRIVACY_URL.startsWith("https://"));startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(BuildConfig.PRIVACY_URL)));reply.success(null) } catch(_:Exception){reply.error("unavailable","Policy page unavailable",null)}
+                "support" -> try { require(BuildConfig.SUPPORT_EMAIL.contains("@"));startActivity(Intent(Intent.ACTION_SENDTO,Uri.parse("mailto:"+BuildConfig.SUPPORT_EMAIL)).putExtra(Intent.EXTRA_SUBJECT,"DayPanel support"));reply.success(null) }catch(_:Exception){reply.error("unavailable","Email app unavailable",null)}
+                else -> reply.notImplemented()
+            }
+        }
+        CalendarBridge.register(this,flutterEngine)
         CardImageBridge.register(this,flutterEngine)
         completionFeedback = try { CompletionFeedback(this) } catch (_: Exception) { null }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.daypanel.next/feedback").setMethodCallHandler { call, reply ->
@@ -94,11 +128,11 @@ open class MainActivity : FlutterActivity() {
                     } else {
                         pending = result
                         exportBytes = bytes
-                        exportBackup = call.method == "save" && call.argument<String>("mime") != "image/png"
+                        exportBackup = call.method == "save" && call.argument<String>("mime") !in listOf("image/png","text/csv")
                         try {
                             val intent = if (call.method == "save") {
                                 Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                                    type = if(call.argument<String>("mime")=="image/png") "image/png" else "application/json"
+                                    type = when(call.argument<String>("mime")) { "image/png" -> "image/png"; "text/csv" -> "text/csv"; else -> "application/json" }
                                     addCategory(Intent.CATEGORY_OPENABLE)
                                     putExtra(Intent.EXTRA_TITLE, call.argument<String>("name") ?: "DayPanel.json")
                                 }
@@ -119,13 +153,6 @@ open class MainActivity : FlutterActivity() {
             }
     }
 
-    override fun onDestroy() {
-        dataReceiver?.let { unregisterReceiver(it) };dataReceiver=null;widgetChanges=null
-        worker.shutdown()
-        completionFeedback?.release()
-        completionFeedback = null
-        super.onDestroy()
-    }
     private fun syncReminderStatus(): Map<String, Any> {
         if (this !is app.daypanel.next.widgets.WidgetActivity) {
             ReminderEngine.sync(this)

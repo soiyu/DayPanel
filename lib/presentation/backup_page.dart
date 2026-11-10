@@ -3,6 +3,7 @@ import '../application/app_controller.dart';
 import '../data/app_store.dart';
 import '../data/document_files.dart';
 import '../domain/backup.dart';
+import '../domain/csv_export.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
@@ -210,6 +211,10 @@ class _BackupPageState extends State<BackupPage> {
         children: [
           AppBadge('${s.habit} ${snap.count('habits')}'),
           AppBadge('${s.recordsLabel} ${snap.count('entries')}'),
+          AppBadge(
+            '${s.eventTitle} ${snap.tables['record_events']!.where((e) => e['deleted'] == 0).length}',
+            tone: UiTone.violet,
+          ),
           AppBadge('${s.tasks} ${snap.count('tasks')}', tone: UiTone.peach),
           AppBadge(
             '${s.residentRecords} ${snap.count('task_entries')}',
@@ -345,6 +350,29 @@ class _BackupPageState extends State<BackupPage> {
                 icon: Icons.restore_page_outlined,
                 tone: UiTone.violet,
                 onTap: working ? null : import,
+              ),
+              const SizedBox(height: 12),
+              ActionTile(
+                key: const Key('export-csv'),
+                title: s.csvExport,
+                subtitle: s.csvHint,
+                icon: Icons.table_chart_outlined,
+                tone: UiTone.violet,
+                onTap: working
+                    ? null
+                    : () => operate(() async {
+                        final snapshot = await widget.app.store
+                            .exportSnapshot();
+                        final saved = await AndroidDocumentFiles.channel
+                            .invokeMethod<bool>('save', {
+                              'bytes': readableCsv(snapshot),
+                              'name': 'DayPanel-${widget.app.today.key}.csv',
+                              'mime': 'text/csv',
+                            });
+                        if (mounted && saved == true) {
+                          setState(() => message = s.backupSaved);
+                        }
+                      }),
               ),
               const SizedBox(height: 12),
               ActionTile(

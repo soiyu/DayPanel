@@ -29,7 +29,7 @@ object WidgetAppearance {
             paint.alpha=if(dark) 36 else 22
             canvas.drawRoundRect(rect,size*.32f,size*.32f,paint)
         }
-        val asset="flutter_assets/assets/habit_icons/%02d.png".format(java.util.Locale.ROOT,item.icon.coerceIn(0,23))
+        val asset="flutter_assets/assets/habit_icons/%02d.png".format(java.util.Locale.ROOT,item.icon.coerceIn(0,27))
         c.assets.open(asset).use { stream ->
             val art=BitmapFactory.decodeStream(stream) ?: error("Missing habit artwork")
             paint.reset();paint.isAntiAlias=true;paint.isFilterBitmap=true
@@ -71,6 +71,8 @@ object WidgetAppearance {
         return bitmap
     }
     fun action(palette:String):Int = when(palette) {
+        "apricot" -> R.drawable.widget_action_apricot
+        "coast" -> R.drawable.widget_action_coast
         "teal" -> R.drawable.widget_action_teal
         "violet" -> R.drawable.widget_action_violet
         else -> R.drawable.widget_action

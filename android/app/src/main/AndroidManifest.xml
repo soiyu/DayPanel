@@ -8,6 +8,7 @@
         android:allowBackup="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data android:name="com.tekartik.sqflite.wal_enabled" android:value="true" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -62,6 +63,10 @@
         <receiver android:name=".widgets.HabitWidgetProvider" android:label="@string/habit_widget_name" android:exported="false">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/daypanel_widget_info" />
+        </receiver>
+        <receiver android:name=".widgets.PanelWidgetProvider" android:label="@string/panel_widget_name" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/daypanel_panel_info" />
         </receiver>
         <receiver android:name=".widgets.TaskWidgetProvider" android:label="@string/task_widget_name" android:exported="false">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>

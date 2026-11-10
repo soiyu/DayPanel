@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../data/app_store.dart';
 import '../domain/models.dart';
+import '../domain/record_event.dart';
+import '../data/plus_access.dart';
 import '../domain/journal.dart';
 import '../domain/achievement.dart';
 import '../domain/activity.dart';
@@ -23,6 +25,13 @@ class AppController extends ChangeNotifier {
     journalQuery = JournalQuery(month: today);
   }
   final AppStore store;
+  final PlusAccess plus = PlusAccess();
+  @override
+  void dispose() {
+    plus.dispose();
+    super.dispose();
+  }
+
   final ReminderPlatform? reminderPlatform;
   final CompletionFeedback? completionFeedback;
   final WidgetPlatform? widgetPlatform;
@@ -109,6 +118,42 @@ class AppController extends ChangeNotifier {
     return ok;
   }
 
+  Future<bool> recordIndividual(
+    RecordEvent event,
+    int epoch, {
+    int? expectedRevision,
+    bool requireToday = false,
+  }) async {
+    var completed = false;
+    final day = event.day;
+    final ok = await run(() async {
+      if (requireToday && day != today) throw StateError('Widget date expired');
+      completed = await store.addRecordEvent(
+        event,
+        today: today,
+        expectedRevision: expectedRevision,
+      );
+    }, expectedGeneration: epoch);
+    if (ok &&
+        completed &&
+        day == today &&
+        epoch == generation &&
+        completionFeedback != null) {
+      final sound = preferences['completion_sound'] == 'on';
+      final haptics = preferences['completion_haptics'] == 'on';
+      if (sound || haptics) {
+        try {
+          await completionFeedback!.play(sound: sound, haptics: haptics);
+          feedbackFailed = false;
+        } catch (_) {
+          feedbackFailed = true;
+        }
+        notifyListeners();
+      }
+    }
+    return ok;
+  }
+
   ReminderStatus reminderStatus = const ReminderStatus(available: false);
   List<HabitReminder> reminders = [];
   bool reminderSyncFailed = false;
@@ -132,6 +177,7 @@ class AppController extends ChangeNotifier {
   late Day selectedDay;
   List<Habit> habits = [];
   List<HabitEntry> entries = [];
+  List<RecordEvent> events = [];
   List<SmallTask> tasks = [];
   List<TaskEntry> taskEntries = [];
   List<Note> notes = [];
@@ -178,6 +224,7 @@ class AppController extends ChangeNotifier {
     final activityHistory = await store.activity();
     habits = h;
     entries = e;
+    events = await store.recordEvents();
     tasks = t;
     taskEntries = te;
     notes = n;
@@ -296,7 +343,25 @@ class AppController extends ChangeNotifier {
       day.compareTo(h.startDay) >= 0 &&
       planAt(h, day).scheduled(day);
   bool achieved(Habit h, Day day) =>
-      (value(h, day) ?? -1) >= planAt(h, day).target;
+      (planAt(h, day).schedule == ScheduleKind.weeklyTotal
+          ? weekTotal(h, day)
+          : value(h, day) ?? -1) >=
+      planAt(h, day).target;
+  int weekTotal(Habit h, Day day) {
+    final plan = planAt(h, day);
+    return entries
+        .where(
+          (e) =>
+              e.habitId == h.id &&
+              e.day.compareTo(day.monday) >= 0 &&
+              e.day.compareTo(day) <= 0 &&
+              e.day.compareTo(today) <= 0 &&
+              planAt(h, e.day).effectiveDay == plan.effectiveDay &&
+              restOn(h, e.day) == null,
+        )
+        .fold(0, (sum, e) => sum + e.value);
+  }
+
   int weekCount(Habit h, Day day) {
     final plan = planAt(h, day);
     final start = day.monday.compareTo(plan.effectiveDay) < 0
@@ -328,7 +393,7 @@ class AppController extends ChangeNotifier {
       .where(
         (h) =>
             scheduled(h, selectedDay) &&
-            planAt(h, selectedDay).schedule != ScheduleKind.weekly &&
+            planAt(h, selectedDay).schedule.isWeekly == false &&
             matchesFilter(h),
       )
       .toList();
@@ -336,7 +401,7 @@ class AppController extends ChangeNotifier {
       .where(
         (h) =>
             scheduled(h, selectedDay) &&
-            planAt(h, selectedDay).schedule == ScheduleKind.weekly &&
+            planAt(h, selectedDay).schedule.isWeekly &&
             matchesFilter(h),
       )
       .toList();
@@ -346,7 +411,7 @@ class AppController extends ChangeNotifier {
       .where(
         (h) =>
             scheduled(h, selectedDay) &&
-            planAt(h, selectedDay).schedule != ScheduleKind.weekly,
+            planAt(h, selectedDay).schedule.isWeekly == false,
       )
       .toList();
   int get allDailyCompleted =>

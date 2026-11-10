@@ -36,6 +36,22 @@ class DayPanelStyle extends ThemeExtension<DayPanelStyle> {
 
 /// Each theme is a balanced set of role colors, not a single tinted seed.
 const harmonyInks = <String, List<int>>{
+  'apricot': [
+    0xFF9A431D,
+    0xFF7354A3,
+    0xFF9D5C12,
+    0xFF246B60,
+    0xFFAC3856,
+    0xFF356583,
+  ],
+  'coast': [
+    0xFF086F83,
+    0xFF6C5BA5,
+    0xFFA65827,
+    0xFF237253,
+    0xFFA6375D,
+    0xFF2464A5,
+  ],
   'blue': [
     0xFF1D4ED8,
     0xFF6D28D9,
@@ -62,6 +78,22 @@ const harmonyInks = <String, List<int>>{
   ],
 };
 const harmonyWashes = <String, List<int>>{
+  'apricot': [
+    0xFFFFF1E5,
+    0xFFF1ECFA,
+    0xFFFFF4DA,
+    0xFFE7F4EE,
+    0xFFFCEAED,
+    0xFFE9F1F6,
+  ],
+  'coast': [
+    0xFFE6F5F6,
+    0xFFF1EEFA,
+    0xFFFFF0E2,
+    0xFFE8F6ED,
+    0xFFFCEBF0,
+    0xFFE9F2FE,
+  ],
   'blue': [
     0xFFEFF6FF,
     0xFFF5F3FF,
@@ -88,6 +120,22 @@ const harmonyWashes = <String, List<int>>{
   ],
 };
 const harmonyNights = <String, List<int>>{
+  'apricot': [
+    0xFFF6BD99,
+    0xFFC9B7EA,
+    0xFFF4CE90,
+    0xFF9BD9C3,
+    0xFFEBA6B7,
+    0xFFA3CCE1,
+  ],
+  'coast': [
+    0xFF9BDCE4,
+    0xFFC9BEEE,
+    0xFFF0C19F,
+    0xFFACE0C0,
+    0xFFF0B5C6,
+    0xFFA5CFF3,
+  ],
   'blue': [
     0xFF93C5FD,
     0xFFC4B5FD,
@@ -150,11 +198,15 @@ ThemeData dayPanelTheme(
   final base = Color(
     dark
         ? switch (palette) {
+            'apricot' => 0xFF18110F,
+            'coast' => 0xFF09161C,
             'teal' => 0xFF081512,
             'violet' => 0xFF0F0B18,
             _ => 0xFF0A0F1D,
           }
         : switch (palette) {
+            'apricot' => 0xFFFFFAF4,
+            'coast' => 0xFFF4FAFB,
             'teal' => 0xFFF2F9F6,
             'violet' => 0xFFFAF8FD,
             _ => 0xFFF8FAFC,
@@ -163,6 +215,8 @@ ThemeData dayPanelTheme(
   final paper = Color(
     dark
         ? switch (palette) {
+            'apricot' => 0xFF2A211D,
+            'coast' => 0xFF152A33,
             'teal' => 0xFF122620,
             'violet' => 0xFF1D162C,
             _ => 0xFF161F30,
@@ -170,6 +224,8 @@ ThemeData dayPanelTheme(
         : 0xFFFFFFFF,
   );
   final actionStart = Color(switch (palette) {
+    'apricot' => 0xFFA34D27,
+    'coast' => 0xFF0B7187,
     'teal' => 0xFF0D7E73,
     'violet' => 0xFF7C3AED,
     _ => 0xFF2563EB,
@@ -407,6 +463,10 @@ const habitIcons = [
   Icons.bedtime_outlined,
   Icons.phone_disabled_outlined,
   Icons.volunteer_activism_outlined,
+  Icons.headphones_outlined,
+  Icons.laptop_chromebook_outlined,
+  Icons.terrain_outlined,
+  Icons.draw_outlined,
 ];
 UiTone habitTone(int icon, [String color = 'auto']) => switch (color) {
   'blue' => UiTone.sky,

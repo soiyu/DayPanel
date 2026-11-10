@@ -22,6 +22,7 @@ void widgetActionMain() {
         generation: (data['generation'] as num).toInt(),
         revision: (data['revision'] as num).toInt(),
         expectedValue: data['expectedValue'],
+        itemRevision: data['itemRevision'] as int?,
         completed: data['completed'] as bool,
         bindingStillValid: () async =>
             await channel.invokeMethod<bool>('binding', data) == true,

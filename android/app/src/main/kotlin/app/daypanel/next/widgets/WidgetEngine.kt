@@ -49,7 +49,7 @@ object WidgetEngine {
         // Identity is display context, not a physical-click ID. All writes are explicit values.
         val data = Uri.Builder().scheme("daypanel-widget").authority(c.packageName).appendPath(widgetId.toString())
             .appendPath(binding?.token ?: "unbound").appendPath((binding?.generation ?: -1).toString())
-            .appendPath(day.toString()).appendPath(mode).build()
+            .appendPath(day.toString()).appendPath(binding?.kind ?: "").appendPath(binding?.id ?: "").appendPath(mode).build()
         val activity=when(mode){"quantity"->WidgetQuantityActivity::class.java;"configure"->WidgetConfigureActivity::class.java;else->WidgetActivity::class.java}
         val intent = Intent(c, activity).setAction(OPEN).setData(data)
             .putExtra("widget", payload.toString()).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
@@ -59,9 +59,10 @@ object WidgetEngine {
         val payload=binding.json().put("mode","set").put("day",snapshot.day.toString())
             .put("revision",snapshot.revision).put("completed",!item.done)
             .put("expectedValue",(if(item.kind=="habit")item.value else item.doneDay) ?: JSONObject.NULL)
+        if(WidgetBindings.kind(c,binding.widgetId)=="panel")payload.put("itemRevision",item.itemRevision)
         val data=Uri.Builder().scheme("daypanel-widget-action").authority(c.packageName)
             .appendPath(binding.widgetId.toString()).appendPath(binding.token).appendPath(binding.generation.toString())
-            .appendPath(snapshot.day.toString()).appendPath(snapshot.revision.toString()).appendPath((!item.done).toString()).build()
+            .appendPath(snapshot.day.toString()).appendPath(binding.kind).appendPath(binding.id).appendPath(item.itemRevision.toString()).appendPath(snapshot.revision.toString()).appendPath((!item.done).toString()).build()
         return PendingIntent.getBroadcast(c,0,Intent(c,WidgetActionReceiver::class.java).setData(data).putExtra("widget",payload.toString()),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
@@ -71,6 +72,7 @@ object WidgetEngine {
     }
     internal fun views(c: Context, id: Int, snapshot: WidgetSnapshot?, options: Bundle): RemoteViews {
         val binding = WidgetBindings.get(c, id)
+        if(WidgetBindings.kind(c,id)=="panel")return PanelWidgets.views(c,id,binding,snapshot,options)
         val validBinding = binding?.takeIf { it.generation == snapshot?.generation }
         val item = validBinding?.let { snapshot?.items?.get("${it.kind}:${it.id}") }
         val zh = snapshot?.chinese ?: (c.resources.configuration.locales[0].language == "zh")
@@ -87,7 +89,7 @@ object WidgetEngine {
         val secondary = Color.parseColor(if (dark) "#A9B8CF" else "#687990")
         val complete = item != null && item.rest == null && !item.archived && item.done
         val accent = Color.parseColor(if (complete) { if (dark) "#A2DCCD" else "#276C5C" }
-            else when(snapshot?.palette) { "teal" -> if (dark) "#A2DCCD" else "#276C5C"; "violet" -> if (dark) "#CDBFFA" else "#7156A5"; else -> if (dark) "#B8CDFF" else "#2D5EB4" })
+            else when(snapshot?.palette) { "apricot" -> if(dark) "#F6BD99" else "#9A431D"; "coast" -> if(dark) "#9BDCE4" else "#086F83"; "teal" -> if (dark) "#A2DCCD" else "#276C5C"; "violet" -> if (dark) "#CDBFFA" else "#7156A5"; else -> if (dark) "#B8CDFF" else "#2D5EB4" })
         views.setInt(R.id.widget_root, "setBackgroundResource", if (dark) R.drawable.widget_dark else R.drawable.widget_light)
         views.setInt(R.id.widget_action, "setBackgroundResource", if (complete) { if (dark) R.drawable.widget_action_done_dark else R.drawable.widget_action_done } else WidgetAppearance.action(snapshot?.palette ?: "blue"))
         views.setTextColor(R.id.widget_action, if (complete) accent else Color.WHITE)
@@ -110,7 +112,7 @@ object WidgetEngine {
         if (showIcon && item != null && snapshot != null) {
             views.setImageViewBitmap(R.id.widget_icon, if (item.kind == "habit") WidgetAppearance.icon(c, item, snapshot) else WidgetAppearance.taskIcon(c, snapshot.dark, item.resident))
         }
-        val importantHint = item == null || item.archived || item.rest != null || item.kind == "task" || item.schedule == "weekly" || !item.scheduled
+        val importantHint = item == null || item.archived || item.rest != null || item.kind == "task" || item.schedule in setOf("weekly","weeklyTotal") || !item.scheduled
         val showHint = importantHint && (!compact || height >= if (scale > 1.3f) 230 else 190)
         views.setViewVisibility(R.id.widget_hint, if (showHint) View.VISIBLE else View.GONE)
         views.setInt(R.id.widget_state, "setMaxLines", if (!compact || height >= 190) 2 else 1)
@@ -136,6 +138,7 @@ object WidgetEngine {
                 item.rest != null -> t("休息期间不提醒，历史记录保留", "Reminders pause; history stays")
                 item.kind == "task" && item.resident -> t("常驻 · 按需记录，无欠账", "Resident · as needed, no overdue days")
                 item.kind == "task" -> t("一次性 · 完成后不会自动重建", "One-time · does not repeat automatically")
+                item.schedule == "weeklyTotal" -> t("本周累计 · ${item.unit}","Weekly total · ${item.unit}")
                 item.schedule == "weekly" -> t("本周 ${item.weekCount}/${item.weekGoal} 天", "This week ${item.weekCount}/${item.weekGoal} days")
                 !item.scheduled -> t("今天未安排", "Not scheduled today")
                 else -> t("今天的安排", "Scheduled today")
@@ -143,6 +146,7 @@ object WidgetEngine {
             state = when {
                 item.archived -> t("已归档 · 查看记录", "Archived · view records")
                 item.rest != null -> when(item.rest) { "skip" -> t("这天已跳过", "Skipped this day"); "vacation" -> t("休假中", "On a break"); else -> t("已暂停", "Paused") }
+                item.schedule == "weeklyTotal" -> "${WidgetDisplayRules.quantity(item.weekTotal)} / ${WidgetDisplayRules.quantity(item.target)} ${item.unit}"
                 item.quantity -> "${item.value?.let { WidgetDisplayRules.quantity(it) } ?: "—"} / ${WidgetDisplayRules.quantity(item.target)} ${item.unit}"
                 item.kind == "habit" && item.done -> t("今天已完成", "Completed today")
                 item.kind == "habit" && item.schedule == "weekly" -> t("本周 ${item.weekCount}/${item.weekGoal} 天", "Week ${item.weekCount}/${item.weekGoal} days")
@@ -195,7 +199,7 @@ object WidgetEngine {
             (item.quantity || item.schedule == "weekly") && (!compact || height >= if (scale > 1.3f) 210 else 160)
         views.setViewVisibility(R.id.widget_progress, if (showProgress) View.VISIBLE else View.GONE)
         if (showProgress && item != null) {
-            val ratio = if (item.quantity) (item.value ?: 0L).toDouble() / item.target.coerceAtLeast(1L)
+            val ratio = if (item.quantity) (if(item.schedule == "weeklyTotal") item.weekTotal else item.value ?: 0L).toDouble() / item.target.coerceAtLeast(1L)
                 else item.weekCount.toDouble() / item.weekGoal.coerceAtLeast(1)
             views.setImageViewBitmap(R.id.widget_progress, WidgetAppearance.progress(ratio, accent, dark))
         }

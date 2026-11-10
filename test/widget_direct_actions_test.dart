@@ -1,3 +1,4 @@
+import 'schema_fixture.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
@@ -224,6 +225,7 @@ void main() {
       )) {
         await store.db.execute('DROP TRIGGER ${row['name']}');
       }
+      await discardV12Fixture(store.db);
       await store.db.execute('ALTER TABLE runtime DROP COLUMN revision');
       await store.db.setVersion(9);
       await store.close();
@@ -231,15 +233,16 @@ void main() {
         factory: databaseFactoryFfi,
         path: '${dir.path}/db',
       );
-      expect(await store.db.getVersion(), 11);
+      expect(await store.db.getVersion(), 12);
       expect((await store.habits()).single.toMap(), before);
       expect(await store.widgetRevision(), 0);
       final snap = await store.exportSnapshot();
       expect(snap.tables.containsKey('runtime'), isFalse);
       final envelope = jsonDecode(utf8.decode(snap.encode())) as Map;
       final payload = jsonDecode(envelope['payload']) as Map;
-      expect(payload['schema'], 11);
+      expect(payload['schema'], 12);
       payload['schema'] = 9;
+      (payload['tables'] as Map).remove('record_events');
       envelope['payload'] = jsonEncode(payload);
       envelope['sha256'] = sha256
           .convert(utf8.encode(envelope['payload']))

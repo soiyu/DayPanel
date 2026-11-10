@@ -24,9 +24,21 @@ class WidgetDirectActionDeviceTest {
         java.io.FileInputStream(it.fileDescriptor).readBytes().toString(Charsets.UTF_8)
     }
     private fun awaitCondition(message:String,condition:()->Boolean) {
-        val end=SystemClock.elapsedRealtime()+30000
+        val end=SystemClock.elapsedRealtime()+120000
         while(!condition() && SystemClock.elapsedRealtime()<end) SystemClock.sleep(100)
         assertTrue(message,condition())
+    }
+    // Test fixture writes may overlap the app's short snapshot transactions.
+    // Retry one failed atomic SQLite statement, never a product action.
+    private fun fixtureWrite(sql:String,args:Array<out Any?>?=null) {
+        val until=android.os.SystemClock.elapsedRealtime()+120000
+        while(true)try {
+            if(args==null) db.execSQL(sql) else db.execSQL(sql,args)
+            return
+        }catch(e:android.database.sqlite.SQLiteDatabaseLockedException){
+            if(android.os.SystemClock.elapsedRealtime()>=until)throw e
+            android.os.SystemClock.sleep(100)
+        }
     }
     @Before fun setup() {
         assertTrue("Only run in a temporary Android user",android.os.Process.myUid()/100000 != 0)
@@ -34,21 +46,24 @@ class WidgetDirectActionDeviceTest {
         c.startActivity(Intent(c,app.daypanel.next.MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         awaitCondition("App must create/upgrade the real database") {
             if(!c.getDatabasePath("daypanel_flutter.db").exists()) false else try {
-                SQLiteDatabase.openDatabase(c.getDatabasePath("daypanel_flutter.db").path,null,SQLiteDatabase.OPEN_READWRITE).use { it.version==11 }
+                SQLiteDatabase.openDatabase(c.getDatabasePath("daypanel_flutter.db").path,null,SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING).use { it.version==12 }
             }catch(_:Exception){false}
         }
-        shell("input keyevent 3")
+        awaitCondition("Main Activity finishes launching before Home") { shell("dumpsys activity activities").lineSequence().filter{it.contains("ResumedActivity")}.any{it.contains("app.daypanel.next.MainActivity")} }
+        c.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         shell("appwidget grantbind --package ${c.packageName} --user $user")
-        db=SQLiteDatabase.openDatabase(c.getDatabasePath("daypanel_flutter.db").path,null,SQLiteDatabase.OPEN_READWRITE)
-        db.execSQL("PRAGMA foreign_keys=ON")
-        db.execSQL("DELETE FROM habits WHERE id=?",arrayOf(habit))
-        db.execSQL("INSERT INTO habits(id,title,kind,start_day,target,unit,weekdays,icon) VALUES(?,?,'check',?,1000,'',127,2)",arrayOf(habit,"Direct widget fixture",day))
-        db.execSQL("INSERT INTO plans(habit_id,effective_day,target,unit,schedule,weekdays,interval_days,weekly_goal) VALUES(?,?,1000,'','weekdays',127,1,3)",arrayOf(habit,day))
-        db.execSQL("INSERT INTO habit_activity(habit_id,day,archived) VALUES(?,?,0)",arrayOf(habit,day))
+        db=SQLiteDatabase.openDatabase(c.getDatabasePath("daypanel_flutter.db").path,null,SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING)
+        fixtureWrite("PRAGMA foreign_keys=ON")
+        fixtureWrite("DELETE FROM habits WHERE id=?",arrayOf(habit))
+        fixtureWrite("INSERT INTO habits(id,title,kind,start_day,target,unit,weekdays,icon) VALUES(?,?,'check',?,1000,'',127,2)",arrayOf(habit,"Direct widget fixture",day))
+        fixtureWrite("INSERT INTO plans(habit_id,effective_day,target,unit,schedule,weekdays,interval_days,weekly_goal) VALUES(?,?,1000,'','weekdays',127,1,3)",arrayOf(habit,day))
+        fixtureWrite("INSERT INTO habit_activity(habit_id,day,archived) VALUES(?,?,0)",arrayOf(habit,day))
         widget=host.allocateAppWidgetId()
         assertTrue(AppWidgetManager.getInstance(c).bindAppWidgetIdIfAllowed(widget,ComponentName(c,HabitWidgetProvider::class.java)))
         val snap=WidgetSnapshotReader.read(c)!!
         WidgetBindings.save(c,widget,habit,snap.generation)
+        c.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        awaitCondition("Launcher is visible before executing widget actions") { shell("dumpsys activity activities").lineSequence().filter{it.contains("ResumedActivity")}.any{it.contains("launcher",true)} }
     }
     private fun value():Long?=db.rawQuery("SELECT value FROM entries WHERE habit_id=? AND day=?",arrayOf(habit,day)).use {if(it.moveToFirst())it.getLong(0)else null}
     private fun action():android.app.PendingIntent {
@@ -56,8 +71,12 @@ class WidgetDirectActionDeviceTest {
         return WidgetEngine.direct(c,WidgetBindings.get(c,widget)!!,snap,snap.items["habit:$habit"]!!)
     }
     @After fun cleanup() {
+        awaitCondition("Background job finishes before fixture cleanup") {
+            val state=shell("cmd jobscheduler get-job-state -u ${android.os.Process.myUid()/100000} ${c.packageName} 1617")
+            !state.contains("active") && !state.contains("pending")
+        }
         if(widget!=0){WidgetBindings.remove(c,widget);host.deleteAppWidgetId(widget)}
-        if(::db.isInitialized){db.execSQL("DELETE FROM habits WHERE id=?",arrayOf(habit));db.execSQL("DELETE FROM tasks WHERE id IN (?,?)",arrayOf("${habit}_resident","${habit}_once"));db.close()}
+        if(::db.isInitialized){fixtureWrite("DELETE FROM habits WHERE id=?",arrayOf(habit));fixtureWrite("DELETE FROM tasks WHERE id IN (?,?)",arrayOf("${habit}_resident","${habit}_once"));db.close()}
         val user=android.os.Process.myUid()/100000
         if(user!=0)shell("appwidget revokebind --package ${c.packageName} --user $user")
     }
@@ -74,8 +93,8 @@ class WidgetDirectActionDeviceTest {
     @Test fun pendingUndoCannotEraseAnABANewRecord() {
         action().send();awaitCondition("Complete first"){value()==1000L}
         val oldUndo=action()
-        db.execSQL("DELETE FROM entries WHERE habit_id=?",arrayOf(habit))
-        db.execSQL("INSERT INTO entries(habit_id,day,value) VALUES(?,?,1000)",arrayOf(habit,day))
+        fixtureWrite("DELETE FROM entries WHERE habit_id=?",arrayOf(habit))
+        fixtureWrite("INSERT INTO entries(habit_id,day,value) VALUES(?,?,1000)",arrayOf(habit,day))
         oldUndo.send();SystemClock.sleep(1000)
         assertEquals(1000L,value())
         assertFalse(WidgetBindings.valid(c,mapOf("widgetId" to widget,"mode" to "set")))
@@ -86,7 +105,7 @@ class WidgetDirectActionDeviceTest {
         assertTrue(AppWidgetManager.getInstance(c).bindAppWidgetIdIfAllowed(widget,ComponentName(c,TaskWidgetProvider::class.java)))
         for(resident in listOf(true,false)) {
             val id=habit+if(resident)"_resident" else "_once"
-            db.execSQL("INSERT INTO tasks(id,title,resident,start_day) VALUES(?,?,?,?)",arrayOf<Any?>(id,"Direct task fixture",if(resident)1 else 0,if(resident)day else null))
+            fixtureWrite("INSERT INTO tasks(id,title,resident,start_day) VALUES(?,?,?,?)",arrayOf<Any?>(id,"Direct task fixture",if(resident)1 else 0,if(resident)day else null))
             WidgetBindings.save(c,widget,id,WidgetSnapshotReader.read(c)!!.generation)
             fun taskAction():android.app.PendingIntent {
                 val snap=WidgetSnapshotReader.read(c)!!

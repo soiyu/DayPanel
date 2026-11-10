@@ -8,14 +8,14 @@ import java.time.LocalDate
 data class ReminderSnapshot(val generation: Long, val habits: List<ReminderHabit>, val chinese: Boolean)
 
 object SnapshotReader {
-    fun read(context: Context): ReminderSnapshot? {
+    fun read(context: Context, includeUnconfigured: Boolean = false): ReminderSnapshot? {
         val file = context.getDatabasePath("daypanel_flutter.db")
         if (!file.exists()) return null
         // No schema creation, user-data mutations or completion writes here.
         // A transaction gives all queries one SQLite snapshot, including WAL.
-        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
-            if (db.version !in 3..11) return null // Dart owns schema upgrades; these versions share reminder tables.
-            db.beginTransactionNonExclusive()
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING).use { db ->
+            if (db.version !in 3..12) return null // Dart owns schema upgrades; these versions share reminder tables.
+            if(android.os.Build.VERSION.SDK_INT>=35) db.beginTransactionReadOnly() else db.beginTransactionNonExclusive()
             try {
                 val generation = db.rawQuery("SELECT generation FROM runtime WHERE id=1", null).use { c ->
                     if (!c.moveToFirst()) return null
@@ -37,7 +37,7 @@ object SnapshotReader {
                     while(c.moveToNext())rests.getOrPut(c.getString(0)){mutableListOf()}.add(RestPeriod(LocalDate.parse(c.getString(1)),if(c.isNull(2))null else LocalDate.parse(c.getString(2)),c.getString(3)))
                 }
                 val habits = mutableListOf<ReminderHabit>()
-                db.rawQuery("SELECT h.id,h.title,h.kind,h.start_day,h.archived,r.enabled,r.minutes,r.revision FROM habits h JOIN reminders r ON r.habit_id=h.id", null).use { c ->
+                db.rawQuery(if(includeUnconfigured) "SELECT h.id,h.title,h.kind,h.start_day,h.archived,COALESCE(r.enabled,0),COALESCE(r.minutes,'[540]'),COALESCE(r.revision,0) FROM habits h LEFT JOIN reminders r ON r.habit_id=h.id" else "SELECT h.id,h.title,h.kind,h.start_day,h.archived,r.enabled,r.minutes,r.revision FROM habits h JOIN reminders r ON r.habit_id=h.id", null).use { c ->
                     while (c.moveToNext()) {
                         val id = c.getString(0)
                         val times = JSONArray(c.getString(6))

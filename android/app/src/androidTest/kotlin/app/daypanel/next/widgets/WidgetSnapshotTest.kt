@@ -62,7 +62,7 @@ class WidgetSnapshotTest {
         val snap=WidgetSnapshotReader.read(c,day)!!
         assertEquals(3L,snap.generation);assertTrue(snap.chinese);assertTrue(snap.dark);assertTrue(snap.items["habit:h"]!!.archived)
         db.execSQL("DELETE FROM habits");assertNull(WidgetSnapshotReader.read(c,day)!!.items["habit:h"])
-        db.version=12;assertNull(WidgetSnapshotReader.read(c,day));assertEquals(12,db.version)
+        db.version=13;assertNull(WidgetSnapshotReader.read(c,day));assertEquals(13,db.version)
     }
     @Test fun pendingIntentsSeparateInstancesConfigurationDayAndAction() {
         val a=WidgetBinding(101,"habit","h",0,"a")

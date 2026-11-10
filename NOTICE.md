@@ -18,3 +18,5 @@ FL18 Loop file compatibility: the SQLite field/version declarations and numeric 
 ## DayPanel living-object illustrations
 
 The 24 habit illustrations in assets/habit_icons are original artwork authored for this project. Reproducible source: scripts/draw_habit_icons.py (Python/Pillow). No Loop or third-party icon artwork is used in these assets. System navigation/action symbols continue to use Material Icons.
+
+Additional original artwork (2026-11-11): habit icons24–27, review illustrations6–7 and DayPanel launcher/store icon were authored specifically for this project. Google Play Billing9.1.0 and its transitive libraries retain their own licenses/terms. No Loop implementation was copied. Audit the final release dependency/SDK disclosures before distribution.

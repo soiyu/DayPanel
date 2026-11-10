@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
+import '../domain/record_event.dart';
+import 'package:uuid/uuid.dart';
 import 'schema.dart';
 import '../domain/backup.dart';
 import '../domain/reminder.dart';
@@ -12,6 +14,7 @@ import '../domain/appearance.dart';
 import '../domain/habit_break.dart';
 import '../domain/legacy_import.dart';
 part 'store_backup.dart';
+part 'store_events.dart';
 part 'store_cards.dart';
 part 'store_breaks.dart';
 part 'store_widget_actions.dart';
@@ -36,7 +39,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 11,
+        version: 12,
         singleInstance: false,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
@@ -65,6 +68,7 @@ class AppStore {
           await upgradeToV9(db);
           await upgradeToV10(db);
           await upgradeToV11(db);
+          await upgradeToV12(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
@@ -79,6 +83,7 @@ class AppStore {
           if (oldVersion < 9) await upgradeToV9(db);
           if (oldVersion < 10) await upgradeToV10(db);
           if (oldVersion < 11) await upgradeToV11(db);
+          if (oldVersion < 12) await upgradeToV12(db);
         },
       ),
     );
@@ -220,6 +225,10 @@ class AppStore {
         habit.weeklyGoal < 1 ||
         habit.weeklyGoal > 7) {
       throw ArgumentError('Invalid schedule');
+    }
+    if (habit.kind == HabitKind.check &&
+        habit.schedule == ScheduleKind.weeklyTotal) {
+      throw ArgumentError('Weekly total requires amount or count');
     }
     final date = today ?? Day(DateTime.now());
     await _transaction((txn) async {
@@ -393,6 +402,21 @@ class AppStore {
     int? value, {
     required Day today,
     int? expectedRevision,
+  }) => _setRecord(
+    id,
+    day,
+    value,
+    today: today,
+    expectedRevision: expectedRevision,
+  );
+
+  Future<bool> _setRecord(
+    String id,
+    Day day,
+    int? value, {
+    required Day today,
+    int? expectedRevision,
+    bool updateLedger = true,
   }) async {
     return _transaction((txn) async {
       if (expectedRevision != null &&
@@ -432,11 +456,49 @@ class AppStore {
         limit: 1,
       );
       final plan = HabitPlan.fromMap(planRows.single);
+      if (updateLedger && h.kind.isNumeric) {
+        if (value == null) {
+          await txn.rawUpdate(
+            "UPDATE record_events SET deleted=1,value=0,minute=NULL,note='',revision=revision+1 WHERE habit_id=? AND day=? AND deleted=0",
+            [id, day.key],
+          );
+        } else {
+          final oldValue = previous.isEmpty
+              ? 0
+              : previous.single['value'] as int;
+          if (oldValue != value || previous.isEmpty) {
+            await txn.insert(
+              'record_events',
+              RecordEvent(
+                id: const Uuid().v4(),
+                habitId: id,
+                day: day,
+                value: value - oldValue,
+                kind: RecordEventKind.adjustment,
+              ).toMap(),
+            );
+          }
+        }
+      }
+      final oldDaily = previous.isEmpty ? 0 : previous.single['value'] as int;
+      var before = oldDaily;
+      var after = value;
+      if (plan.schedule == ScheduleKind.weeklyTotal) {
+        final from = day.monday.compareTo(plan.effectiveDay) < 0
+            ? plan.effectiveDay
+            : day.monday;
+        final total = await txn.rawQuery(
+          'SELECT COALESCE(SUM(e.value),0) AS total FROM entries e WHERE e.habit_id=? AND e.day>=? AND e.day<=? AND NOT EXISTS(SELECT 1 FROM habit_breaks b WHERE b.habit_id=e.habit_id AND b.start_day<=e.day AND (b.end_day IS NULL OR b.end_day>=e.day))',
+          [id, from.key, day.key],
+        );
+        before = total.single['total'] as int;
+        after = value == null ? null : before - oldDaily + value;
+      }
       final becameComplete =
           day == today &&
-          value != null &&
-          value >= plan.target &&
-          (previous.isEmpty || (previous.single['value'] as int) < plan.target);
+          after != null &&
+          after >= plan.target &&
+          before < plan.target;
       if (value == null) {
         await txn.delete(
           'entries',
@@ -451,7 +513,7 @@ class AppStore {
         }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
       if (becameComplete &&
-          plan.schedule != ScheduleKind.weekly &&
+          plan.schedule.isWeekly == false &&
           plan.scheduled(day)) {
         await earnCardIn(txn, day);
       }

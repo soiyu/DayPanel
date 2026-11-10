@@ -256,6 +256,7 @@ void main() {
         final snapshot = await store.exportSnapshot();
         final bytes = transform(snapshot, (p) {
           p['schema'] = version;
+          (p['tables'] as Map).remove('record_events');
           (p['tables'] as Map).remove('habit_breaks');
           for (final h in p['tables']['habits'] as List) {
             (h as Map).remove('color');
@@ -334,7 +335,7 @@ void main() {
           factory: databaseFactoryFfi,
           path: path,
         );
-        expect(await migrated.db.getVersion(), 11);
+        expect(await migrated.db.getVersion(), 12);
         expect((await migrated.notes()).single.toMap(), {
           'id': 'old',
           'body': '原始手记 🌙',

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'models.dart';
+import 'record_event.dart';
 import 'reminder.dart';
 import 'achievement.dart';
 import 'activity.dart';
@@ -28,13 +29,14 @@ class BackupSnapshot {
     'cards',
     'habit_activity',
     'habit_breaks',
+    'record_events',
   ];
   final DateTime createdAt;
   final Map<String, List<Map<String, Object?>>> tables;
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 11,
+      'schema': 12,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -77,7 +79,7 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3, 4, 5, 6, 7, 8, 9, 10, 11}.contains(content['schema'])) {
+      if (!{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}.contains(content['schema'])) {
         throw const BackupInvalid();
       }
       final created = DateTime.parse(content['created_at'] as String);
@@ -106,6 +108,23 @@ class BackupSnapshot {
           }
         }
       }
+      if (schema < 12) {
+        for (final h in raw['habits'] as List) {
+          if ((h['icon'] as int) > 23) throw const BackupInvalid();
+        }
+        if ((raw['settings'] as List).any(
+          (r) =>
+              r['key'] == 'palette' &&
+              ['apricot', 'coast'].contains(r['value']),
+        )) {
+          throw const BackupInvalid();
+        }
+        for (final name in ['habits', 'plans']) {
+          if ((raw[name] as List).any((r) => r['schedule'] == 'weeklyTotal')) {
+            throw const BackupInvalid();
+          }
+        }
+      }
       _keys(
         raw,
         tableNames
@@ -115,7 +134,8 @@ class BackupSnapshot {
                   (schema >= 4 || n != 'task_entries') &&
                   (schema >= 6 || n != 'cards') &&
                   (schema >= 7 || n != 'habit_activity') &&
-                  (schema >= 9 || n != 'habit_breaks'),
+                  (schema >= 9 || n != 'habit_breaks') &&
+                  (schema >= 12 || n != 'record_events'),
             )
             .toSet(),
       );
@@ -165,6 +185,28 @@ class BackupSnapshot {
           _keys(row as Map, {'id', 'body', 'day'});
           row['habit_id'] = null;
         }
+      }
+      if (schema < 12) {
+        final numericIds = {
+          for (final h in raw['habits'] as List)
+            if (h['kind'] != 'check') h['id'],
+        };
+        var index = 0;
+        raw['record_events'] = [
+          for (final e in raw['entries'] as List)
+            if (numericIds.contains(e['habit_id']))
+              {
+                'id': 'legacy-baseline-${index++}',
+                'habit_id': e['habit_id'],
+                'day': e['day'],
+                'value': e['value'],
+                'minute': null,
+                'note': '',
+                'kind': 'baseline',
+                'revision': 0,
+                'deleted': 0,
+              },
+        ];
       }
       final tables = <String, List<Map<String, Object?>>>{};
       var total = 0;
@@ -258,7 +300,8 @@ class BackupSnapshot {
         throw const BackupInvalid();
       }
       final h = Habit.fromMap(m);
-      if ((h.kind == HabitKind.check && h.target != 1000) ||
+      if ((h.kind == HabitKind.check &&
+              (h.target != 1000 || h.schedule == ScheduleKind.weeklyTotal)) ||
           (h.kind == HabitKind.count && h.target % 1000 != 0)) {
         throw const BackupInvalid();
       }
@@ -288,7 +331,9 @@ class BackupSnapshot {
       if (h == null ||
           plan.effectiveDay.compareTo(h.startDay) < 0 ||
           !planKeys.add('${plan.habitId}/${plan.effectiveDay.key}') ||
-          (h.kind == HabitKind.check && plan.target != 1000) ||
+          (h.kind == HabitKind.check &&
+              (plan.target != 1000 ||
+                  plan.schedule == ScheduleKind.weeklyTotal)) ||
           (h.kind == HabitKind.count && plan.target % 1000 != 0)) {
         throw const BackupInvalid();
       }
@@ -320,6 +365,54 @@ class BackupSnapshot {
           !entryKeys.add('${m['habit_id']}/${d.key}')) {
         throw const BackupInvalid();
       }
+    }
+    final eventIds = <String>{};
+    final totals = <String, int>{};
+    for (final m in t['record_events']!) {
+      _keys(m, {
+        'id',
+        'habit_id',
+        'day',
+        'value',
+        'minute',
+        'note',
+        'kind',
+        'revision',
+        'deleted',
+      });
+      if (!eventIds.add(_text(m, 'id', 128))) throw const BackupInvalid();
+      _text(m, 'note', 500, empty: true);
+      _int(m, 'revision', 0, 9007199254740991);
+      _int(m, 'deleted', 0, 1);
+      _int(m, 'value', -999999999999, 999999999999);
+      if (m['minute'] != null) _int(m, 'minute', 0, 1439);
+      final e = RecordEvent.fromMap(m);
+      final h = habitIds[e.habitId];
+      if (h == null ||
+          !h.kind.isNumeric ||
+          e.day.compareTo(h.startDay) < 0 ||
+          (h.kind == HabitKind.count && e.value % 1000 != 0) ||
+          (!e.deleted && e.kind == RecordEventKind.record && e.value <= 0) ||
+          (e.kind != RecordEventKind.adjustment && e.value < 0) ||
+          (e.kind != RecordEventKind.record && e.minute != null)) {
+        throw const BackupInvalid();
+      }
+      if (!e.deleted) {
+        totals.update(
+          '${e.habitId}/${e.day.key}',
+          (v) => v + e.value,
+          ifAbsent: () => e.value,
+        );
+      }
+    }
+    final numericEntries = {
+      for (final e in t['entries']!)
+        if (habitIds[e['habit_id']]!.kind.isNumeric)
+          '${e['habit_id']}/${e['day']}': e['value'] as int,
+    };
+    if (totals.length != numericEntries.length ||
+        totals.entries.any((e) => numericEntries[e.key] != e.value)) {
+      throw const BackupInvalid();
     }
     final taskIds = <String, SmallTask>{};
     for (final m in t['tasks']!) {

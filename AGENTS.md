@@ -2,7 +2,7 @@
 
 - Read README.md, docs/product/FEATURES.md, docs/development/BACKLOG.md and STATUS.md first.
 - This is the new Flutter / Android-first product authorized on 2026-11-05. Do not generate iOS, web or desktop targets yet. Older native DayPanel is a separate project, not this project's execution backlog.
-- Latest direction: match Xiaorichang non-focus capabilities. All features free, no focus timers/music/reports/widgets, Pro, billing or ads. Use docs/product/XIAORICHANG-PARITY.md for sourced capabilities and unknown details.
+- Latest direction: match Xiaorichang non-focus capabilities. Existing core features remain free. ADR0016 authorizes a Google Play one-time Plus purchase for new advanced features; backups, export and access to user data remain free. No focus timers/music, ads, analytics, account or cloud sync. Use docs/product/XIAORICHANG-PARITY.md for sourced capabilities and unknown details.
 - User explicitly waived external five-person walkthroughs as an implementation gate. Proceed with design and implementation; retain automated correctness, accessibility and device verification.
 - Build real vertical slices. No fake persistence, placeholder navigation, fake purchases, fake notifications or demo data in production.
 - Pure rules live in lib/domain; SQLite adapters in lib/data; application coordination in lib/application; Flutter UI in lib/presentation. Android widgets/notification adapters belong in android, behind explicit interfaces.

@@ -1,7 +1,7 @@
 name: daypanel
-description: A free, offline habit and daily journal app. Android first.
+description: Offline habits, records and home widgets with optional one-time Plus.
 publish_to: none
-version: 0.1.0+1
+version: 0.2.0+2
 environment:
   sdk: '>=3.10.0 <4.0.0'
 dependencies:

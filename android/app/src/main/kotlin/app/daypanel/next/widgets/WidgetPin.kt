@@ -19,9 +19,13 @@ object WidgetPin {
 
     fun request(c: Context, kind: String, id: String, generation: Long): Boolean {
         if (!supported(c)) return false
-        require(kind == "habit" || kind == "task")
+        require(kind in listOf("habit","task","panel"))
         val snapshot = WidgetSnapshotReader.read(c) ?: error("Data unavailable")
-        require(snapshot.generation == generation && snapshot.items["$kind:$id"]?.archived == false)
+        require(snapshot.generation==generation)
+        if(kind=="panel"){
+            require(app.daypanel.next.PlusReceipt.owned(c))
+            val rows=PanelWidgets.rows(id);require(rows.size in 1..4 && rows.distinct().size==rows.size && rows.all { snapshot.items["${it.first}:${it.second}"]?.archived==false })
+        }else require(snapshot.items["$kind:$id"]?.archived==false)
         val prefs = c.getSharedPreferences(STORE, Context.MODE_PRIVATE)
         val now = System.currentTimeMillis()
         val edit = prefs.edit()
@@ -37,7 +41,7 @@ object WidgetPin {
         }
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= 31) PendingIntent.FLAG_MUTABLE else 0)
         val pending = PendingIntent.getBroadcast(c, 0, callback, flags)
-        val provider = ComponentName(c, if (kind == "habit") HabitWidgetProvider::class.java else TaskWidgetProvider::class.java)
+        val provider = ComponentName(c, when(kind){"panel"->PanelWidgetProvider::class.java;"habit"->HabitWidgetProvider::class.java;else->TaskWidgetProvider::class.java})
         return try {
             AppWidgetManager.getInstance(c).requestPinAppWidget(provider, null, pending).also {
                 if (!it) { prefs.edit().remove(token).commit(); pending.cancel() }
@@ -62,7 +66,7 @@ object WidgetPin {
         val snapshot = WidgetSnapshotReader.read(c) ?: return false
         val id = record.getString("id")
         val generation = record.getLong("generation")
-        if (snapshot.generation != generation || snapshot.items["$kind:$id"]?.archived != false) return false
+        if (snapshot.generation != generation || (kind!="panel" && snapshot.items["$kind:$id"]?.archived != false)) return false
         WidgetBindings.save(c, widgetId, id, generation)
         WidgetEngine.refresh(c)
         return true

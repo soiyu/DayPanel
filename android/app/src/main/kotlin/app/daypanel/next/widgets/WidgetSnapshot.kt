@@ -14,8 +14,8 @@ data class WidgetItem(
     val unit: String = "", val schedule: String = "weekdays", val scheduled: Boolean = true,
     val weekCount: Int = 0, val weekGoal: Int = 0, val resident: Boolean = false,
     val doneDay: String? = null, val dueDay: String? = null,
-    val rest: String? = null, val icon: Int = 0, val color: String = "auto", val frame: String = "auto",
-) { val done: Boolean get() = if (kind == "habit") (value ?: -1) >= target else doneDay != null }
+    val rest: String? = null, val icon: Int = 0, val color: String = "auto", val frame: String = "auto", val weekTotal: Long = 0L, val itemRevision:Long = -1L,
+) { val done: Boolean get() = if (kind == "habit") (if(schedule == "weeklyTotal") weekTotal else (value ?: -1)) >= target else doneDay != null }
 data class WidgetSnapshot(val generation: Long, val day: LocalDate, val chinese: Boolean,
     val dark: Boolean, val items: Map<String, WidgetItem>, val palette: String = "blue", val frame: String = "soft", val revision: Long = -1)
 
@@ -23,9 +23,9 @@ object WidgetSnapshotReader {
     fun read(context: Context, day: LocalDate = LocalDate.now()): WidgetSnapshot? {
         val file = context.getDatabasePath("daypanel_flutter.db")
         if (!file.exists()) return null
-        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
-            if (db.version !in 7..11) return null
-            db.beginTransactionNonExclusive()
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING).use { db ->
+            if (db.version !in 7..12) return null
+            if(android.os.Build.VERSION.SDK_INT>=35) db.beginTransactionReadOnly() else db.beginTransactionNonExclusive()
             try {
                 val generation = db.rawQuery("SELECT generation FROM runtime WHERE id=1", null).use { c ->
                     if (!c.moveToFirst()) return null
@@ -60,14 +60,16 @@ object WidgetSnapshotReader {
                         val from = maxOf(planDay, day.minusDays((day.dayOfWeek.value - 1).toLong()))
                         var value: Long? = null
                         var weekCount = 0
+                        var weekTotal = 0L
                         db.rawQuery("SELECT day,value FROM entries WHERE habit_id=? AND day>=? AND day<=?", arrayOf(id, from.toString(), day.toString())).use { e ->
                             while (e.moveToNext()) {
                                 if (e.getString(0) == day.toString()) value = e.getLong(1)
+                                if(allRests[id].orEmpty().none { it.contains(LocalDate.parse(e.getString(0))) }) weekTotal += e.getLong(1)
                                 if (e.getLong(1) >= target && allRests[id].orEmpty().none { it.contains(LocalDate.parse(e.getString(0))) }) weekCount++
                             }
                         }
                         items["habit:$id"] = WidgetItem(id, "habit", c.getString(1), c.getInt(3) == 1 || day < start,
-                            c.getString(2) in setOf("quantity", "count"), value, target, c.getString(7), schedule, scheduled, weekCount, c.getInt(11), rest=rests[id], icon=c.getInt(12), color=c.getString(13), frame=c.getString(14))
+                            c.getString(2) in setOf("quantity", "count"), value, target, c.getString(7), schedule, scheduled, weekCount, c.getInt(11), rest=rests[id], icon=c.getInt(12), color=c.getString(13), frame=c.getString(14), weekTotal=weekTotal)
                     }
                 }
                 db.rawQuery("SELECT id,title,resident,archived,completed_day,due_day,start_day FROM tasks", null).use { c ->
@@ -81,6 +83,9 @@ object WidgetSnapshotReader {
                             (resident && day < LocalDate.parse(c.getString(6))), resident = resident, doneDay = done, dueDay = c.getString(5))
                     }
                 }
+                if(db.version>=12) db.rawQuery("SELECT kind,id,revision FROM item_revisions",null).use { r ->
+                    while(r.moveToNext()) { val key="${r.getString(0)}:${r.getString(1)}";items[key]?.let { items[key]=it.copy(itemRevision=r.getLong(2)) } }
+                }
                 db.setTransactionSuccessful()
                 return WidgetSnapshot(generation, day, chinese, dark, items, settings["palette"] ?: "blue", settings["icon_frame"] ?: "soft", revision)
             } finally { db.endTransaction() }
@@ -91,7 +96,7 @@ object WidgetSnapshotReader {
 object WidgetDisplayRules {
     fun scheduled(day: LocalDate, start: LocalDate, schedule: String, weekdays: Int, interval: Int): Boolean =
         day >= start && when (schedule) {
-            "weekly" -> true
+            "weekly", "weeklyTotal" -> true
             "weekdays" -> weekdays and (1 shl (day.dayOfWeek.value - 1)) != 0
             "interval" -> interval > 0 && ChronoUnit.DAYS.between(start, day) % interval == 0L
             else -> false

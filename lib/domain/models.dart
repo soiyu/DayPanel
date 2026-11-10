@@ -37,7 +37,12 @@ enum HabitKind {
   bool get isNumeric => this != HabitKind.check;
 }
 
-enum ScheduleKind { weekdays, interval, weekly }
+enum ScheduleKind { weekdays, interval, weekly, weeklyTotal }
+
+extension SchedulePeriod on ScheduleKind {
+  bool get isWeekly =>
+      this == ScheduleKind.weekly || this == ScheduleKind.weeklyTotal;
+}
 
 enum HabitContext { anytime, morning, daytime, evening }
 
@@ -109,7 +114,7 @@ class HabitPlan {
           (weekdays & (1 << (day.date.weekday - 1))) != 0,
         ScheduleKind.interval =>
           day.daysSince(effectiveDay) % intervalDays == 0,
-        ScheduleKind.weekly => true,
+        ScheduleKind.weekly || ScheduleKind.weeklyTotal => true,
       };
   bool sameRules(HabitPlan other) =>
       target == other.target &&

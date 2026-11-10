@@ -3,8 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../application/app_controller.dart';
 import '../domain/models.dart';
+import '../domain/record_event.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
+import 'plus_page.dart';
 import 'theme.dart';
 import 'organization.dart';
 import 'appearance.dart';
@@ -245,6 +247,19 @@ class _EntryEditorState extends State<EntryEditor> {
     if (saving) return;
     final s = AppLocalizations.of(context);
     if (!form.currentState!.validate()) return;
+    if (isHabit &&
+        icon >= 24 &&
+        icon != widget.habit?.icon &&
+        !await requirePlus(context, widget.app)) {
+      return;
+    }
+    if (!mounted) return;
+    if (isHabit &&
+        kind == HabitKind.check &&
+        schedule == ScheduleKind.weeklyTotal) {
+      setState(() => error = s.weeklyTotalHint);
+      return;
+    }
     if (isHabit && !scheduleChosen) {
       setState(() => error = s.chooseScheduleHelp);
       return;
@@ -577,7 +592,11 @@ class _EntryEditorState extends State<EntryEditor> {
                 ),
               if (kind.isNumeric) ...[
                 const SizedBox(height: 20),
-                fieldLabel(s.target),
+                fieldLabel(
+                  schedule == ScheduleKind.weeklyTotal
+                      ? s.weeklyTargetAmount
+                      : s.target,
+                ),
                 TextFormField(
                   key: const Key('habit-target'),
                   controller: target,
@@ -587,7 +606,9 @@ class _EntryEditorState extends State<EntryEditor> {
                   ),
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
-                    hintText: s.target,
+                    hintText: schedule == ScheduleKind.weeklyTotal
+                        ? s.weeklyTargetAmount
+                        : s.target,
                     prefixIcon: const Icon(Icons.flag_outlined),
                   ),
                   validator: (v) {
@@ -633,12 +654,15 @@ class _EntryEditorState extends State<EntryEditor> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final mode in ScheduleKind.values)
+                  for (final mode in ScheduleKind.values.where(
+                    (v) => kind.isNumeric || v != ScheduleKind.weeklyTotal,
+                  ))
                     AppAction(
                       label: switch (mode) {
                         ScheduleKind.weekdays => s.byWeekday,
                         ScheduleKind.interval => s.everyNDays,
                         ScheduleKind.weekly => s.weeklyTarget,
+                        ScheduleKind.weeklyTotal => s.weeklyTotalLabel,
                       },
                       key: Key('habit-schedule-${mode.name}'),
                       icon: scheduleChosen && schedule == mode
@@ -647,19 +671,27 @@ class _EntryEditorState extends State<EntryEditor> {
                       tone: UiTone.violet,
                       onTap: saving
                           ? null
-                          : () => setState(() {
-                              scheduleChosen = true;
-                              error = null;
-                              if (schedule == mode) return;
-                              schedule = mode;
-                              scheduleNumber.text =
-                                  mode == ScheduleKind.interval ? '2' : '3';
-                            }),
+                          : () async {
+                              if (mode == ScheduleKind.weeklyTotal &&
+                                  !await requirePlus(context, widget.app)) {
+                                return;
+                              }
+                              if (!mounted) return;
+                              setState(() {
+                                scheduleChosen = true;
+                                error = null;
+                                if (schedule == mode) return;
+                                schedule = mode;
+                                scheduleNumber.text =
+                                    mode == ScheduleKind.interval ? '2' : '3';
+                              });
+                            },
                     ),
                 ],
               ),
               const SizedBox(height: 12),
-              if (schedule != ScheduleKind.weekdays) ...[
+              if (schedule == ScheduleKind.interval ||
+                  schedule == ScheduleKind.weekly) ...[
                 TextFormField(
                   key: const Key('schedule-number'),
                   controller: scheduleNumber,
@@ -688,6 +720,11 @@ class _EntryEditorState extends State<EntryEditor> {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
+              if (schedule == ScheduleKind.weeklyTotal)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(s.weeklyTotalHint),
+                ),
               if (schedule == ScheduleKind.weekdays)
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -797,7 +834,7 @@ class _EntryEditorState extends State<EntryEditor> {
                     Text(
                       kind == HabitKind.check
                           ? s.recordingCheckHelp
-                          : '${s.target}: ${target.text} ${unit.text.trim()}',
+                          : '${schedule == ScheduleKind.weeklyTotal ? s.weeklyTargetAmount : s.target}: ${target.text} ${unit.text.trim()}',
                     ),
                     if (scheduleChosen && schedule == ScheduleKind.weekly)
                       Text(
@@ -1099,11 +1136,14 @@ class QuantityEditor extends StatefulWidget {
     required this.habit,
     required this.day,
     this.onSave,
+    this.onSaveEvent,
   });
   final AppController app;
   final Habit habit;
   final Day day;
   final Future<bool> Function(int? value, int expectedRevision)? onSave;
+  final Future<bool> Function(RecordEvent event, int expectedRevision)?
+  onSaveEvent;
   @override
   State<QuantityEditor> createState() => _QuantityEditorState();
 }
@@ -1116,6 +1156,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
   int? previous;
   String? error;
   bool saving = false;
+  final eventId = const Uuid().v4();
   bool adding = false;
   bool stale = false;
 
@@ -1210,7 +1251,30 @@ class _QuantityEditorState extends State<QuantityEditor> {
       return;
     }
     setState(() => saving = true);
-    final ok = widget.onSave != null
+    final now = widget.app.clock();
+    final event = RecordEvent(
+      id: eventId,
+      habitId: snapshot.id,
+      day: widget.day,
+      value: inputAmount ?? 0,
+      minute: widget.day == widget.app.today
+          ? now.hour * 60 + now.minute
+          : null,
+    );
+    final logEvent =
+        !clear &&
+        adding &&
+        widget.app.plus.enabled &&
+        (widget.onSave == null || widget.onSaveEvent != null);
+    final ok = logEvent
+        ? (widget.onSaveEvent != null
+              ? await widget.onSaveEvent!(event, revision)
+              : await widget.app.recordIndividual(
+                  event,
+                  epoch,
+                  expectedRevision: revision,
+                ))
+        : widget.onSave != null
         ? await widget.onSave!(amount, revision)
         : await widget.app.recordHabit(
             snapshot,
@@ -1317,7 +1381,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               Text(
-                '${s.target}: ${quantityText(h.target)} ${h.unit}',
+                '${h.schedule == ScheduleKind.weeklyTotal ? s.weeklyTargetAmount : s.target}: ${quantityText(h.target)} ${h.unit}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

@@ -13,6 +13,7 @@ import 'card_art.dart';
 import 'statistics.dart';
 import 'refined_components.dart';
 import 'rest_days.dart';
+import 'record_events.dart';
 import '../domain/habit_break.dart';
 
 class HabitTile extends StatelessWidget {
@@ -33,7 +34,9 @@ class HabitTile extends StatelessWidget {
     final epoch = app.generation;
     final display = app.forDay(habit, day);
     final plan = app.planAt(habit, day);
-    final amount = app.value(habit, day);
+    final amount = plan.schedule == ScheduleKind.weeklyTotal
+        ? app.weekTotal(habit, day)
+        : app.value(habit, day);
     final done = app.achieved(habit, day);
     final rest = app.restOn(habit, day);
     final tone = habitTone(habit.icon, habit.color);
@@ -168,11 +171,13 @@ class HabitTile extends StatelessWidget {
                       child: action,
                     ),
                   ),
-                if (plan.schedule == ScheduleKind.weekly)
+                if (plan.schedule.isWeekly)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
-                      '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
+                      plan.schedule == ScheduleKind.weeklyTotal
+                          ? '${s.weeklyTotalProgress} ${quantityText(app.weekTotal(habit, day))} / ${quantityText(plan.target)} ${plan.unit}'
+                          : '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -367,10 +372,12 @@ class HabitTile extends StatelessWidget {
               ),
             ),
           ],
-          if (plan.schedule == ScheduleKind.weekly) ...[
+          if (plan.schedule.isWeekly) ...[
             const SizedBox(height: 12),
             AppBadge(
-              '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
+              plan.schedule == ScheduleKind.weeklyTotal
+                  ? '${s.weeklyTotalProgress} ${quantityText(app.weekTotal(habit, day))} / ${quantityText(plan.target)} ${plan.unit}'
+                  : '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
               tone: UiTone.violet,
             ),
             if (plan.effectiveDay.compareTo(day.monday) > 0) ...[
@@ -700,6 +707,19 @@ class _HabitDetailsState extends State<HabitDetails> {
                     ),
                   ),
                 const SizedBox(height: 12),
+                if (h.kind.isNumeric)
+                  SettingRow(
+                    key: const Key('habit-events'),
+                    icon: Icons.receipt_long_outlined,
+                    title: s.eventTitle,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            RecordEventsPage(app: app, habitId: h.id, day: day),
+                      ),
+                    ),
+                  ),
                 SettingRow(
                   key: const Key('habit-record-history'),
                   icon: Icons.history_rounded,
@@ -970,7 +990,7 @@ class _HabitManagementPageState extends State<HabitManagementPage> {
                             Text(scheduleText(s, p)),
                             if (h.kind.isNumeric)
                               Text(
-                                '${s.target} ${quantityText(p.target)} ${p.unit}',
+                                '${p.schedule == ScheduleKind.weeklyTotal ? s.weeklyTargetAmount : s.target} ${quantityText(p.target)} ${p.unit}',
                               ),
                           ],
                         ),

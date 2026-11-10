@@ -30,6 +30,7 @@ open class DayPanelWidgetProvider : AppWidgetProvider() {
 }
 class HabitWidgetProvider : DayPanelWidgetProvider()
 class TaskWidgetProvider : DayPanelWidgetProvider()
+class PanelWidgetProvider : DayPanelWidgetProvider()
 class WidgetSystemReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val pending = goAsync()

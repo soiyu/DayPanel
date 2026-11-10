@@ -121,7 +121,7 @@ List<CardHabit>? completedCardEvidence(
     final p = versions.isEmpty
         ? HabitPlan.fromHabit(h, h.startDay)
         : versions.last;
-    if (p.schedule == ScheduleKind.weekly || !p.scheduled(day)) continue;
+    if (p.schedule.isWeekly || !p.scheduled(day)) continue;
     final value = entries
         .where((e) => e.habitId == h.id && e.day == day)
         .firstOrNull

@@ -1,3 +1,4 @@
+import 'schema_fixture.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
@@ -322,6 +323,7 @@ void main() {
       final old = BackupSnapshot.decode(
         mutate((p) {
           p['schema'] = 8;
+          (p['tables'] as Map).remove('record_events');
           (p['tables'] as Map).remove('habit_breaks');
         }),
       );
@@ -333,13 +335,14 @@ void main() {
     'v8 migration adds empty rest table only, deleting habit cascades',
     () async {
       await store.db.execute('DROP TABLE habit_breaks');
+      await discardV12Fixture(store.db);
       await store.db.setVersion(8);
       await store.close();
       store = await AppStore.open(
         factory: databaseFactoryFfi,
         path: '${dir.path}/db',
       );
-      expect(await store.db.getVersion(), 11);
+      expect(await store.db.getVersion(), 12);
       expect(await store.breaks(), isEmpty);
       expect((await store.habits()).single.title, 'h');
       await store.addBreak(rest('p', 'h', today), today: today);
