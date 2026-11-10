@@ -37,80 +37,80 @@ class DayPanelStyle extends ThemeExtension<DayPanelStyle> {
 /// Each theme is a balanced set of role colors, not a single tinted seed.
 const harmonyInks = <String, List<int>>{
   'blue': [
-    0xFF2459CC,
-    0xFF7956B4,
-    0xFFA65B2B,
-    0xFF247365,
-    0xFFA04E69,
-    0xFF316CB0,
+    0xFF1D4ED8,
+    0xFF6D28D9,
+    0xFFC2410C,
+    0xFF047857,
+    0xFFBE123C,
+    0xFF0369A1,
   ],
   'teal': [
-    0xFF226B62,
-    0xFF75629B,
-    0xFFA15C37,
-    0xFF35755A,
-    0xFF9A5463,
-    0xFF366BA3,
+    0xFF0F766E,
+    0xFF6D28D9,
+    0xFFB45309,
+    0xFF047857,
+    0xFFBE185D,
+    0xFF0369A1,
   ],
   'violet': [
-    0xFF6650A2,
-    0xFF80619F,
-    0xFF946128,
-    0xFF347568,
-    0xFF99566D,
-    0xFF4267A8,
+    0xFF6D28D9,
+    0xFF7E22CE,
+    0xFFB45309,
+    0xFF047857,
+    0xFFBE123C,
+    0xFF1D4ED8,
   ],
 };
 const harmonyWashes = <String, List<int>>{
   'blue': [
-    0xFFEAF0FD,
-    0xFFF0EBF8,
-    0xFFFBF0E4,
-    0xFFE7F3EE,
-    0xFFF9EBF0,
-    0xFFE9F1F8,
+    0xFFEFF6FF,
+    0xFFF5F3FF,
+    0xFFFFF7ED,
+    0xFFECFDF5,
+    0xFFFFF1F2,
+    0xFFF0F9FF,
   ],
   'teal': [
-    0xFFE5F0EB,
-    0xFFEEEBF4,
-    0xFFF6ECE2,
-    0xFFEAF1E6,
-    0xFFF5EAEC,
-    0xFFE7EEF6,
+    0xFFF0FDFA,
+    0xFFF5F3FF,
+    0xFFFEF3C7,
+    0xFFECFDF5,
+    0xFFFCE7F3,
+    0xFFE0F2FE,
   ],
   'violet': [
-    0xFFEDEAF7,
-    0xFFF1ECF7,
-    0xFFF6F0DE,
-    0xFFE9F2ED,
-    0xFFF7EAEF,
-    0xFFEAF0F8,
+    0xFFF5F3FF,
+    0xFFFAF5FF,
+    0xFFFEF3C7,
+    0xFFECFDF5,
+    0xFFFFE4E6,
+    0xFFEFF6FF,
   ],
 };
 const harmonyNights = <String, List<int>>{
   'blue': [
-    0xFFADC4FF,
-    0xFFD1BEF2,
-    0xFFF3C99B,
-    0xFFA5DACE,
-    0xFFF0BCD0,
-    0xFFA9C9EF,
+    0xFF93C5FD,
+    0xFFC4B5FD,
+    0xFFFDBA74,
+    0xFF6EE7B7,
+    0xFFFDA4AF,
+    0xFF7DD3FC,
   ],
   'teal': [
-    0xFFA2D7CB,
-    0xFFC7BBDD,
-    0xFFF2C29D,
-    0xFFBAD7B4,
-    0xFFE2B9C4,
-    0xFFAACBEF,
+    0xFF5EEAD4,
+    0xFFC4B5FD,
+    0xFFFCD34D,
+    0xFF6EE7B7,
+    0xFFF472B6,
+    0xFF38BDF8,
   ],
   'violet': [
-    0xFFC9BCED,
-    0xFFD7BCE9,
-    0xFFE4CA91,
-    0xFFADD6C6,
-    0xFFE6B9CD,
-    0xFFBCCCF0,
+    0xFFC4B5FD,
+    0xFFE9D5FF,
+    0xFFFBBF24,
+    0xFF6EE7B7,
+    0xFFFB7185,
+    0xFF60A5FA,
   ],
 };
 
@@ -150,26 +150,30 @@ ThemeData dayPanelTheme(
   final base = Color(
     dark
         ? switch (palette) {
-            'teal' => 0xFF172320,
-            'violet' => 0xFF211E2B,
-            _ => 0xFF192231,
+            'teal' => 0xFF081512,
+            'violet' => 0xFF0F0B18,
+            _ => 0xFF0A0F1D,
           }
         : switch (palette) {
-            'teal' => 0xFFF4F7F5,
-            'violet' => 0xFFF8F6FA,
-            _ => 0xFFF7F8FC,
+            'teal' => 0xFFF2F9F6,
+            'violet' => 0xFFFAF8FD,
+            _ => 0xFFF8FAFC,
           },
   );
   final paper = Color(
     dark
         ? switch (palette) {
-            'teal' => 0xFF24322D,
-            'violet' => 0xFF302A3B,
-            _ => 0xFF273244,
+            'teal' => 0xFF122620,
+            'violet' => 0xFF1D162C,
+            _ => 0xFF161F30,
           }
         : 0xFFFFFFFF,
   );
-  final actionStart = accent;
+  final actionStart = Color(switch (palette) {
+    'teal' => 0xFF0D7E73,
+    'violet' => 0xFF7C3AED,
+    _ => 0xFF2563EB,
+  });
   final scheme = ColorScheme.fromSeed(seedColor: accent, brightness: brightness)
       .copyWith(
         surface: base,
@@ -177,17 +181,23 @@ ThemeData dayPanelTheme(
         surfaceContainerLow: Color.lerp(base, paper, .45),
         surfaceContainer: Color.lerp(base, paper, .65),
         surfaceContainerHigh: dark
-            ? const Color(0xFF384251)
-            : const Color(0xFFEDF0F5),
-        onSurface: dark ? const Color(0xFFEDF1F7) : const Color(0xFF26324A),
+            ? Color.lerp(paper, Colors.white, .08)
+            : const Color(0xFFF1F5F9),
+        onSurface: dark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A),
         onSurfaceVariant: dark
-            ? const Color(0xFFB8C4D4)
-            : const Color(0xFF647188),
+            ? const Color(0xFF94A3B8)
+            : const Color(0xFF64748B),
         primary: dark ? Color(harmonyNights[palette]![0]) : accent,
-        onPrimary: dark ? const Color(0xFF162542) : Colors.white,
+        onPrimary: dark
+            ? switch (palette) {
+                'teal' => const Color(0xFF042F2C),
+                'violet' => const Color(0xFF240E47),
+                _ => const Color(0xFF08224E),
+              }
+            : Colors.white,
         primaryContainer: dark
             ? Color.alphaBlend(
-                Color(harmonyNights[palette]![0]).withValues(alpha: .12),
+                Color(harmonyNights[palette]![0]).withValues(alpha: .14),
                 paper,
               )
             : pale,
@@ -195,17 +205,23 @@ ThemeData dayPanelTheme(
             ? Color(harmonyNights[palette]![1])
             : Color(harmonyInks[palette]![1]),
         secondaryContainer: dark
-            ? const Color(0xFF383247)
+            ? Color.alphaBlend(
+                Color(harmonyNights[palette]![1]).withValues(alpha: .14),
+                paper,
+              )
             : Color(harmonyWashes[palette]![1]),
         tertiary: dark
             ? Color(harmonyNights[palette]![2])
             : Color(harmonyInks[palette]![2]),
         tertiaryContainer: dark
-            ? const Color(0xFF443B30)
+            ? Color.alphaBlend(
+                Color(harmonyNights[palette]![2]).withValues(alpha: .14),
+                paper,
+              )
             : Color(harmonyWashes[palette]![2]),
         outlineVariant: dark
-            ? const Color(0xFF424B59)
-            : const Color(0xFFE1E6ED),
+            ? const Color(0xFF2A3649)
+            : const Color(0xFFE2E8F0),
       );
   final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(24));
   return ThemeData(
@@ -411,24 +427,27 @@ class AppCanvas extends StatelessWidget {
   const AppCanvas({super.key, required this.child});
   final Widget child;
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Theme.of(context).colorScheme.surface,
-          Color.lerp(
-            Theme.of(context).colorScheme.surface,
-            UiTone.violet.wash(context),
-            .14,
-          )!,
-          Theme.of(context).colorScheme.surface,
-        ],
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final surface = Theme.of(context).colorScheme.surface;
+    final wash = Theme.of(context).colorScheme.primaryContainer;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            surface,
+            dark
+                ? Color.lerp(surface, wash, .10)!
+                : Color.lerp(surface, wash, .28)!,
+            surface,
+          ],
+        ),
       ),
-    ),
-    child: child,
-  );
+      child: child,
+    );
+  }
 }
 
 class SoftPanel extends StatelessWidget {
@@ -438,7 +457,7 @@ class SoftPanel extends StatelessWidget {
     this.tinted = false,
     this.tone = UiTone.blue,
     this.padding = const EdgeInsets.all(20),
-    this.radius = 24,
+    this.radius = 22,
   });
   final Widget child;
   final bool tinted;
@@ -448,7 +467,14 @@ class SoftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final surface = Theme.of(context).colorScheme.surfaceContainerLowest;
+    final scheme = Theme.of(context).colorScheme;
+    final surface = scheme.surfaceContainerLowest;
+    final shadowColor = dark
+        ? Colors.black.withValues(alpha: .28)
+        : Color.alphaBlend(
+            scheme.primary.withValues(alpha: .04),
+            const Color(0xFF1E293B),
+          ).withValues(alpha: .045);
     return Container(
       padding: padding,
       decoration: BoxDecoration(
@@ -456,23 +482,19 @@ class SoftPanel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            surface.withValues(alpha: dark ? 0.95 : 0.98),
-            tinted ? Color.lerp(surface, tone.wash(context), .65)! : surface,
+            surface.withValues(alpha: dark ? 0.96 : 0.98),
+            tinted ? Color.lerp(surface, tone.wash(context), .45)! : surface,
           ],
         ),
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: Theme.of(
-            context,
-          ).colorScheme.outlineVariant.withValues(alpha: .55),
+          color: scheme.outlineVariant.withValues(alpha: dark ? .35 : .6),
         ),
         boxShadow: [
           BoxShadow(
-            color: (dark ? Colors.black : const Color(0xFF425E9A)).withValues(
-              alpha: dark ? 0.12 : 0.045,
-            ),
-            blurRadius: 18,
-            offset: const Offset(0, 5),
+            color: shadowColor,
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

@@ -221,7 +221,11 @@ class _ReminderEditorState extends State<ReminderEditor> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            flex: 2,
+            flex:
+                MediaQuery.sizeOf(context).width < 360 &&
+                    MediaQuery.textScalerOf(context).scale(1) > 1.3
+                ? 1
+                : 2,
             child: AppAction(
               key: const Key('save-reminder'),
               label: s.save,

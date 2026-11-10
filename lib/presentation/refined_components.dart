@@ -33,8 +33,12 @@ class ChoiceSurface extends StatelessWidget {
           side: BorderSide(
             color: selected
                 ? tone.ink(context)
-                : scheme.outlineVariant.withValues(alpha: .65),
-            width: selected ? 1.5 : 1,
+                : scheme.outlineVariant.withValues(
+                    alpha: Theme.of(context).brightness == Brightness.dark
+                        ? .35
+                        : .65,
+                  ),
+            width: selected ? 1.6 : 1,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -134,11 +138,16 @@ class QuietChoice extends StatelessWidget {
     child: Material(
       color: selected ? tone.wash(context) : Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         side: BorderSide(
           color: selected
-              ? tone.ink(context).withValues(alpha: .45)
-              : Theme.of(context).colorScheme.outlineVariant,
+              ? tone.ink(context).withValues(alpha: .55)
+              : Theme.of(context).colorScheme.outlineVariant.withValues(
+                  alpha: Theme.of(context).brightness == Brightness.dark
+                      ? .4
+                      : .8,
+                ),
+          width: selected ? 1.4 : 1,
         ),
       ),
       clipBehavior: Clip.antiAlias,

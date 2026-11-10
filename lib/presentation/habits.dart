@@ -127,6 +127,8 @@ class HabitTile extends StatelessWidget {
                             children: [
                               Text(
                                 habit.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 3),

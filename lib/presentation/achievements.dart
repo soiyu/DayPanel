@@ -364,11 +364,25 @@ class _CardDetailsState extends State<CardDetails> {
           backgroundColor: Colors.transparent,
           appBar: AppBar(title: Text(s.dailyCard)),
           body: card == null
-              ? EmptyState(
-                  icon: Icons.style_outlined,
-                  title: s.cardUnavailable,
-                  body: s.cardRestoreHint,
-                  tone: UiTone.violet,
+              ? SafeArea(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    children: [
+                      EmptyState(
+                        key: const Key('card-unavailable'),
+                        icon: Icons.style_outlined,
+                        title: s.cardUnavailable,
+                        body: s.cardRestoreHint,
+                        action: s.back,
+                        actionIcon: Icons.arrow_back_rounded,
+                        onAction: () => Navigator.maybePop(context),
+                        tone: UiTone.violet,
+                      ),
+                    ],
+                  ),
                 )
               : ListView(
                   padding: const EdgeInsets.all(20),

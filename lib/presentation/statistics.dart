@@ -251,6 +251,122 @@ class _StatisticsPageState extends State<StatisticsPage> {
     }
   }
 
+  Widget _navigation(BuildContext context, AppLocalizations s) => LayoutBuilder(
+    builder: (context, constraints) {
+      final labels = [
+        s.uiTabTable,
+        s.uiTabHabits,
+        s.uiTabYear,
+        s.uiTabTimeline,
+      ];
+      final fullLabels = [
+        s.checkinTable,
+        s.habitStatistics,
+        s.yearCalendar,
+        s.timelineTitle,
+      ];
+      final labelStyle = Theme.of(context).textTheme.bodySmall!;
+      var widestLabel = 0.0;
+      for (final label in labels) {
+        final painter = TextPainter(
+          text: TextSpan(
+            text: label,
+            style: labelStyle.copyWith(fontWeight: FontWeight.w700),
+          ),
+          textScaler: MediaQuery.textScalerOf(context),
+          textDirection: Directionality.of(context),
+        )..layout();
+        if (painter.width > widestLabel) widestLabel = painter.width;
+        painter.dispose();
+      }
+      // Preserve full words at the user's text size; compact rows keep this
+      // navigation from growing into a large block above the statistics.
+      final compact = (widestLabel.ceil() + 14) * 4 > constraints.maxWidth;
+      final columns =
+          (widestLabel.ceil() + 21 + 6 + 14) * 2 + 8 <= constraints.maxWidth
+          ? 2
+          : 1;
+      Widget button(int i) {
+        final color = tab == i
+            ? UiTone.violet.ink(context)
+            : Theme.of(context).colorScheme.onSurfaceVariant;
+        final icon = Icon(
+          [
+            Icons.table_chart_outlined,
+            Icons.bar_chart_rounded,
+            Icons.calendar_month_outlined,
+            Icons.timeline_rounded,
+          ][i],
+          size: 21,
+          color: color,
+        );
+        final label = Text(
+          labels[i],
+          textAlign: TextAlign.center,
+          style: labelStyle.copyWith(
+            fontWeight: tab == i ? FontWeight.w700 : FontWeight.w500,
+            color: color,
+          ),
+        );
+        return Semantics(
+          selected: tab == i,
+          button: true,
+          label: fullLabels[i],
+          child: Material(
+            color: tab == i ? UiTone.violet.wash(context) : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              key: Key('statistics-tab-$i'),
+              onTap: () => setState(() => tab = i),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 10,
+                  ),
+                  child: compact
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            icon,
+                            const SizedBox(width: 6),
+                            Flexible(child: label),
+                          ],
+                        )
+                      : Column(
+                          children: [icon, const SizedBox(height: 6), label],
+                        ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      if (compact) {
+        return Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            for (var i = 0; i < 4; i++)
+              SizedBox(
+                width: (constraints.maxWidth - (columns - 1) * 8) / columns,
+                child: button(i),
+              ),
+          ],
+        );
+      }
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [for (var i = 0; i < 4; i++) Expanded(child: button(i))],
+        ),
+      );
+    },
+  );
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: app,
@@ -293,88 +409,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
             children: [
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var i = 0; i < 4; i++)
-                      Expanded(
-                        child: Semantics(
-                          selected: tab == i,
-                          button: true,
-                          label: [
-                            s.checkinTable,
-                            s.habitStatistics,
-                            s.yearCalendar,
-                            s.timelineTitle,
-                          ][i],
-                          child: Material(
-                            color: tab == i
-                                ? UiTone.violet.wash(context)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(14),
-                            clipBehavior: Clip.antiAlias,
-                            child: InkWell(
-                              key: Key('statistics-tab-$i'),
-                              onTap: () => setState(() => tab = i),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 10,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      [
-                                        Icons.table_chart_outlined,
-                                        Icons.bar_chart_rounded,
-                                        Icons.calendar_month_outlined,
-                                        Icons.timeline_rounded,
-                                      ][i],
-                                      size: 21,
-                                      color: tab == i
-                                          ? UiTone.violet.ink(context)
-                                          : Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      [
-                                        s.uiTabTable,
-                                        s.uiTabHabits,
-                                        s.uiTabYear,
-                                        s.uiTabTimeline,
-                                      ][i],
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            fontWeight: tab == i
-                                                ? FontWeight.w700
-                                                : FontWeight.w500,
-                                            color: tab == i
-                                                ? UiTone.violet.ink(context)
-                                                : Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
+              _navigation(context, s),
               const SizedBox(height: 8),
               if (tab != 3) ...[
                 AppAction(
                   key: const Key('statistics-habit-filter'),
+                  maxLines: selected == null ? null : 2,
                   label: selected == null
                       ? s.allHabits
                       : '${selected.title}${selected.archived ? ' (${s.archived})' : ''}',

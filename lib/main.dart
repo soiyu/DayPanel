@@ -56,7 +56,11 @@ class _BootstrapState extends State<Bootstrap> {
       return app;
     } catch (_) {
       app.dispose();
-      await store.close();
+      try {
+        await store.close();
+      } catch (_) {
+        // Keep the original startup failure and allow a fresh user retry.
+      }
       rethrow;
     }
   }
@@ -75,7 +79,9 @@ class _BootstrapState extends State<Bootstrap> {
           builder: (context) => Scaffold(
             body: SafeArea(
               child: Center(
-                child: snapshot.hasError
+                child:
+                    snapshot.connectionState == ConnectionState.done &&
+                        snapshot.hasError
                     ? Padding(
                         padding: const EdgeInsets.all(24),
                         child: Column(

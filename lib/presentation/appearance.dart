@@ -334,7 +334,12 @@ class _AppearancePageState extends State<AppearancePage> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            flex: 2,
+                            flex:
+                                MediaQuery.sizeOf(context).width < 360 &&
+                                    MediaQuery.textScalerOf(context).scale(1) >
+                                        1.3
+                                ? 1
+                                : 2,
                             child: AppAction(
                               key: const Key('appearance-save'),
                               label: s.save,
@@ -423,7 +428,9 @@ class _PaletteSample extends StatelessWidget {
                             alignment: Alignment.centerLeft,
                             child: Container(
                               height: 5,
-                              color: UiTone.violet.wash(ctx),
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: dark ? .35 : .22,
+                              ),
                             ),
                           ),
                         ],

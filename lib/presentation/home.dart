@@ -271,6 +271,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                   ).format(d.date),
                                   style: TextStyle(
                                     fontSize: 10,
+                                    fontWeight: selected
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
                                     color: selected
                                         ? scheme.onPrimary
                                         : scheme.onSurfaceVariant,
@@ -286,6 +289,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                         : scheme.onSurface,
                                   ),
                                 ),
+                                if (d == app.today)
+                                  Container(
+                                    width: 4,
+                                    height: 4,
+                                    margin: const EdgeInsets.only(top: 2),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: selected
+                                          ? scheme.onPrimary
+                                          : scheme.primary,
+                                    ),
+                                  )
+                                else
+                                  const SizedBox(height: 6),
                               ],
                             ),
                           ),

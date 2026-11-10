@@ -89,13 +89,30 @@ class AppStore {
   DatabaseExecutor get _executor =>
       Zone.current[_transactionZone] as Transaction? ?? db;
 
-  Future<T> _transaction<T>(Future<T> Function(Transaction) operation) {
+  Future<T> _transaction<T>(Future<T> Function(Transaction) operation) async {
     final current = Zone.current[_transactionZone] as Transaction?;
     if (current != null) return operation(current);
-    return db.transaction(
-      (txn) =>
-          runZoned(() => operation(txn), zoneValues: {_transactionZone: txn}),
-    );
+    // Native reminder/widget snapshots can briefly reserve the same database.
+    // Retry only a failed BEGIN; a body or COMMIT failure must never replay writes.
+    for (var attempt = 0; ; attempt++) {
+      var entered = false;
+      try {
+        return await db.transaction((txn) {
+          entered = true;
+          return runZoned(
+            () => operation(txn),
+            zoneValues: {_transactionZone: txn},
+          );
+        });
+      } on DatabaseException catch (error) {
+        final message = error.toString().toLowerCase();
+        final busy =
+            message.contains('database is locked') ||
+            message.contains('sqlite_busy');
+        if (entered || !busy || attempt >= 4) rethrow;
+        await Future<void>.delayed(Duration(milliseconds: 60 * (attempt + 1)));
+      }
+    }
   }
 
   /// Generation validation and every nested write share one SQLite transaction.

@@ -48,6 +48,7 @@ class AppAction extends StatelessWidget {
     super.key,
     required this.label,
     this.icon,
+    this.maxLines,
     required this.onTap,
     this.primary = false,
     this.danger = false,
@@ -56,12 +57,14 @@ class AppAction extends StatelessWidget {
   });
   final String label;
   final IconData? icon;
+  final int? maxLines;
   final VoidCallback? onTap;
   final bool primary, danger, busy;
   final UiTone tone;
   @override
   Widget build(BuildContext context) {
     final s = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final ink = primary
         ? Colors.white
         : danger
@@ -81,9 +84,9 @@ class AppAction extends StatelessWidget {
                 BoxShadow(
                   color: DayPanelStyle.of(
                     context,
-                  ).actionEnd.withValues(alpha: .10),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
+                  ).actionEnd.withValues(alpha: dark ? .32 : .22),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
                 ),
             ],
           ),
@@ -93,6 +96,7 @@ class AppAction extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: Ink(
               decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
                 gradient: primary
                     ? LinearGradient(
                         colors: [
@@ -108,6 +112,15 @@ class AppAction extends StatelessWidget {
                     : danger
                     ? s.errorContainer.withValues(alpha: .5)
                     : tone.wash(context),
+                border: primary
+                    ? null
+                    : Border.all(
+                        color: danger
+                            ? s.error.withValues(alpha: .25)
+                            : tone
+                                  .ink(context)
+                                  .withValues(alpha: dark ? .22 : .12),
+                      ),
               ),
               child: InkWell(
                 onTap: onTap,
@@ -140,6 +153,10 @@ class AppAction extends StatelessWidget {
                           child: Text(
                             label,
                             textAlign: TextAlign.center,
+                            maxLines: maxLines,
+                            overflow: maxLines == null
+                                ? null
+                                : TextOverflow.ellipsis,
                             style: TextStyle(
                               color: ink,
                               fontSize: 14,
@@ -175,32 +192,44 @@ class AppIconAction extends StatelessWidget {
   final bool primary;
   final UiTone tone;
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: [
-        if (primary)
-          BoxShadow(
-            color: DayPanelStyle.of(context).actionEnd.withValues(alpha: .16),
-            blurRadius: 16,
-            offset: const Offset(0, 5),
-          ),
-      ],
-    ),
-    child: IconButton(
-      tooltip: label,
-      onPressed: onTap,
-      icon: Icon(icon, size: 22),
-      style: IconButton.styleFrom(
-        backgroundColor: primary
-            ? DayPanelStyle.of(context).actionEnd
-            : tone.wash(context),
-        foregroundColor: primary ? Colors.white : tone.ink(context),
-        minimumSize: const Size(48, 48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          if (primary)
+            BoxShadow(
+              color: DayPanelStyle.of(
+                context,
+              ).actionEnd.withValues(alpha: dark ? .30 : .20),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+        ],
       ),
-    ),
-  );
+      child: IconButton(
+        tooltip: label,
+        onPressed: onTap,
+        icon: Icon(icon, size: 22),
+        style: IconButton.styleFrom(
+          backgroundColor: primary
+              ? DayPanelStyle.of(context).actionEnd
+              : tone.wash(context),
+          foregroundColor: primary ? Colors.white : tone.ink(context),
+          side: primary
+              ? null
+              : BorderSide(
+                  color: tone.ink(context).withValues(alpha: dark ? .20 : .12),
+                ),
+          minimumSize: const Size(48, 48),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class AppBadge extends StatelessWidget {
@@ -343,7 +372,17 @@ class GlassNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
+    final narrowWithLargeText =
+        MediaQuery.sizeOf(context).width < 360 &&
+        MediaQuery.textScalerOf(context).scale(1) > 1.3;
     final labels = [s.today, s.tasks, s.notes, s.mine];
+    final shadowColor = dark
+        ? Colors.black.withValues(alpha: .30)
+        : Color.alphaBlend(
+            scheme.primary.withValues(alpha: .06),
+            const Color(0xFF0F172A),
+          ).withValues(alpha: .06);
     const icons = [
       Icons.wb_sunny_outlined,
       Icons.checklist_rounded,
@@ -353,15 +392,18 @@ class GlassNavigation extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+        padding: EdgeInsets.fromLTRB(
+          narrowWithLargeText ? 8 : 16,
+          4,
+          narrowWithLargeText ? 8 : 16,
+          6,
+        ),
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(26),
             boxShadow: [
               BoxShadow(
-                color: const Color(
-                  0xFF254679,
-                ).withValues(alpha: dark ? .12 : .08),
+                color: shadowColor,
                 blurRadius: 24,
                 offset: const Offset(0, 5),
               ),
@@ -370,14 +412,17 @@ class GlassNavigation extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(26),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
               child: Container(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: (dark ? const Color(0xFF232C3F) : Colors.white)
-                      .withValues(alpha: .9),
+                  color: scheme.surfaceContainerLowest.withValues(
+                    alpha: dark ? .88 : .92,
+                  ),
                   border: Border.all(
-                    color: dark ? Colors.white12 : Colors.white,
+                    color: dark
+                        ? scheme.outlineVariant.withValues(alpha: .25)
+                        : Colors.white.withValues(alpha: .85),
                   ),
                   borderRadius: BorderRadius.circular(26),
                 ),

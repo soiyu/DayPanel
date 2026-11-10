@@ -991,7 +991,11 @@ class _EntryEditorState extends State<EntryEditor> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            flex: 2,
+            flex:
+                MediaQuery.sizeOf(context).width < 360 &&
+                    MediaQuery.textScalerOf(context).scale(1) > 1.3
+                ? 1
+                : 2,
             child: AppAction(
               key: const Key('save-entry'),
               label: s.save,
@@ -1403,7 +1407,11 @@ class _QuantityEditorState extends State<QuantityEditor> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            flex: 2,
+            flex:
+                MediaQuery.sizeOf(context).width < 360 &&
+                    MediaQuery.textScalerOf(context).scale(1) > 1.3
+                ? 1
+                : 2,
             child: AppAction(
               key: const Key('quantity-save'),
               label: s.save,
