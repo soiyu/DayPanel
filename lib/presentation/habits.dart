@@ -10,6 +10,7 @@ import 'organization.dart';
 import 'reminders.dart';
 import 'journal.dart';
 import 'card_art.dart';
+import 'heatmap.dart';
 import 'statistics.dart';
 import 'refined_components.dart';
 import 'rest_days.dart';
@@ -97,303 +98,316 @@ class HabitTile extends StatelessWidget {
         tone: tone,
         onTap: rest != null || enabled ? record : null,
       );
-      return SoftPanel(
-        key: Key('habit-card-${habit.id}'),
-        radius: 18,
-        padding: const EdgeInsets.all(12),
-        child: LayoutBuilder(
-          builder: (context, c) {
-            final stacked =
-                c.maxWidth < 280 ||
-                MediaQuery.textScalerOf(context).scale(1) > 1.3;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    HabitIcon(
-                      habit.icon,
-                      color: habit.color,
-                      frame: habit.frame,
-                      size: 44,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: InkWell(
-                        onTap: details,
-                        borderRadius: BorderRadius.circular(10),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 48),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                habit.title,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                subtitle,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: rest != null
-                                          ? UiTone.violet.ink(context)
-                                          : tone.ink(context),
-                                    ),
-                              ),
-                            ],
+      return RepaintBoundary(
+        child: SoftPanel(
+          key: Key('habit-card-${habit.id}'),
+          radius: 18,
+          padding: const EdgeInsets.all(12),
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final stacked =
+                  c.maxWidth < 280 ||
+                  MediaQuery.textScalerOf(context).scale(1) > 1.3;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      HabitIcon(
+                        habit.icon,
+                        color: habit.color,
+                        frame: habit.frame,
+                        size: 44,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: InkWell(
+                          onTap: details,
+                          borderRadius: BorderRadius.circular(10),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 48),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  habit.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  subtitle,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: rest != null
+                                            ? UiTone.violet.ink(context)
+                                            : tone.ink(context),
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    if (!stacked)
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 128),
+                      const SizedBox(width: 8),
+                      if (!stacked)
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 128),
+                          child: action,
+                        )
+                      else
+                        IconButton(
+                          tooltip: s.history,
+                          onPressed: details,
+                          icon: const Icon(Icons.chevron_right_rounded),
+                        ),
+                    ],
+                  ),
+                  if (stacked)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Align(
+                        alignment: Alignment.centerRight,
                         child: action,
-                      )
-                    else
-                      IconButton(
-                        tooltip: s.history,
-                        onPressed: details,
-                        icon: const Icon(Icons.chevron_right_rounded),
                       ),
-                  ],
-                ),
-                if (stacked)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: action,
                     ),
-                  ),
-                if (plan.schedule.isWeekly)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      plan.schedule == ScheduleKind.weeklyTotal
-                          ? '${s.weeklyTotalProgress} ${quantityText(app.weekTotal(habit, day))} / ${quantityText(plan.target)} ${plan.unit}'
-                          : '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                  if (plan.schedule.isWeekly)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        plan.schedule == ScheduleKind.weeklyTotal
+                            ? '${s.weeklyTotalProgress} ${quantityText(app.weekTotal(habit, day))} / ${quantityText(plan.target)} ${plan.unit}'
+                            : '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
-                  ),
-                if (isQuantity)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: LinearProgressIndicator(
-                      value: ((amount ?? 0) / display.target).clamp(0.0, 1.0),
-                      minHeight: 3,
-                      color: tone.ink(context),
-                      backgroundColor: tone.wash(context),
-                      borderRadius: BorderRadius.circular(3),
+                  if (isQuantity)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: LinearProgressIndicator(
+                        value: ((amount ?? 0) / display.target).clamp(0.0, 1.0),
+                        minHeight: 3,
+                        color: tone.ink(context),
+                        backgroundColor: tone.wash(context),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
                     ),
-                  ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       );
     }
-    return SoftPanel(
-      tinted: done,
-      tone: tone,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              HabitIcon(
-                habit.icon,
-                color: habit.color,
-                size: 46,
-                frame: habit.frame,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: openDetails
-                      ? () => Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => HabitDetails(
-                              app: app,
-                              id: habit.id,
-                              initialDay: day,
+    return RepaintBoundary(
+      child: SoftPanel(
+        tinted: done,
+        tone: tone,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                HabitIcon(
+                  habit.icon,
+                  color: habit.color,
+                  size: 46,
+                  frame: habit.frame,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: openDetails
+                        ? () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => HabitDetails(
+                                app: app,
+                                id: habit.id,
+                                initialDay: day,
+                              ),
                             ),
+                          )
+                        : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            habit.title,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
-                        )
-                      : null,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          habit.title,
-                          style: Theme.of(context).textTheme.titleMedium,
+                          const SizedBox(height: 5),
+                          Text(
+                            '${contextName(s, habit.context)} · ${habit.kind == HabitKind.count
+                                ? s.countHabit
+                                : isQuantity
+                                ? s.quantityHabit
+                                : s.checkHabit}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (openDetails)
+                  IconButton(
+                    tooltip: s.history,
+                    icon: Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => HabitDetails(
+                          app: app,
+                          id: habit.id,
+                          initialDay: day,
                         ),
-                        const SizedBox(height: 5),
-                        Text(
-                          '${contextName(s, habit.context)} · ${habit.kind == HabitKind.count
-                              ? s.countHabit
-                              : isQuantity
-                              ? s.quantityHabit
-                              : s.checkHabit}',
-                          style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
+              children: [
+                if (isQuantity)
+                  RichText(
+                    textScaler: MediaQuery.textScalerOf(context),
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        fontSize: 13,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: amount == null ? '—' : quantityText(amount),
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: tone.ink(context),
+                          ),
+                        ),
+                        TextSpan(
+                          text:
+                              ' / ${quantityText(display.target)} ${display.unit}',
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ),
-              if (openDetails)
-                IconButton(
-                  tooltip: s.history,
-                  icon: Icon(
-                    Icons.chevron_right_rounded,
-                    size: 20,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) =>
-                          HabitDetails(app: app, id: habit.id, initialDay: day),
+                  )
+                else
+                  AnimatedSwitcher(
+                    duration: MediaQuery.disableAnimationsOf(context)
+                        ? Duration.zero
+                        : const Duration(milliseconds: 220),
+                    transitionBuilder: cardFlipTransition,
+                    child: AppBadge(
+                      done
+                          ? s.finished
+                          : amount == null
+                          ? s.notRecorded
+                          : s.notCompleted,
+                      tone: done ? tone : UiTone.blue,
+                      key: ValueKey(done),
+                      icon: done ? Icons.done_rounded : Icons.circle_outlined,
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 12,
-            runSpacing: 10,
-            children: [
-              if (isQuantity)
-                RichText(
-                  textScaler: MediaQuery.textScalerOf(context),
-                  text: TextSpan(
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                      fontSize: 13,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: amount == null ? '—' : quantityText(amount),
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: tone.ink(context),
-                        ),
-                      ),
-                      TextSpan(
-                        text:
-                            ' / ${quantityText(display.target)} ${display.unit}',
-                      ),
-                    ],
-                  ),
-                )
-              else
-                AnimatedSwitcher(
-                  duration: MediaQuery.disableAnimationsOf(context)
-                      ? Duration.zero
-                      : const Duration(milliseconds: 220),
-                  transitionBuilder: cardFlipTransition,
-                  child: AppBadge(
-                    done
-                        ? s.finished
-                        : amount == null
-                        ? s.notRecorded
-                        : s.notCompleted,
-                    tone: done ? tone : UiTone.blue,
-                    key: ValueKey(done),
-                    icon: done ? Icons.done_rounded : Icons.circle_outlined,
-                  ),
-                ),
-              if (rest != null)
-                AppBadge(restName(s, rest), tone: UiTone.violet),
-              AppAction(
-                key: Key('habit-detail-action-${habit.id}'),
-                label: rest != null
-                    ? s.restTitle
-                    : isQuantity
-                    ? s.record
-                    : done
-                    ? s.reopen
-                    : s.done,
-                icon: isQuantity
-                    ? Icons.edit_outlined
-                    : done
-                    ? Icons.undo_rounded
-                    : Icons.check_rounded,
-                tone: tone,
-                onTap: rest != null
-                    ? () => Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (_) => RestDaysPage(app: app, id: habit.id),
-                        ),
-                      )
-                    : enabled
-                    ? () {
-                        if (isQuantity) {
-                          openQuantity(context, app, habit, day);
-                        } else {
-                          app.recordHabit(
-                            habit,
-                            day,
-                            done ? null : 1000,
-                            epoch,
-                          );
+                if (rest != null)
+                  AppBadge(restName(s, rest), tone: UiTone.violet),
+                AppAction(
+                  key: Key('habit-detail-action-${habit.id}'),
+                  label: rest != null
+                      ? s.restTitle
+                      : isQuantity
+                      ? s.record
+                      : done
+                      ? s.reopen
+                      : s.done,
+                  icon: isQuantity
+                      ? Icons.edit_outlined
+                      : done
+                      ? Icons.undo_rounded
+                      : Icons.check_rounded,
+                  tone: tone,
+                  onTap: rest != null
+                      ? () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                RestDaysPage(app: app, id: habit.id),
+                          ),
+                        )
+                      : enabled
+                      ? () {
+                          if (isQuantity) {
+                            openQuantity(context, app, habit, day);
+                          } else {
+                            app.recordHabit(
+                              habit,
+                              day,
+                              done ? null : 1000,
+                              epoch,
+                            );
+                          }
                         }
-                      }
-                    : null,
+                      : null,
+                ),
+              ],
+            ),
+            if (isQuantity) ...[
+              const SizedBox(height: 14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: ((amount ?? 0) / display.target).clamp(0.0, 1.0),
+                  minHeight: 5,
+                  color: tone.ink(context),
+                  backgroundColor: tone.wash(context),
+                ),
               ),
             ],
-          ),
-          if (isQuantity) ...[
-            const SizedBox(height: 14),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: ((amount ?? 0) / display.target).clamp(0.0, 1.0),
-                minHeight: 5,
-                color: tone.ink(context),
-                backgroundColor: tone.wash(context),
+            if (plan.schedule.isWeekly) ...[
+              const SizedBox(height: 12),
+              AppBadge(
+                plan.schedule == ScheduleKind.weeklyTotal
+                    ? '${s.weeklyTotalProgress} ${quantityText(app.weekTotal(habit, day))} / ${quantityText(plan.target)} ${plan.unit}'
+                    : '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
+                tone: UiTone.violet,
               ),
-            ),
-          ],
-          if (plan.schedule.isWeekly) ...[
-            const SizedBox(height: 12),
-            AppBadge(
-              plan.schedule == ScheduleKind.weeklyTotal
-                  ? '${s.weeklyTotalProgress} ${quantityText(app.weekTotal(habit, day))} / ${quantityText(plan.target)} ${plan.unit}'
-                  : '${s.weekProgress} ${app.weekCount(habit, day)} / ${plan.weeklyGoal}',
-              tone: UiTone.violet,
-            ),
-            if (plan.effectiveDay.compareTo(day.monday) > 0) ...[
-              const SizedBox(height: 6),
-              Text(s.partialWeek, style: Theme.of(context).textTheme.bodySmall),
+              if (plan.effectiveDay.compareTo(day.monday) > 0) ...[
+                const SizedBox(height: 6),
+                Text(
+                  s.partialWeek,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ],
-          ],
-          if (day.compareTo(app.today) > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Text(
-                s.futureDate,
-                style: Theme.of(context).textTheme.bodySmall,
+            if (day.compareTo(app.today) > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  s.futureDate,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -765,6 +779,50 @@ class _HabitDetailsState extends State<HabitDetails> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                ActivityHeatmap(
+                  today: app.today,
+                  title: s.habitHeatmapTitle,
+                  subtitle: s.activityHeatmapSubtitle,
+                  tone: habitTone(h.icon, h.color),
+                  initialSelectedDay: day,
+                  levelForDay: (d) {
+                    if (d.compareTo(h.startDay) < 0 ||
+                        d.compareTo(app.today) > 0) {
+                      return 0;
+                    }
+                    if (app.restOn(h, d) != null) return 0;
+                    if (!h.kind.isNumeric) {
+                      return app.achieved(h, d)
+                          ? 3
+                          : (app.value(h, d) != null ? 1 : 0);
+                    }
+                    final val = app.value(h, d);
+                    if (val == null || val == 0) return 0;
+                    final target = app.planAt(h, d).target;
+                    if (target <= 0) return 3;
+                    final ratio = val / target;
+                    if (ratio < 0.5) return 1;
+                    if (ratio < 1.0) return 2;
+                    return 3;
+                  },
+                  detailForDay: (d) {
+                    if (app.restOn(h, d) != null) {
+                      return restName(s, app.restOn(h, d)!);
+                    }
+                    final val = app.value(h, d);
+                    if (val == null) return s.notRecorded;
+                    if (h.kind.isNumeric) {
+                      final plan = app.planAt(h, d);
+                      return '${quantityText(val)} / ${quantityText(plan.target)} ${plan.unit}';
+                    }
+                    return app.achieved(h, d) ? s.finished : s.notCompleted;
+                  },
+                  onDayTap: (d) => setState(() {
+                    selected = d;
+                  }),
+                ),
+                const SizedBox(height: 16),
                 SectionTitle(s.history, tone: habitTone(h.icon, h.color)),
                 for (var i = 0; i < 7; i++)
                   if (day.plus(-i).compareTo(h.startDay) >= 0)

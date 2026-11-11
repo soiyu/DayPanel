@@ -28,6 +28,40 @@ void main() {
       expect(quantitySuggestions(3000, 'km'), [1000, 3000]);
     },
   );
+  test(
+    'unit-aware increments use everyday cup/chapter/workout sizes instead of hardcoded numbers',
+    () {
+      expect(quantityIncrementSuggestions(2000000, '毫升'), [
+        100000,
+        250000,
+        350000,
+        500000,
+      ]);
+      expect(quantityIncrementSuggestions(20000, 'pages'), [
+        5000,
+        10000,
+        20000,
+      ]);
+      expect(quantityIncrementSuggestions(5000, 'km'), [
+        1000,
+        2000,
+        3000,
+        5000,
+      ]);
+      expect(quantityIncrementSuggestions(10000000, '步'), [
+        1000000,
+        2000000,
+        3000000,
+        5000000,
+      ]);
+      expect(quantityIncrementSuggestions(50000, '个', wholeCounts: true), [
+        5000,
+        10000,
+        15000,
+        20000,
+      ]);
+    },
+  );
   sqfliteFfiInit();
   late AppStore store;
   late AppController app;

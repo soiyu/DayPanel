@@ -762,5 +762,15 @@
   "iconInk": "Ink pen",
   "panelAdd": "Add widget",
   "privateHabit": "Habit",
-  "reminderSharedWeekGoal": "These times remind you about one weekly total. Remaining reminders stop when the weekly target is reached; it is not split into daily tasks."
+  "reminderSharedWeekGoal": "These times remind you about one weekly total. Remaining reminders stop when the weekly target is reached; it is not split into daily tasks.",
+  "activityHeatmapTitle": "Activity Heatmap",
+  "activityHeatmapSubtitle": "Past 365 days activity matrix",
+  "habitHeatmapTitle": "Habit Heatmap",
+  "heatmapLevel0": "No record",
+  "heatmapLevel1": "Some progress",
+  "heatmapLevel2": "Target met",
+  "heatmapLevel3": "Fully complete / exceeded",
+  "heatmapLegendLess": "Less",
+  "heatmapLegendMore": "More",
+  "heatmapSelectedHint": "Tap a square to view details"
 }

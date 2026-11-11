@@ -4110,6 +4110,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These times remind you about one weekly total. Remaining reminders stop when the weekly target is reached; it is not split into daily tasks.'**
   String get reminderSharedWeekGoal;
+
+  /// No description provided for @activityHeatmapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Heatmap'**
+  String get activityHeatmapTitle;
+
+  /// No description provided for @activityHeatmapSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Past 365 days activity matrix'**
+  String get activityHeatmapSubtitle;
+
+  /// No description provided for @habitHeatmapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit Heatmap'**
+  String get habitHeatmapTitle;
+
+  /// No description provided for @heatmapLevel0.
+  ///
+  /// In en, this message translates to:
+  /// **'No record'**
+  String get heatmapLevel0;
+
+  /// No description provided for @heatmapLevel1.
+  ///
+  /// In en, this message translates to:
+  /// **'Some progress'**
+  String get heatmapLevel1;
+
+  /// No description provided for @heatmapLevel2.
+  ///
+  /// In en, this message translates to:
+  /// **'Target met'**
+  String get heatmapLevel2;
+
+  /// No description provided for @heatmapLevel3.
+  ///
+  /// In en, this message translates to:
+  /// **'Fully complete / exceeded'**
+  String get heatmapLevel3;
+
+  /// No description provided for @heatmapLegendLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get heatmapLegendLess;
+
+  /// No description provided for @heatmapLegendMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get heatmapLegendMore;
+
+  /// No description provided for @heatmapSelectedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a square to view details'**
+  String get heatmapSelectedHint;
 }
 
 class _AppLocalizationsDelegate

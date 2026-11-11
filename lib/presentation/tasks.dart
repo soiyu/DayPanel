@@ -168,100 +168,109 @@ class TaskTile extends StatelessWidget {
       }
     }
 
-    return SoftPanel(
-      tinted: done,
-      tone: tone,
-      padding: const EdgeInsets.fromLTRB(10, 10, 6, 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: IconButton(
-              key: Key('task-action-${task.id}'),
-              tooltip: done ? s.reopen : s.done,
-              onPressed: app.busy || task.archived
+    return RepaintBoundary(
+      child: SoftPanel(
+        tinted: done,
+        tone: tone,
+        padding: const EdgeInsets.fromLTRB(10, 10, 6, 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: IconButton(
+                key: Key('task-action-${task.id}'),
+                tooltip: done ? s.reopen : s.done,
+                onPressed: app.busy || task.archived
+                    ? null
+                    : () {
+                        if (task.resident) {
+                          app.recordResidentToday(task, day, !done, epoch);
+                        } else {
+                          app.run(
+                            () => app.store.completeTask(
+                              task.id,
+                              !done,
+                              app.today,
+                            ),
+                            expectedGeneration: epoch,
+                          );
+                        }
+                      },
+                style: IconButton.styleFrom(foregroundColor: tone.ink(context)),
+                icon: Icon(
+                  done
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  size: 25,
+                ),
+              ),
+            ),
+            Expanded(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: app.busy ? null : open,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        task.title,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              decoration: done && !task.resident
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      AppBadge(
+                        task.resident
+                            ? (done ? s.residentToday : s.residentUnrecorded)
+                            : task.dueDay == null
+                            ? s.noDate
+                            : MaterialLocalizations.of(
+                                context,
+                              ).formatMediumDate(task.dueDay!.date),
+                        tone: tone,
+                        icon: task.resident
+                            ? Icons.bookmark_border_rounded
+                            : task.dueDay == null
+                            ? Icons.inbox_outlined
+                            : Icons.schedule_rounded,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: s.more,
+              icon: const Icon(Icons.more_horiz_rounded),
+              onPressed: app.busy
                   ? null
-                  : () {
-                      if (task.resident) {
-                        app.recordResidentToday(task, day, !done, epoch);
-                      } else {
-                        app.run(
-                          () =>
-                              app.store.completeTask(task.id, !done, app.today),
+                  : () async {
+                      final action = await showEntryActions(
+                        context,
+                        task.title,
+                      );
+                      if (!context.mounted) return;
+                      if (action == 'edit') {
+                        await openEditor(context, app, 'task', task: task);
+                      }
+                      if (action == 'delete' &&
+                          context.mounted &&
+                          await confirmTaskDelete(context, task)) {
+                        await app.run(
+                          () => app.store.remove('tasks', task.id),
                           expectedGeneration: epoch,
                         );
                       }
                     },
-              style: IconButton.styleFrom(foregroundColor: tone.ink(context)),
-              icon: Icon(
-                done
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_unchecked_rounded,
-                size: 25,
-              ),
             ),
-          ),
-          Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: app.busy ? null : open,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      task.title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        decoration: done && !task.resident
-                            ? TextDecoration.lineThrough
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    AppBadge(
-                      task.resident
-                          ? (done ? s.residentToday : s.residentUnrecorded)
-                          : task.dueDay == null
-                          ? s.noDate
-                          : MaterialLocalizations.of(
-                              context,
-                            ).formatMediumDate(task.dueDay!.date),
-                      tone: tone,
-                      icon: task.resident
-                          ? Icons.bookmark_border_rounded
-                          : task.dueDay == null
-                          ? Icons.inbox_outlined
-                          : Icons.schedule_rounded,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: s.more,
-            icon: const Icon(Icons.more_horiz_rounded),
-            onPressed: app.busy
-                ? null
-                : () async {
-                    final action = await showEntryActions(context, task.title);
-                    if (!context.mounted) return;
-                    if (action == 'edit') {
-                      await openEditor(context, app, 'task', task: task);
-                    }
-                    if (action == 'delete' &&
-                        context.mounted &&
-                        await confirmTaskDelete(context, task)) {
-                      await app.run(
-                        () => app.store.remove('tasks', task.id),
-                        expectedGeneration: epoch,
-                      );
-                    }
-                  },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import 'achievements.dart';
 import 'components.dart';
 import 'editors.dart';
+import 'heatmap.dart';
 import 'tasks.dart';
 import 'theme.dart';
 import 'refined_components.dart';
@@ -895,6 +896,34 @@ class _StatisticsPageState extends State<StatisticsPage> {
       counts.update(e.day, (v) => v + 1, ifAbsent: () => 1);
     }
     return [
+      ActivityHeatmap(
+        today: app.today,
+        title: s.activityHeatmapTitle,
+        subtitle: s.activityHeatmapSubtitle,
+        tone: UiTone.violet,
+        levelForDay: (d) {
+          final active = habits.where((h) => app.scheduled(h, d)).toList();
+          if (active.isEmpty) return 0;
+          final done = active.where((h) => app.achieved(h, d)).length;
+          if (done == 0) return 0;
+          final ratio = done / active.length;
+          if (ratio < 0.4) return 1;
+          if (ratio < 0.8) return 2;
+          return 3;
+        },
+        detailForDay: (d) {
+          final active = habits.where((h) => app.scheduled(h, d)).toList();
+          final done = active.where((h) => app.achieved(h, d)).length;
+          return '$done/${active.length} ${s.finished}';
+        },
+        onDayTap: (d) => Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => DayHistoryPage(app: app, day: d, habitId: habitId),
+          ),
+        ),
+      ),
+      const SizedBox(height: 18),
       period(
         context,
         '$year',
@@ -1276,58 +1305,60 @@ class TimelineTile extends StatelessWidget {
     final s = AppLocalizations.of(context);
     final e = event;
     final epoch = app.generation;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: SoftPanel(
-        padding: EdgeInsets.zero,
-        child: SettingRow(
-          icon: switch (e.kind) {
-            TimelineKind.habit => Icons.fact_check_outlined,
-            TimelineKind.task => Icons.checklist_rounded,
-            TimelineKind.note => Icons.edit_note_rounded,
-            TimelineKind.card => Icons.style_outlined,
-          },
-          tone: e.kind == TimelineKind.task ? UiTone.peach : UiTone.violet,
-          title: e.kind == TimelineKind.card
-              ? cardTitle(s, int.parse(e.title))
-              : e.title.length > 100
-              ? '${e.title.substring(0, 100)}…'
-              : e.title,
-          subtitle:
-              '${dateLabel(context, e.day)} · ${timelineLabel(s, e.kind)}${e.resident ? ' (${s.residentTask})' : ''}${e.value == null ? '' : '\n${e.unit == null ? (e.value == 1000 ? s.finished : s.notCompleted) : '${quantityText(e.value!)} ${e.unit}'}'}',
-          onTap: () {
-            switch (e.kind) {
-              case TimelineKind.habit:
-                final h = app.habits.where((h) => h.id == e.id).firstOrNull;
-                if (h != null) correctRecord(context, app, h, e.day);
-              case TimelineKind.task:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (_) => e.resident
-                        ? ResidentTaskPage(
-                            app: app,
-                            id: e.id,
-                            initialDay: e.day,
-                          )
-                        : OneTimeTaskPage(app: app, id: e.id),
-                  ),
-                );
-              case TimelineKind.note:
-                final n = app.notes.where((n) => n.id == e.id).firstOrNull;
-                if (n != null) {
-                  openEditor(
+    return RepaintBoundary(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: SoftPanel(
+          padding: EdgeInsets.zero,
+          child: SettingRow(
+            icon: switch (e.kind) {
+              TimelineKind.habit => Icons.fact_check_outlined,
+              TimelineKind.task => Icons.checklist_rounded,
+              TimelineKind.note => Icons.edit_note_rounded,
+              TimelineKind.card => Icons.style_outlined,
+            },
+            tone: e.kind == TimelineKind.task ? UiTone.peach : UiTone.violet,
+            title: e.kind == TimelineKind.card
+                ? cardTitle(s, int.parse(e.title))
+                : e.title.length > 100
+                ? '${e.title.substring(0, 100)}…'
+                : e.title,
+            subtitle:
+                '${dateLabel(context, e.day)} · ${timelineLabel(s, e.kind)}${e.resident ? ' (${s.residentTask})' : ''}${e.value == null ? '' : '\n${e.unit == null ? (e.value == 1000 ? s.finished : s.notCompleted) : '${quantityText(e.value!)} ${e.unit}'}'}',
+            onTap: () {
+              switch (e.kind) {
+                case TimelineKind.habit:
+                  final h = app.habits.where((h) => h.id == e.id).firstOrNull;
+                  if (h != null) correctRecord(context, app, h, e.day);
+                case TimelineKind.task:
+                  Navigator.push(
                     context,
-                    app,
-                    'note',
-                    note: n,
-                    expectedGeneration: epoch,
+                    MaterialPageRoute<void>(
+                      builder: (_) => e.resident
+                          ? ResidentTaskPage(
+                              app: app,
+                              id: e.id,
+                              initialDay: e.day,
+                            )
+                          : OneTimeTaskPage(app: app, id: e.id),
+                    ),
                   );
-                }
-              case TimelineKind.card:
-                openCard(context, app, e.day);
-            }
-          },
+                case TimelineKind.note:
+                  final n = app.notes.where((n) => n.id == e.id).firstOrNull;
+                  if (n != null) {
+                    openEditor(
+                      context,
+                      app,
+                      'note',
+                      note: n,
+                      expectedGeneration: epoch,
+                    );
+                  }
+                case TimelineKind.card:
+                  openCard(context, app, e.day);
+              }
+            },
+          ),
         ),
       ),
     );

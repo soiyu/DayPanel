@@ -2203,4 +2203,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reminderSharedWeekGoal =>
       'These times remind you about one weekly total. Remaining reminders stop when the weekly target is reached; it is not split into daily tasks.';
+
+  @override
+  String get activityHeatmapTitle => 'Activity Heatmap';
+
+  @override
+  String get activityHeatmapSubtitle => 'Past 365 days activity matrix';
+
+  @override
+  String get habitHeatmapTitle => 'Habit Heatmap';
+
+  @override
+  String get heatmapLevel0 => 'No record';
+
+  @override
+  String get heatmapLevel1 => 'Some progress';
+
+  @override
+  String get heatmapLevel2 => 'Target met';
+
+  @override
+  String get heatmapLevel3 => 'Fully complete / exceeded';
+
+  @override
+  String get heatmapLegendLess => 'Less';
+
+  @override
+  String get heatmapLegendMore => 'More';
+
+  @override
+  String get heatmapSelectedHint => 'Tap a square to view details';
 }

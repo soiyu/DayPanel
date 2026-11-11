@@ -37,14 +37,14 @@ class AppController extends ChangeNotifier {
   final WidgetPlatform? widgetPlatform;
   bool widgetSyncFailed = false;
   bool closing = false;
-  Future<void> syncWidgets() async {
+  Future<void> syncWidgets({bool notify = true}) async {
     try {
       await widgetPlatform?.refresh();
       widgetSyncFailed = false;
     } catch (_) {
       widgetSyncFailed = true;
     }
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
   Future<bool> recordFromWidget({
@@ -160,7 +160,7 @@ class AppController extends ChangeNotifier {
   HabitReminder reminderFor(String id) =>
       reminders.where((r) => r.habitId == id).firstOrNull ??
       HabitReminder(habitId: id, enabled: false, minutes: [9 * 60]);
-  Future<void> syncReminders() async {
+  Future<void> syncReminders({bool notify = true}) async {
     if (reminderPlatform == null) return;
     try {
       reminderStatus = await reminderPlatform!.sync();
@@ -169,7 +169,7 @@ class AppController extends ChangeNotifier {
       reminderSyncFailed = true;
       reminderStatus = const ReminderStatus(available: false);
     }
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
   final DateTime Function() clock;
@@ -206,9 +206,10 @@ class AppController extends ChangeNotifier {
   bool busy = false;
   String? error;
 
-  Future<void> load() => store.readConsistent(_loadSnapshot);
+  Future<void> load({bool notify = true}) =>
+      store.readConsistent(() => _loadSnapshot(notify: notify));
 
-  Future<void> _loadSnapshot() async {
+  Future<void> _loadSnapshot({bool notify = true}) async {
     final h = await store.habits();
     final e = await store.entries();
     final t = await store.tasks();
@@ -249,7 +250,7 @@ class AppController extends ChangeNotifier {
       groupFilter = null;
     }
     ready = true;
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
   Future<bool> run(
@@ -272,13 +273,13 @@ class AppController extends ChangeNotifier {
         throw StateError('Data generation changed; refresh before retrying');
       }
       await store.inGeneration(generation, operation);
-      await load();
-      await syncReminders();
-      await syncWidgets();
+      await load(notify: false);
+      await syncReminders(notify: false);
+      await syncWidgets(notify: false);
       return true;
     } on RecordRevisionConflict {
       try {
-        await load();
+        await load(notify: false);
         error = 'record_conflict';
       } catch (_) {
         error = 'storage';

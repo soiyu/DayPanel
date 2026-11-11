@@ -120,10 +120,18 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
   bool opening = false;
   Map<String, Object?>? widgetRequest;
   bool widgetLaunchReady = false;
+  String? _lastTheme;
+  String? _lastLocale;
+  String? _lastPalette;
+  String? _lastFont;
+  String? _lastFrame;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _syncAppearanceSignatures();
+    app.addListener(_handleAppChange);
     app.plus.refresh();
     app.reminderPlatform?.onOpen(openReminder);
     final updates = app.widgetPlatform;
@@ -141,9 +149,35 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
     });
   }
 
+  void _syncAppearanceSignatures() {
+    _lastTheme = app.preferences['theme'];
+    _lastLocale = app.preferences['locale'];
+    _lastPalette = app.preferences['palette'];
+    _lastFont = app.preferences['font'];
+    _lastFrame = app.preferences['icon_frame'];
+  }
+
+  void _handleAppChange() {
+    if (!mounted) return;
+    final theme = app.preferences['theme'];
+    final locale = app.preferences['locale'];
+    final palette = app.preferences['palette'];
+    final font = app.preferences['font'];
+    final frame = app.preferences['icon_frame'];
+    if (theme != _lastTheme ||
+        locale != _lastLocale ||
+        palette != _lastPalette ||
+        font != _lastFont ||
+        frame != _lastFrame) {
+      _syncAppearanceSignatures();
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    app.removeListener(_handleAppChange);
     app.reminderPlatform?.onOpen(() {});
     final updates = app.widgetPlatform;
     if (updates is WidgetUpdates) (updates as WidgetUpdates).onChanged(() {});
@@ -210,39 +244,36 @@ class _DayPanelAppState extends State<DayPanelApp> with WidgetsBindingObserver {
   }
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    listenable: app,
-    builder: (context, _) => MaterialApp(
-      navigatorKey: navigatorKey,
-      title: 'DayPanel',
-      debugShowCheckedModeBanner: false,
-      theme: dayPanelTheme(
-        Brightness.light,
-        appearance: Appearance.fromSettings(app.preferences),
-      ),
-      darkTheme: dayPanelTheme(
-        Brightness.dark,
-        appearance: Appearance.fromSettings(app.preferences),
-      ),
-      themeMode: switch (app.preferences['theme']) {
-        'dark' => ThemeMode.dark,
-        'light' => ThemeMode.light,
-        _ => ThemeMode.system,
-      },
-      locale: {'en', 'zh'}.contains(app.preferences['locale'])
-          ? Locale(app.preferences['locale']!)
-          : null,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: !widgetLaunchReady && app.widgetPlatform != null
-          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : widgetRequest != null
-          ? WidgetFlow(
-              app: app,
-              request: widgetRequest!,
-              release: app.store.close,
-            )
-          : HomePage(app: app),
+  Widget build(BuildContext context) => MaterialApp(
+    navigatorKey: navigatorKey,
+    title: 'DayPanel',
+    debugShowCheckedModeBanner: false,
+    theme: dayPanelTheme(
+      Brightness.light,
+      appearance: Appearance.fromSettings(app.preferences),
     ),
+    darkTheme: dayPanelTheme(
+      Brightness.dark,
+      appearance: Appearance.fromSettings(app.preferences),
+    ),
+    themeMode: switch (app.preferences['theme']) {
+      'dark' => ThemeMode.dark,
+      'light' => ThemeMode.light,
+      _ => ThemeMode.system,
+    },
+    locale: {'en', 'zh'}.contains(app.preferences['locale'])
+        ? Locale(app.preferences['locale']!)
+        : null,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: !widgetLaunchReady && app.widgetPlatform != null
+        ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+        : widgetRequest != null
+        ? WidgetFlow(
+            app: app,
+            request: widgetRequest!,
+            release: app.store.close,
+          )
+        : HomePage(app: app),
   );
 }

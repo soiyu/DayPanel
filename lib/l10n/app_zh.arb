@@ -762,5 +762,15 @@
   "iconInk": "钢笔",
   "panelAdd": "添加面板",
   "privateHabit": "习惯",
-  "reminderSharedWeekGoal": "这些时刻提醒同一个本周累计目标；本周达标后停止本周后续提醒，不自动拆成每天的任务。"
+  "reminderSharedWeekGoal": "这些时刻提醒同一个本周累计目标；本周达标后停止本周后续提醒，不自动拆成每天的任务。",
+  "activityHeatmapTitle": "年度自律热力图",
+  "activityHeatmapSubtitle": "过去 365 天自律执行点阵",
+  "habitHeatmapTitle": "习惯专属热力图",
+  "heatmapLevel0": "无记录",
+  "heatmapLevel1": "部分完成",
+  "heatmapLevel2": "基本达标",
+  "heatmapLevel3": "全部完成 / 超额",
+  "heatmapLegendLess": "少",
+  "heatmapLegendMore": "多",
+  "heatmapSelectedHint": "点按方格查看该日完成详情"
 }

@@ -341,87 +341,92 @@ class NoteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
     final epoch = app.generation;
-    return SoftPanel(
-      key: Key('note-card-${note.id}'),
-      padding: const EdgeInsets.fromLTRB(14, 4, 8, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  DateFormat.yMMMd(
-                    Localizations.localeOf(context).languageCode,
-                  ).format(note.day.date),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: UiTone.violet.ink(context),
+    return RepaintBoundary(
+      child: SoftPanel(
+        key: Key('note-card-${note.id}'),
+        padding: const EdgeInsets.fromLTRB(14, 4, 8, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    DateFormat.yMMMd(
+                      Localizations.localeOf(context).languageCode,
+                    ).format(note.day.date),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: UiTone.violet.ink(context),
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                tooltip: s.more,
-                icon: const Icon(Icons.more_horiz_rounded),
-                onPressed: app.busy
-                    ? null
-                    : () async {
-                        final action = await showEntryActions(context, s.note);
-                        if (!context.mounted) return;
-                        if (action == 'edit') {
-                          await openEditor(
+                IconButton(
+                  tooltip: s.more,
+                  icon: const Icon(Icons.more_horiz_rounded),
+                  onPressed: app.busy
+                      ? null
+                      : () async {
+                          final action = await showEntryActions(
                             context,
-                            app,
-                            'note',
-                            note: note,
-                            expectedGeneration: epoch,
+                            s.note,
                           );
-                        }
-                        if (action == 'delete' &&
-                            context.mounted &&
-                            await confirmDelete(context)) {
-                          await app.run(
-                            () => app.store.remove('notes', note.id),
-                            expectedGeneration: epoch,
-                          );
-                        }
-                      },
-              ),
-            ],
-          ),
-          if (note.habitId != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: AppBadge(
-                noteHabitLabel(context, app, note.habitId),
-                icon: Icons.link_rounded,
-                tone: UiTone.violet,
-              ),
+                          if (!context.mounted) return;
+                          if (action == 'edit') {
+                            await openEditor(
+                              context,
+                              app,
+                              'note',
+                              note: note,
+                              expectedGeneration: epoch,
+                            );
+                          }
+                          if (action == 'delete' &&
+                              context.mounted &&
+                              await confirmDelete(context)) {
+                            await app.run(
+                              () => app.store.remove('notes', note.id),
+                              expectedGeneration: epoch,
+                            );
+                          }
+                        },
+                ),
+              ],
             ),
-          InkWell(
-            onTap: app.busy
-                ? null
-                : () => openEditor(context, app, 'note', note: note),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(12, 4, 8, 4),
-              decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(
-                    color: UiTone.violet.ink(context).withValues(alpha: .25),
-                    width: 2,
-                  ),
+            if (note.habitId != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: AppBadge(
+                  noteHabitLabel(context, app, note.habitId),
+                  icon: Icons.link_rounded,
+                  tone: UiTone.violet,
                 ),
               ),
-              child: Text(
-                note.body,
-                maxLines: 5,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyLarge,
+            InkWell(
+              onTap: app.busy
+                  ? null
+                  : () => openEditor(context, app, 'note', note: note),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(12, 4, 8, 4),
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(
+                      color: UiTone.violet.ink(context).withValues(alpha: .25),
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  note.body,
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

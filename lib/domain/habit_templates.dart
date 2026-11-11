@@ -230,3 +230,55 @@ List<int> quantitySuggestions(
   };
   return {...values.where((v) => v > 0 && v < target), target}.toList()..sort();
 }
+
+/// Incremental quantity suggestions in thousandths for single-log additions.
+/// Tailored to real-life common unit values (cup size, chapter size, workout set, etc.)
+List<int> quantityIncrementSuggestions(
+  int target,
+  String unit, {
+  bool wholeCounts = false,
+}) {
+  if (wholeCounts) {
+    final wholeTarget = target ~/ 1000;
+    final candidates = switch (wholeTarget) {
+      <= 5 => [1, 2, 3],
+      <= 15 => [1, 2, 5, 10],
+      <= 50 => [5, 10, 15, 20],
+      <= 100 => [10, 20, 30, 50],
+      _ => [10, 25, 50, 100],
+    };
+    final filtered = {
+      for (final n in candidates)
+        if (n > 0 && (wholeTarget <= 0 || n <= wholeTarget)) n * 1000,
+    };
+    if (filtered.isEmpty) filtered.add(1000);
+    return filtered.toList()..sort();
+  }
+
+  final values = switch (unit.trim().toLowerCase()) {
+    'ml' || '毫升' => [100000, 250000, 350000, 500000],
+    '页' || 'page' || 'pages' => [5000, 10000, 20000, 30000],
+    '步' || 'step' || 'steps' => [1000000, 2000000, 3000000, 5000000],
+    '分' ||
+    '分钟' ||
+    'min' ||
+    'minute' ||
+    'minutes' => [10000, 15000, 25000, 30000],
+    '公里' || '千米' || 'km' => [1000, 2000, 3000, 5000],
+    '词' || 'word' || 'words' => [50000, 100000, 200000, 500000],
+    '杯' || 'cup' || 'cups' => [1000, 2000, 3000],
+    _ => [
+      if (target ~/ 10 > 0) target ~/ 10,
+      if (target ~/ 4 > 0) target ~/ 4,
+      if (target ~/ 2 > 0) target ~/ 2,
+    ],
+  };
+
+  final filtered = values
+      .where((v) => v > 0 && (target <= 0 || v <= target))
+      .toSet();
+  if (filtered.isEmpty) {
+    filtered.add(target > 0 ? (target ~/ 2 > 0 ? target ~/ 2 : target) : 1000);
+  }
+  return filtered.toList()..sort();
+}

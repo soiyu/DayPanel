@@ -389,99 +389,81 @@ class GlassNavigation extends StatelessWidget {
       Icons.auto_stories_outlined,
       Icons.person_outline_rounded,
     ];
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          narrowWithLargeText ? 8 : 16,
-          4,
-          narrowWithLargeText ? 8 : 16,
-          6,
-        ),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(26),
-            boxShadow: [
-              BoxShadow(
-                color: shadowColor,
-                blurRadius: 24,
-                offset: const Offset(0, 5),
-              ),
-            ],
+    return RepaintBoundary(
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            narrowWithLargeText ? 8 : 16,
+            4,
+            narrowWithLargeText ? 8 : 16,
+            6,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(26),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerLowest.withValues(
-                    alpha: dark ? .88 : .92,
-                  ),
-                  border: Border.all(
-                    color: dark
-                        ? scheme.outlineVariant.withValues(alpha: .25)
-                        : Colors.white.withValues(alpha: .85),
-                  ),
-                  borderRadius: BorderRadius.circular(26),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(26),
+              boxShadow: [
+                BoxShadow(
+                  color: shadowColor,
+                  blurRadius: 24,
+                  offset: const Offset(0, 5),
                 ),
-                child: IntrinsicHeight(
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < 4; i++)
-                        Expanded(
-                          child: Semantics(
-                            selected: index == i,
-                            button: true,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                key: Key('tab-$i'),
-                                borderRadius: BorderRadius.circular(19),
-                                onTap: () => onSelected(i),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                    horizontal: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: index == i
-                                        ? [
-                                            UiTone.blue,
-                                            UiTone.peach,
-                                            UiTone.violet,
-                                            UiTone.teal,
-                                          ][i].wash(context)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(19),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        icons[i],
-                                        size: 20,
-                                        color: index == i
-                                            ? [
-                                                UiTone.blue,
-                                                UiTone.peach,
-                                                UiTone.violet,
-                                                UiTone.teal,
-                                              ][i].ink(context)
-                                            : Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        labels[i],
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: index == i
-                                              ? FontWeight.w700
-                                              : FontWeight.w500,
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(26),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerLowest.withValues(
+                      alpha: dark ? .88 : .92,
+                    ),
+                    border: Border.all(
+                      color: dark
+                          ? scheme.outlineVariant.withValues(alpha: .25)
+                          : Colors.white.withValues(alpha: .85),
+                    ),
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < 4; i++)
+                          Expanded(
+                            child: Semantics(
+                              selected: index == i,
+                              button: true,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  key: Key('tab-$i'),
+                                  borderRadius: BorderRadius.circular(19),
+                                  onTap: () => onSelected(i),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                      horizontal: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: index == i
+                                          ? [
+                                              UiTone.blue,
+                                              UiTone.peach,
+                                              UiTone.violet,
+                                              UiTone.teal,
+                                            ][i].wash(context)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(19),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          icons[i],
+                                          size: 20,
                                           color: index == i
                                               ? [
                                                   UiTone.blue,
@@ -493,15 +475,36 @@ class GlassNavigation extends StatelessWidget {
                                                   context,
                                                 ).colorScheme.onSurfaceVariant,
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          labels[i],
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: index == i
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                            color: index == i
+                                                ? [
+                                                    UiTone.blue,
+                                                    UiTone.peach,
+                                                    UiTone.violet,
+                                                    UiTone.teal,
+                                                  ][i].ink(context)
+                                                : Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -513,7 +516,7 @@ class GlassNavigation extends StatelessWidget {
   }
 }
 
-class SheetFrame extends StatelessWidget {
+class SheetFrame extends StatefulWidget {
   const SheetFrame({
     super.key,
     required this.title,
@@ -532,104 +535,130 @@ class SheetFrame extends StatelessWidget {
   final Widget body, footer;
   final UiTone tone;
   final bool busy;
+
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: !busy,
-    child: Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight:
-              MediaQuery.sizeOf(context).height * .9 -
-              MediaQuery.viewInsetsOf(context).bottom,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerLowest,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                width: 32,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(4),
+  State<SheetFrame> createState() => _SheetFrameState();
+}
+
+class _SheetFrameState extends State<SheetFrame> {
+  double _lastBottomInset = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
+    final route = ModalRoute.of(context);
+    final isClosing = route?.animation?.status == AnimationStatus.reverse;
+    final currentInset = MediaQuery.viewInsetsOf(context).bottom;
+    if (!isClosing) {
+      _lastBottomInset = currentInset;
+    }
+    final bottomInset = isClosing ? _lastBottomInset : currentInset;
+    return RepaintBoundary(
+      child: PopScope(
+        canPop: !widget.busy,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * .9 - bottomInset,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(30),
                 ),
               ),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
-                        child: Row(
-                          children: [
-                            leading ?? ToneIcon(icon, tone: tone),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleLarge,
-                                  ),
-                                  if (subtitle != null) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      subtitle!,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: AppLocalizations.of(context).cancel,
-                              onPressed: busy
-                                  ? null
-                                  : () => Navigator.pop(context),
-                              icon: const Icon(Icons.close_rounded),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                        child: body,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outlineVariant.withValues(alpha: .6),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 32,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
-                ),
-                child: SafeArea(top: false, child: footer),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
+                            child: Row(
+                              children: [
+                                widget.leading ??
+                                    ToneIcon(widget.icon, tone: widget.tone),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        widget.title,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleLarge,
+                                      ),
+                                      if (widget.subtitle != null) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          widget.subtitle!,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: s.cancel,
+                                  onPressed: widget.busy
+                                      ? null
+                                      : () {
+                                          FocusManager.instance.primaryFocus
+                                              ?.unfocus();
+                                          Navigator.pop(context);
+                                        },
+                                  icon: const Icon(Icons.close_rounded),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                            child: widget.body,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outlineVariant.withValues(alpha: .6),
+                        ),
+                      ),
+                    ),
+                    child: SafeArea(top: false, child: widget.footer),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class EmptyState extends StatelessWidget {

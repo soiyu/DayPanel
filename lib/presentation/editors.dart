@@ -1022,7 +1022,12 @@ class _EntryEditorState extends State<EntryEditor> {
           Expanded(
             child: AppAction(
               label: s.cancel,
-              onTap: saving ? null : () => Navigator.pop(context),
+              onTap: saving
+                  ? null
+                  : () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      Navigator.pop(context);
+                    },
               tone: tone,
             ),
           ),
@@ -1285,6 +1290,7 @@ class _QuantityEditorState extends State<QuantityEditor> {
           );
     if (!mounted) return;
     if (ok) {
+      FocusManager.instance.primaryFocus?.unfocus();
       Navigator.pop(context);
     } else {
       setState(() {
@@ -1426,15 +1432,24 @@ class _QuantityEditorState extends State<QuantityEditor> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final total in quantitySuggestions(
-                  h.target,
-                  h.unit,
-                  wholeCounts: count,
-                ))
+                for (final total
+                    in (adding
+                        ? quantityIncrementSuggestions(
+                            h.target,
+                            h.unit,
+                            wholeCounts: count,
+                          )
+                        : quantitySuggestions(
+                            h.target,
+                            h.unit,
+                            wholeCounts: count,
+                          )))
                   SizedBox(
                     width: (constraints.maxWidth - 8) / 2,
                     child: AppAction(
-                      label: '${quantityText(total)} ${h.unit}',
+                      label: adding
+                          ? '+${quantityText(total)} ${h.unit}'
+                          : '${quantityText(total)} ${h.unit}',
                       tone: tone,
                       onTap: saving || stale
                           ? null
@@ -1465,7 +1480,12 @@ class _QuantityEditorState extends State<QuantityEditor> {
           Expanded(
             child: AppAction(
               label: s.cancel,
-              onTap: saving ? null : () => Navigator.pop(context),
+              onTap: saving
+                  ? null
+                  : () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      Navigator.pop(context);
+                    },
               tone: tone,
             ),
           ),

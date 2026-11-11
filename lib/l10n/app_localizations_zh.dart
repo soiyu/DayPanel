@@ -2053,4 +2053,34 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get reminderSharedWeekGoal =>
       '这些时刻提醒同一个本周累计目标；本周达标后停止本周后续提醒，不自动拆成每天的任务。';
+
+  @override
+  String get activityHeatmapTitle => '年度自律热力图';
+
+  @override
+  String get activityHeatmapSubtitle => '过去 365 天自律执行点阵';
+
+  @override
+  String get habitHeatmapTitle => '习惯专属热力图';
+
+  @override
+  String get heatmapLevel0 => '无记录';
+
+  @override
+  String get heatmapLevel1 => '部分完成';
+
+  @override
+  String get heatmapLevel2 => '基本达标';
+
+  @override
+  String get heatmapLevel3 => '全部完成 / 超额';
+
+  @override
+  String get heatmapLegendLess => '少';
+
+  @override
+  String get heatmapLegendMore => '多';
+
+  @override
+  String get heatmapSelectedHint => '点按方格查看该日完成详情';
 }
