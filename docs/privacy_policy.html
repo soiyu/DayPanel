@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - DayPanel</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --primary: #4f46e5;
+      --border: #e2e8f0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card-bg: #1e293b;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --primary: #818cf8;
+        --border: #334155;
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.65;
+      color: var(--text-main);
+      background-color: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+    .badge {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #059669;
+      background: #ecfdf5;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    @media (prefers-color-scheme: dark) {
+      .badge {
+        color: #34d399;
+        background: rgba(16, 185, 129, 0.15);
+      }
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      color: var(--primary);
+    }
+    p, li {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .highlight-box {
+      background: #f1f5f9;
+      border-left: 4px solid var(--primary);
+      padding: 14px 18px;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    @media (prefers-color-scheme: dark) {
+      .highlight-box {
+        background: #1e293b;
+      }
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Privacy Policy</h1>
+    <div class="badge">Offline-First &bull; Zero Remote Tracking</div>
+    <p><em>Effective Date: November 11, 2026</em></p>
+
+    <div class="highlight-box">
+      <strong>Summary:</strong> DayPanel is designed as a local-first application. We do not operate user accounts, we do not have remote servers to collect your records, and we do not integrate advertising or third-party analytics trackers. Your data remains strictly on your device.
+    </div>
+
+    <h2>1. Data We Do Not Collect</h2>
+    <p>During normal usage of DayPanel:</p>
+    <ul>
+      <li>We do <strong>not</strong> collect your personal identity (name, email address, phone number).</li>
+      <li>We do <strong>not</strong> upload your habits, amounts, counts, daily tasks, journal reflections, or achievement cards to any cloud server.</li>
+      <li>We do <strong>not</strong> embed third-party advertising SDKs or behavioural telemetry frameworks.</li>
+    </ul>
+
+    <h2>2. Local Data Storage & Backup</h2>
+    <p>All habits, logs, journal entries, and preferences are stored exclusively on your device within an isolated SQLite database.</p>
+    <ul>
+      <li><strong>Backups & CSV Export:</strong> When you initiate a backup or export your data to CSV, DayPanel utilizes the standard Android Storage Access Framework (SAF). The resulting file is saved strictly to the folder or destination you choose.</li>
+      <li><strong>Data Deletion:</strong> You have full control. You can clear records within the app, or uninstall the app and clear application storage in Android Settings to permanently remove all local records.</li>
+    </ul>
+
+    <h2>3. In-App Purchases (DayPanel Plus)</h2>
+    <p>DayPanel offers an optional one-time Plus upgrade processed exclusively through the official <strong>Google Play Billing Client</strong>.</p>
+    <ul>
+      <li>DayPanel does <strong>not</strong> receive, process, or store your credit card, debit card, or payment credentials. All payment processing is handled by Google in accordance with Google Play's Terms of Service and Privacy Policy.</li>
+      <li>The application receives cryptographically signed receipts from Google Play solely to verify and unlock your entitlement. Purchase receipts are kept in a local protected preference cache and are never exported in business backups.</li>
+    </ul>
+
+    <h2>4. Device Permissions</h2>
+    <p>DayPanel requests minimal device permissions, used only for core user-requested actions:</p>
+    <ul>
+      <li><strong>Notifications (POST_NOTIFICATIONS):</strong> Used solely to schedule local habit reminders set by you. No notification content is transmitted over the internet.</li>
+      <li><strong>Exact Alarms (SCHEDULE_EXACT_ALARM):</strong> Used strictly to deliver timely reminders without being delayed by system battery optimization.</li>
+      <li><strong>Add to Calendar (ACTION_INSERT):</strong> When you explicitly tap "Add to Calendar", DayPanel passes an event draft to your device's default calendar app for your confirmation. DayPanel does not read your existing calendar events and does not perform background calendar synchronization.</li>
+    </ul>
+
+    <h2>5. Children's Privacy</h2>
+    <p>DayPanel is a general audience productivity application and does not knowingly collect personal information from children under 13.</p>
+
+    <h2>6. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. Any revisions will be published at this public URL along with an updated effective date.</p>
+
+    <h2>7. Contact Information</h2>
+    <p>If you have any questions or feedback regarding this Privacy Policy or your data privacy, please contact:</p>
+    <p><strong>Email:</strong> <a href="mailto:support@daypanel.app" style="color: var(--primary);">support@daypanel.app</a></p>
+
+    <div class="footer">
+      &copy; 2026 DayPanel. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
