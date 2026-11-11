@@ -126,17 +126,6 @@ release_materials/   # Google Play 上架物料、法律声明与密钥生成脚
 
 ---
 
-## 📦 Google Play 上架与发行物料
-
-发布 Release AAB 并上线 Google Play 所需的全部资产与指引均已归档在 [`release_materials/`](release_materials/README.md)：
-- [开发者账号与 14 天测试指南](release_materials/01_ACCOUNT_AND_STORE_GUIDE.md)
-- [自动化签名密钥生成工具](release_materials/02_KEYSTORE_SETUP/KEYSTORE_GUIDE.md)
-- [双语商店 Listing 文案](release_materials/03_STORE_METADATA/)
-- [可直接部署的隐私政策页面与数据安全填报对照表](release_materials/04_LEGAL_AND_PRIVACY/)
-- [开源与商业化协同方案](release_materials/05_OPEN_SOURCE_STRATEGY.md)
-
----
-
 ## 📄 开源许可与知识产权说明
 
 * **源代码**：遵循 [GNU General Public License v3 (GPLv3)](LICENSE) 协议开源。

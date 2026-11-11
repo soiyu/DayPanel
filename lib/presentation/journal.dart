@@ -169,73 +169,163 @@ class _JournalPageState extends State<JournalPage> {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        IconButton(
-                          key: const Key('previous-month'),
-                          tooltip: s.previousMonth,
-                          onPressed:
-                              currentMonth.date.year == 1900 &&
-                                  currentMonth.date.month == 1
-                              ? null
-                              : () => month(
-                                  Day(
-                                    DateTime(
-                                      currentMonth.date.year,
-                                      currentMonth.date.month - 1,
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant
+                              .withValues(
+                                alpha:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? .3
+                                    : .6,
+                              ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            key: const Key('previous-month'),
+                            tooltip: s.previousMonth,
+                            onPressed:
+                                q.month == null ||
+                                    (currentMonth.date.year == 1900 &&
+                                        currentMonth.date.month == 1)
+                                ? null
+                                : () => month(
+                                    Day(
+                                      DateTime(
+                                        currentMonth.date.year,
+                                        currentMonth.date.month - 1,
+                                      ),
                                     ),
                                   ),
-                                ),
-                          icon: const Icon(Icons.chevron_left_rounded),
-                        ),
-                        Expanded(
-                          child: Text(
-                            monthName,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.titleMedium,
+                            icon: const Icon(Icons.chevron_left_rounded),
                           ),
-                        ),
-                        IconButton(
-                          key: const Key('next-month'),
-                          tooltip: s.nextMonth,
-                          onPressed:
-                              currentMonth.date.year == app.today.date.year &&
-                                  currentMonth.date.month ==
-                                      app.today.date.month
-                              ? null
-                              : () => month(
-                                  Day(
-                                    DateTime(
-                                      currentMonth.date.year,
-                                      currentMonth.date.month + 1,
+                          Expanded(
+                            child: Center(
+                              child: q.day != null
+                                  ? Tooltip(
+                                      message: s.showWholeMonth,
+                                      child: InkWell(
+                                        key: const Key('clear-day-filter'),
+                                        borderRadius: BorderRadius.circular(12),
+                                        onTap: () => month(q.month),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: UiTone.peach.wash(context),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.event_available_rounded,
+                                                size: 16,
+                                                color: UiTone.peach.ink(
+                                                  context,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                q.day!.key,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: UiTone.peach.ink(
+                                                    context,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Icon(
+                                                Icons.close_rounded,
+                                                size: 16,
+                                                color: UiTone.peach.ink(
+                                                  context,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Text(
+                                      monthName,
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                            ),
+                          ),
+                          IconButton(
+                            key: const Key('next-month'),
+                            tooltip: s.nextMonth,
+                            onPressed:
+                                q.month == null ||
+                                    (currentMonth.date.year ==
+                                            app.today.date.year &&
+                                        currentMonth.date.month ==
+                                            app.today.date.month)
+                                ? null
+                                : () => month(
+                                    Day(
+                                      DateTime(
+                                        currentMonth.date.year,
+                                        currentMonth.date.month + 1,
+                                      ),
                                     ),
                                   ),
+                            icon: const Icon(Icons.chevron_right_rounded),
+                          ),
+                          Container(
+                            height: 24,
+                            width: 1,
+                            color: Theme.of(context).colorScheme.outlineVariant
+                                .withValues(
+                                  alpha:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? .3
+                                      : .6,
                                 ),
-                          icon: const Icon(Icons.chevron_right_rounded),
-                        ),
-                      ],
+                          ),
+                          IconButton(
+                            key: const Key('locate-note-date'),
+                            tooltip: s.locateDate,
+                            onPressed: locate,
+                            icon: Icon(
+                              Icons.calendar_month_outlined,
+                              color: q.day != null
+                                  ? UiTone.peach.ink(context)
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        QuietChoice(
-                          selected: q.month == null,
-                          label: q.month == null ? s.thisMonth : s.allMonths,
-                          icon: Icons.date_range_outlined,
-                          tone: UiTone.violet,
-                          onTap: () =>
-                              month(q.month == null ? app.today : null),
-                        ),
-                        QuietChoice(
-                          selected: q.day != null,
-                          key: const Key('locate-note-date'),
-                          label: s.locateDate,
-                          icon: Icons.event_outlined,
-                          tone: UiTone.peach,
-                          onTap: locate,
-                        ),
                         QuietChoice(
                           selected: q.habitId != null || q.independent,
                           key: const Key('note-filter'),
@@ -269,18 +359,16 @@ class _JournalPageState extends State<JournalPage> {
                             }
                           },
                         ),
+                        QuietChoice(
+                          selected: q.month == null,
+                          label: q.month == null ? s.thisMonth : s.allMonths,
+                          icon: Icons.date_range_outlined,
+                          tone: UiTone.violet,
+                          onTap: () =>
+                              month(q.month == null ? app.today : null),
+                        ),
                       ],
                     ),
-
-                    if (q.day != null) ...[
-                      const SizedBox(height: 10),
-                      AppAction(
-                        label: '${q.day!.key}  ·  ${s.showWholeMonth}',
-                        icon: Icons.close_rounded,
-                        tone: UiTone.peach,
-                        onTap: () => month(q.month),
-                      ),
-                    ],
                   ],
                 ),
               ),

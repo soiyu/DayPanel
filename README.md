@@ -128,17 +128,6 @@ release_materials/   # Google Play listing materials, legal templates, and keyst
 
 ---
 
-## 📦 Google Play Publishing Materials
-
-All assets and guides required for building a release AAB and listing on Google Play are organized under [`release_materials/`](release_materials/README.md):
-- [Account Setup & 14-Day Testing Guide](release_materials/01_ACCOUNT_AND_STORE_GUIDE.md)
-- [Keystore Generation Script](release_materials/02_KEYSTORE_SETUP/KEYSTORE_GUIDE.md)
-- [Store Listing Metadata (EN & ZH)](release_materials/03_STORE_METADATA/)
-- [Deployable Privacy Policy HTML & Data Safety Form](release_materials/04_LEGAL_AND_PRIVACY/)
-- [Open Source Strategy & Licensing](release_materials/05_OPEN_SOURCE_STRATEGY.md)
-
----
-
 ## 📄 License & Attribution
 
 * **Source Code**: Distributed under the [GNU General Public License v3 (GPLv3)](LICENSE).
