@@ -1,7 +1,7 @@
 name: daypanel
 description: Offline habits, records and home widgets with optional one-time Plus.
 publish_to: none
-version: 0.2.0+2
+version: 0.2.1+3
 environment:
   sdk: '>=3.10.0 <4.0.0'
 dependencies:

@@ -2123,7 +2123,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plusDescription =>
-      'Combined widgets, individual records, weekly totals, review cards and original styles. One purchase, no subscription.';
+      'Combined widgets, individual records, weekly totals, review cards, insights and original styles. One purchase, no subscription.';
 
   @override
   String get plusUnavailable =>
@@ -2233,4 +2233,156 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get heatmapSelectedHint => 'Tap a square to view details';
+
+  @override
+  String get insightsTitle => 'Insights';
+
+  @override
+  String get insightsSubtitle =>
+      'Completion trends and rhythms over 30, 90 or 365 days.';
+
+  @override
+  String get insightsRange30 => '30 days';
+
+  @override
+  String get insightsRange90 => '90 days';
+
+  @override
+  String get insightsRange365 => '365 days';
+
+  @override
+  String get insightsRowSubtitle => 'Plus · trends, pairs and monthly review';
+
+  @override
+  String get insightsRate => 'Daily completion';
+
+  @override
+  String insightsVsPrevious(int days) {
+    return 'vs previous $days days';
+  }
+
+  @override
+  String get insightsNoComparison => 'Not enough history to compare';
+
+  @override
+  String get insightsPerfectDays => 'Perfect days';
+
+  @override
+  String get insightsActiveDays => 'Active days';
+
+  @override
+  String get insightsNotes => 'Notes';
+
+  @override
+  String get insightsBestStreak => 'Best streak';
+
+  @override
+  String get insightsWeekdayTitle => 'Weekly rhythm';
+
+  @override
+  String get insightsWeekdayHint =>
+      'Only scheduled days; values are completion rates.';
+
+  @override
+  String insightsStrongestLine(String day) {
+    return 'Strongest: $day';
+  }
+
+  @override
+  String insightsWeakestLine(String day) {
+    return 'Weakest: $day';
+  }
+
+  @override
+  String get insightsHabitsTitle => 'Habit performance';
+
+  @override
+  String insightsHabitMeta(int done, int due) {
+    return '$done/$due days';
+  }
+
+  @override
+  String insightsStreakDays(int days) {
+    return '$days-day streak';
+  }
+
+  @override
+  String get insightsWeeklyTitle => 'Weekly goals';
+
+  @override
+  String insightsWeeklyMeta(int done, int due) {
+    return '$done/$due weeks';
+  }
+
+  @override
+  String insightsWeeklyStreak(int weeks) {
+    return '$weeks-week streak';
+  }
+
+  @override
+  String get insightsPairsTitle => 'Happens together';
+
+  @override
+  String insightsPairTogether(int days) {
+    return 'Completed together on $days days';
+  }
+
+  @override
+  String insightsPairLift(int percent) {
+    return '$percent% above chance';
+  }
+
+  @override
+  String get insightsPairsHint =>
+      'Same-day completion is a pattern, not proof of cause.';
+
+  @override
+  String get insightsJournalTitle => 'Journal & records';
+
+  @override
+  String insightsJournalSummary(int notes, int characters, int days) {
+    return '$notes notes · $characters characters · $days days';
+  }
+
+  @override
+  String get insightsJournalEmpty => 'No notes in this period.';
+
+  @override
+  String insightsEventCount(int count) {
+    return '$count individual records as well';
+  }
+
+  @override
+  String get insightsMonthsTitle => 'Month by month';
+
+  @override
+  String get insightsEmptyTitle => 'No records in this period';
+
+  @override
+  String get insightsEmptyBody =>
+      'Complete a few check-ins or write a note, then come back.';
+
+  @override
+  String get insightsLockedTitle => 'Insights is part of Plus';
+
+  @override
+  String get insightsLockedBody =>
+      'Unlock 30/90/365-day comparisons, weekly rhythm, habit pairs and a month-by-month review. One purchase, no subscription.';
+
+  @override
+  String get insightsUnlock => 'See Plus';
+
+  @override
+  String insightsThrough(String date) {
+    return 'Measured through $date; today is excluded.';
+  }
+
+  @override
+  String get insightsTrendUp => 'Up';
+
+  @override
+  String get insightsTrendDown => 'Down';
+
+  @override
+  String get insightsTrendSteady => 'Steady';
 }

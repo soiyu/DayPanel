@@ -30,4 +30,4 @@
 
 ## 本轮实际产物
 
-版本0.2.0+2，debug为app.daypanel.next.debug；release默认app.daypanel.next，发布前核定。`build/deliverables/DayPanel-0.2.0-Plus-debug.apk`可安装测试；`DayPanel-0.2.0-Plus-UNSIGNED.aab`为未签名检查产物，不可直接作为正式已签名包上传。最终哈希和全部失败/修复过程见PLUS-VALIDATION。默认包名未替负责人作永久品牌承诺。
+源码版本**0.2.1+3**（新增深度洞察，versionCode递增）；debug为app.daypanel.next.debug，release默认app.daypanel.next，发布前核定。此前0.2.0+2的`DayPanel-0.2.0-Plus-debug.apk`可安装测试，`DayPanel-0.2.0-Plus-UNSIGNED.aab`为未签名检查产物、不可直接上传；0.2.1+3尚未在本机构建（缺JDK/Android SDK），需按上文由负责人或CI生成新AAB并重新核验。最终哈希和全部失败/修复过程见PLUS-VALIDATION。默认包名未替负责人作永久品牌承诺。

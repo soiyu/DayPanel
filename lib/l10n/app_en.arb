@@ -738,7 +738,7 @@
   "plusBuy": "Buy once",
   "plusRestore": "Restore purchase",
   "plusOwned": "Plus unlocked",
-  "plusDescription": "Combined widgets, individual records, weekly totals, review cards and original styles. One purchase, no subscription.",
+  "plusDescription": "Combined widgets, individual records, weekly totals, review cards, insights and original styles. One purchase, no subscription.",
   "plusUnavailable": "This purchase is currently unavailable on Google Play. Please try again later.",
   "plusPending": "Payment pending. Plus unlocks after payment completes.",
   "plusCancelled": "Purchase cancelled",
@@ -772,5 +772,142 @@
   "heatmapLevel3": "Fully complete / exceeded",
   "heatmapLegendLess": "Less",
   "heatmapLegendMore": "More",
-  "heatmapSelectedHint": "Tap a square to view details"
+  "heatmapSelectedHint": "Tap a square to view details",
+  "insightsTitle": "Insights",
+  "insightsSubtitle": "Completion trends and rhythms over 30, 90 or 365 days.",
+  "insightsRange30": "30 days",
+  "insightsRange90": "90 days",
+  "insightsRange365": "365 days",
+  "insightsRowSubtitle": "Plus · trends, pairs and monthly review",
+  "insightsRate": "Daily completion",
+  "insightsVsPrevious": "vs previous {days} days",
+  "@insightsVsPrevious": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsNoComparison": "Not enough history to compare",
+  "insightsPerfectDays": "Perfect days",
+  "insightsActiveDays": "Active days",
+  "insightsNotes": "Notes",
+  "insightsBestStreak": "Best streak",
+  "insightsWeekdayTitle": "Weekly rhythm",
+  "insightsWeekdayHint": "Only scheduled days; values are completion rates.",
+  "insightsStrongestLine": "Strongest: {day}",
+  "@insightsStrongestLine": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsWeakestLine": "Weakest: {day}",
+  "@insightsWeakestLine": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsHabitsTitle": "Habit performance",
+  "insightsHabitMeta": "{done}/{due} days",
+  "@insightsHabitMeta": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "due": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsStreakDays": "{days}-day streak",
+  "@insightsStreakDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsWeeklyTitle": "Weekly goals",
+  "insightsWeeklyMeta": "{done}/{due} weeks",
+  "@insightsWeeklyMeta": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "due": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsWeeklyStreak": "{weeks}-week streak",
+  "@insightsWeeklyStreak": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsPairsTitle": "Happens together",
+  "insightsPairTogether": "Completed together on {days} days",
+  "@insightsPairTogether": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsPairLift": "{percent}% above chance",
+  "@insightsPairLift": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsPairsHint": "Same-day completion is a pattern, not proof of cause.",
+  "insightsJournalTitle": "Journal & records",
+  "insightsJournalSummary": "{notes} notes · {characters} characters · {days} days",
+  "@insightsJournalSummary": {
+    "placeholders": {
+      "notes": {
+        "type": "int"
+      },
+      "characters": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsJournalEmpty": "No notes in this period.",
+  "insightsEventCount": "{count} individual records as well",
+  "@insightsEventCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsMonthsTitle": "Month by month",
+  "insightsEmptyTitle": "No records in this period",
+  "insightsEmptyBody": "Complete a few check-ins or write a note, then come back.",
+  "insightsLockedTitle": "Insights is part of Plus",
+  "insightsLockedBody": "Unlock 30/90/365-day comparisons, weekly rhythm, habit pairs and a month-by-month review. One purchase, no subscription.",
+  "insightsUnlock": "See Plus",
+  "insightsThrough": "Measured through {date}; today is excluded.",
+  "@insightsThrough": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsTrendUp": "Up",
+  "insightsTrendDown": "Down",
+  "insightsTrendSteady": "Steady"
 }

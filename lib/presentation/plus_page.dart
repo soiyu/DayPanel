@@ -24,7 +24,11 @@ class _PlusPageState extends State<PlusPage> {
   @override
   void initState() {
     super.initState();
-    widget.app.plus.refresh();
+    // The status request notifies listeners synchronously (busy = true).
+    // Defer it so opening this page during a build cannot mark ancestors dirty.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.app.plus.refresh();
+    });
   }
 
   @override
@@ -66,6 +70,7 @@ class _PlusPageState extends State<PlusPage> {
                   (Icons.receipt_long_outlined, s.eventTitle),
                   (Icons.date_range_outlined, s.weeklyTotalLabel),
                   (Icons.insights_outlined, s.reviewBuilder),
+                  (Icons.auto_graph_rounded, s.insightsTitle),
                   (Icons.palette_outlined, s.styleExtra),
                 ])
                   Padding(

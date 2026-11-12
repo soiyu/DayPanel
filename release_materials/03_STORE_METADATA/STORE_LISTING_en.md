@@ -72,6 +72,7 @@ DayPanel Plus is an optional one-time lifetime purchase. No subscriptions, no re
 - Itemized Sub-event Records: Log individual timestamps, values, and notes for numeric habits (e.g., +250ml at 10:15 AM) with single-record editing.
 - Weekly Total Targets: Set cumulative goals (e.g., 100 km per week or 14 workouts per month).
 - Long Review Cards: Generate and export panoramic weekly and monthly visual review cards.
+- Deep Insights: See 30/90/365-day completion and period comparison, weekday patterns, streaks and co-occurring habits, weekly-goal and monthly trends.
 - Extended Living Themes: Unlock exclusive coordinated color palettes and bespoke styling.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -91,7 +92,7 @@ Privacy Policy: https://your-domain.com/privacy.html
 ## 3. What's New / Release Notes (Max 500 characters)
 
 ```text
-Welcome to DayPanel 1.0!
+Welcome to DayPanel 0.2!
 - Mindful habit tracking (Boolean, Quantity, and Count modes).
 - One-time to-dos and resident everyday tasks.
 - Associated daily reflections and search.
@@ -99,5 +100,5 @@ Welcome to DayPanel 1.0!
 - 6 collectible original achievement cards with sharing.
 - Android home screen widgets with instant check-off.
 - Pure offline architecture: zero ads, zero tracking, complete local backup and CSV export.
-- Optional DayPanel Plus lifetime unlock.
+- Optional DayPanel Plus lifetime unlock, including Deep Insights.
 ```

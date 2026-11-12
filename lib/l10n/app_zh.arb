@@ -738,7 +738,7 @@
   "plusBuy": "一次购买",
   "plusRestore": "恢复购买",
   "plusOwned": "已解锁 Plus",
-  "plusDescription": "组合桌面、每次记录、周累计目标、复盘卡和原创装扮。一次购买，没有订阅。",
+  "plusDescription": "组合桌面、每次记录、周累计目标、复盘卡、深度洞察和原创装扮。一次购买，没有订阅。",
   "plusUnavailable": "暂时无法从 Google Play 获取商品，请稍后重试。",
   "plusPending": "付款处理中，完成后会解锁",
   "plusCancelled": "已取消购买",
@@ -772,5 +772,142 @@
   "heatmapLevel3": "全部完成 / 超额",
   "heatmapLegendLess": "少",
   "heatmapLegendMore": "多",
-  "heatmapSelectedHint": "点按方格查看该日完成详情"
+  "heatmapSelectedHint": "点按方格查看该日完成详情",
+  "insightsTitle": "深度洞察",
+  "insightsSubtitle": "30、90 或 365 天的完成趋势与节奏。",
+  "insightsRange30": "近 30 天",
+  "insightsRange90": "近 90 天",
+  "insightsRange365": "近一年",
+  "insightsRowSubtitle": "Plus · 趋势、共现与月度回顾",
+  "insightsRate": "每日计划完成率",
+  "insightsVsPrevious": "较前 {days} 天",
+  "@insightsVsPrevious": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsNoComparison": "历史不足，暂无可比数据",
+  "insightsPerfectDays": "全勤天数",
+  "insightsActiveDays": "有记录天数",
+  "insightsNotes": "手记",
+  "insightsBestStreak": "最长连续",
+  "insightsWeekdayTitle": "一周节奏",
+  "insightsWeekdayHint": "只统计有计划的日子；数值为完成率。",
+  "insightsStrongestLine": "最稳定：{day}",
+  "@insightsStrongestLine": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsWeakestLine": "最易断：{day}",
+  "@insightsWeakestLine": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsHabitsTitle": "习惯表现",
+  "insightsHabitMeta": "{done}/{due} 天",
+  "@insightsHabitMeta": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "due": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsStreakDays": "连续 {days} 天",
+  "@insightsStreakDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsWeeklyTitle": "周目标",
+  "insightsWeeklyMeta": "{done}/{due} 周",
+  "@insightsWeeklyMeta": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "due": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsWeeklyStreak": "连续 {weeks} 周",
+  "@insightsWeeklyStreak": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsPairsTitle": "一起发生",
+  "insightsPairTogether": "同一天完成 {days} 次",
+  "@insightsPairTogether": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsPairLift": "比各自独立时高 {percent}%",
+  "@insightsPairLift": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsPairsHint": "只表示同一天完成，不代表因果。",
+  "insightsJournalTitle": "手记与记录",
+  "insightsJournalSummary": "{notes} 篇手记 · {characters} 字 · {days} 天",
+  "@insightsJournalSummary": {
+    "placeholders": {
+      "notes": {
+        "type": "int"
+      },
+      "characters": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsJournalEmpty": "这段时间还没有手记。",
+  "insightsEventCount": "另有 {count} 条逐次记录",
+  "@insightsEventCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsMonthsTitle": "月度趋势",
+  "insightsEmptyTitle": "这段时间还没有可分析的记录",
+  "insightsEmptyBody": "先完成几次打卡或写一篇手记，再回来看看。",
+  "insightsLockedTitle": "深度洞察属于 Plus",
+  "insightsLockedBody": "解锁 30/90/365 天趋势对比、一周节奏、习惯共现和月度回顾。一次购买，没有订阅。",
+  "insightsUnlock": "查看 Plus",
+  "insightsThrough": "统计截至 {date}，不含今天。",
+  "@insightsThrough": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsTrendUp": "上升",
+  "insightsTrendDown": "下降",
+  "insightsTrendSteady": "持平"
 }

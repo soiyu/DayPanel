@@ -4,6 +4,7 @@ import 'appearance.dart';
 import 'journal.dart';
 import 'achievements.dart';
 import 'statistics.dart';
+import 'insights.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -589,6 +590,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 title: s.statisticsTitle,
                 tone: UiTone.violet,
                 onTap: () => open(StatisticsPage(app: app)),
+              ),
+              SettingRow(
+                key: const Key('home-insights'),
+                icon: Icons.auto_graph_rounded,
+                title: s.insightsTitle,
+                subtitle: s.insightsRowSubtitle,
+                tone: UiTone.violet,
+                onTap: () => open(InsightsPage(app: app)),
               ),
               SettingRow(
                 icon: Icons.auto_graph_outlined,

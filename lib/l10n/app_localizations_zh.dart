@@ -1979,7 +1979,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plusOwned => '已解锁 Plus';
 
   @override
-  String get plusDescription => '组合桌面、每次记录、周累计目标、复盘卡和原创装扮。一次购买，没有订阅。';
+  String get plusDescription => '组合桌面、每次记录、周累计目标、复盘卡、深度洞察和原创装扮。一次购买，没有订阅。';
 
   @override
   String get plusUnavailable => '暂时无法从 Google Play 获取商品，请稍后重试。';
@@ -2083,4 +2083,152 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get heatmapSelectedHint => '点按方格查看该日完成详情';
+
+  @override
+  String get insightsTitle => '深度洞察';
+
+  @override
+  String get insightsSubtitle => '30、90 或 365 天的完成趋势与节奏。';
+
+  @override
+  String get insightsRange30 => '近 30 天';
+
+  @override
+  String get insightsRange90 => '近 90 天';
+
+  @override
+  String get insightsRange365 => '近一年';
+
+  @override
+  String get insightsRowSubtitle => 'Plus · 趋势、共现与月度回顾';
+
+  @override
+  String get insightsRate => '每日计划完成率';
+
+  @override
+  String insightsVsPrevious(int days) {
+    return '较前 $days 天';
+  }
+
+  @override
+  String get insightsNoComparison => '历史不足，暂无可比数据';
+
+  @override
+  String get insightsPerfectDays => '全勤天数';
+
+  @override
+  String get insightsActiveDays => '有记录天数';
+
+  @override
+  String get insightsNotes => '手记';
+
+  @override
+  String get insightsBestStreak => '最长连续';
+
+  @override
+  String get insightsWeekdayTitle => '一周节奏';
+
+  @override
+  String get insightsWeekdayHint => '只统计有计划的日子；数值为完成率。';
+
+  @override
+  String insightsStrongestLine(String day) {
+    return '最稳定：$day';
+  }
+
+  @override
+  String insightsWeakestLine(String day) {
+    return '最易断：$day';
+  }
+
+  @override
+  String get insightsHabitsTitle => '习惯表现';
+
+  @override
+  String insightsHabitMeta(int done, int due) {
+    return '$done/$due 天';
+  }
+
+  @override
+  String insightsStreakDays(int days) {
+    return '连续 $days 天';
+  }
+
+  @override
+  String get insightsWeeklyTitle => '周目标';
+
+  @override
+  String insightsWeeklyMeta(int done, int due) {
+    return '$done/$due 周';
+  }
+
+  @override
+  String insightsWeeklyStreak(int weeks) {
+    return '连续 $weeks 周';
+  }
+
+  @override
+  String get insightsPairsTitle => '一起发生';
+
+  @override
+  String insightsPairTogether(int days) {
+    return '同一天完成 $days 次';
+  }
+
+  @override
+  String insightsPairLift(int percent) {
+    return '比各自独立时高 $percent%';
+  }
+
+  @override
+  String get insightsPairsHint => '只表示同一天完成，不代表因果。';
+
+  @override
+  String get insightsJournalTitle => '手记与记录';
+
+  @override
+  String insightsJournalSummary(int notes, int characters, int days) {
+    return '$notes 篇手记 · $characters 字 · $days 天';
+  }
+
+  @override
+  String get insightsJournalEmpty => '这段时间还没有手记。';
+
+  @override
+  String insightsEventCount(int count) {
+    return '另有 $count 条逐次记录';
+  }
+
+  @override
+  String get insightsMonthsTitle => '月度趋势';
+
+  @override
+  String get insightsEmptyTitle => '这段时间还没有可分析的记录';
+
+  @override
+  String get insightsEmptyBody => '先完成几次打卡或写一篇手记，再回来看看。';
+
+  @override
+  String get insightsLockedTitle => '深度洞察属于 Plus';
+
+  @override
+  String get insightsLockedBody =>
+      '解锁 30/90/365 天趋势对比、一周节奏、习惯共现和月度回顾。一次购买，没有订阅。';
+
+  @override
+  String get insightsUnlock => '查看 Plus';
+
+  @override
+  String insightsThrough(String date) {
+    return '统计截至 $date，不含今天。';
+  }
+
+  @override
+  String get insightsTrendUp => '上升';
+
+  @override
+  String get insightsTrendDown => '下降';
+
+  @override
+  String get insightsTrendSteady => '持平';
 }

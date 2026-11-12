@@ -3964,7 +3964,7 @@ abstract class AppLocalizations {
   /// No description provided for @plusDescription.
   ///
   /// In en, this message translates to:
-  /// **'Combined widgets, individual records, weekly totals, review cards and original styles. One purchase, no subscription.'**
+  /// **'Combined widgets, individual records, weekly totals, review cards, insights and original styles. One purchase, no subscription.'**
   String get plusDescription;
 
   /// No description provided for @plusUnavailable.
@@ -4170,6 +4170,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap a square to view details'**
   String get heatmapSelectedHint;
+
+  /// No description provided for @insightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get insightsTitle;
+
+  /// No description provided for @insightsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion trends and rhythms over 30, 90 or 365 days.'**
+  String get insightsSubtitle;
+
+  /// No description provided for @insightsRange30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get insightsRange30;
+
+  /// No description provided for @insightsRange90.
+  ///
+  /// In en, this message translates to:
+  /// **'90 days'**
+  String get insightsRange90;
+
+  /// No description provided for @insightsRange365.
+  ///
+  /// In en, this message translates to:
+  /// **'365 days'**
+  String get insightsRange365;
+
+  /// No description provided for @insightsRowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus · trends, pairs and monthly review'**
+  String get insightsRowSubtitle;
+
+  /// No description provided for @insightsRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily completion'**
+  String get insightsRate;
+
+  /// No description provided for @insightsVsPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'vs previous {days} days'**
+  String insightsVsPrevious(int days);
+
+  /// No description provided for @insightsNoComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough history to compare'**
+  String get insightsNoComparison;
+
+  /// No description provided for @insightsPerfectDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect days'**
+  String get insightsPerfectDays;
+
+  /// No description provided for @insightsActiveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Active days'**
+  String get insightsActiveDays;
+
+  /// No description provided for @insightsNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get insightsNotes;
+
+  /// No description provided for @insightsBestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Best streak'**
+  String get insightsBestStreak;
+
+  /// No description provided for @insightsWeekdayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly rhythm'**
+  String get insightsWeekdayTitle;
+
+  /// No description provided for @insightsWeekdayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only scheduled days; values are completion rates.'**
+  String get insightsWeekdayHint;
+
+  /// No description provided for @insightsStrongestLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Strongest: {day}'**
+  String insightsStrongestLine(String day);
+
+  /// No description provided for @insightsWeakestLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Weakest: {day}'**
+  String insightsWeakestLine(String day);
+
+  /// No description provided for @insightsHabitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit performance'**
+  String get insightsHabitsTitle;
+
+  /// No description provided for @insightsHabitMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{due} days'**
+  String insightsHabitMeta(int done, int due);
+
+  /// No description provided for @insightsStreakDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}-day streak'**
+  String insightsStreakDays(int days);
+
+  /// No description provided for @insightsWeeklyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly goals'**
+  String get insightsWeeklyTitle;
+
+  /// No description provided for @insightsWeeklyMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{due} weeks'**
+  String insightsWeeklyMeta(int done, int due);
+
+  /// No description provided for @insightsWeeklyStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{weeks}-week streak'**
+  String insightsWeeklyStreak(int weeks);
+
+  /// No description provided for @insightsPairsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Happens together'**
+  String get insightsPairsTitle;
+
+  /// No description provided for @insightsPairTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed together on {days} days'**
+  String insightsPairTogether(int days);
+
+  /// No description provided for @insightsPairLift.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% above chance'**
+  String insightsPairLift(int percent);
+
+  /// No description provided for @insightsPairsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Same-day completion is a pattern, not proof of cause.'**
+  String get insightsPairsHint;
+
+  /// No description provided for @insightsJournalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal & records'**
+  String get insightsJournalTitle;
+
+  /// No description provided for @insightsJournalSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{notes} notes · {characters} characters · {days} days'**
+  String insightsJournalSummary(int notes, int characters, int days);
+
+  /// No description provided for @insightsJournalEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes in this period.'**
+  String get insightsJournalEmpty;
+
+  /// No description provided for @insightsEventCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} individual records as well'**
+  String insightsEventCount(int count);
+
+  /// No description provided for @insightsMonthsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Month by month'**
+  String get insightsMonthsTitle;
+
+  /// No description provided for @insightsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No records in this period'**
+  String get insightsEmptyTitle;
+
+  /// No description provided for @insightsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete a few check-ins or write a note, then come back.'**
+  String get insightsEmptyBody;
+
+  /// No description provided for @insightsLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights is part of Plus'**
+  String get insightsLockedTitle;
+
+  /// No description provided for @insightsLockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock 30/90/365-day comparisons, weekly rhythm, habit pairs and a month-by-month review. One purchase, no subscription.'**
+  String get insightsLockedBody;
+
+  /// No description provided for @insightsUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'See Plus'**
+  String get insightsUnlock;
+
+  /// No description provided for @insightsThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured through {date}; today is excluded.'**
+  String insightsThrough(String date);
+
+  /// No description provided for @insightsTrendUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Up'**
+  String get insightsTrendUp;
+
+  /// No description provided for @insightsTrendDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Down'**
+  String get insightsTrendDown;
+
+  /// No description provided for @insightsTrendSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Steady'**
+  String get insightsTrendSteady;
 }
 
 class _AppLocalizationsDelegate

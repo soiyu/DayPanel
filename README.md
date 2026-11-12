@@ -69,6 +69,7 @@ An optional, one-time lifetime purchase on Google Play (no subscriptions) for po
 * **Itemized Sub-Event Logs**: Save individual timestamps, amounts, and notes for numeric habits (e.g., `+250ml at 10:15 AM`) with single-record editing and correction.
 * **Weekly Total Targets**: Set cumulative goals (e.g., 100 km per week) independent of completed days.
 * **Panoramic Review Cards**: Generate beautiful weekly and monthly long-image summary infographics.
+* **Deep Insights**: Compare 30/90/365-day completion, weekly rhythm, habit streaks, co-occurring habits, weekly goals and monthly trends.
 * **Extended Color Palettes**: Unlock bespoke theme accents and custom icon borders.
 
 ---
