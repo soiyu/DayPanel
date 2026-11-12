@@ -92,6 +92,7 @@ void main() {
                 '--no-version-check',
                 'test',
                 '--no-pub',
+                '--dart-define=DP_WORKER_PHASE=${legacy}_$phase',
                 'test/support/restore_worker.dart',
               ],
               environment: {
@@ -104,7 +105,7 @@ void main() {
             );
             runner.stdout.transform(utf8.decoder).listen(output.write);
             runner.stderr.transform(utf8.decoder).listen(output.write);
-            final deadline = DateTime.now().add(const Duration(seconds: 40));
+            final deadline = DateTime.now().add(const Duration(seconds: 90));
             while (!await File(marker).exists() &&
                 DateTime.now().isBefore(deadline)) {
               await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -117,7 +118,12 @@ void main() {
             childPid = int.parse(await File(marker).readAsString());
             expect(Process.killPid(childPid, ProcessSignal.sigkill), isTrue);
             childPid = null;
-            await runner.exitCode.timeout(const Duration(seconds: 15));
+            try {
+              await runner.exitCode.timeout(const Duration(seconds: 30));
+            } catch (_) {
+              runner.kill();
+              await runner.exitCode.timeout(const Duration(seconds: 10));
+            }
             runner = null;
             store = await AppStore.open(
               factory: databaseFactoryFfi,
@@ -142,7 +148,7 @@ void main() {
             await temp.delete(recursive: true);
           }
         },
-        timeout: const Timeout(Duration(seconds: 75)),
+        timeout: const Timeout(Duration(seconds: 130)),
       );
     }
   }

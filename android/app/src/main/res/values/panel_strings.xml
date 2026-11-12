@@ -1,1 +1,4 @@
-<resources><string name="panel_widget_name">DayPanel · Combined</string></resources>
+<resources>
+    <string name="panel_widget_name">DayPanel · Combined</string>
+    <string name="panel_widget_description">A combined home screen panel for multiple habits and tasks.</string>
+</resources>

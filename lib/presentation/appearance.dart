@@ -248,8 +248,8 @@ class _AppearancePageState extends State<AppearancePage> {
                                     label: switch (palette) {
                                       'teal' => s.paletteTeal,
                                       'violet' => s.paletteViolet,
-                                      'apricot' => s.paletteSunrise,
-                                      'coast' => s.paletteOcean,
+                                      'apricot' => '${s.paletteSunrise} · PLUS',
+                                      'coast' => '${s.paletteOcean} · PLUS',
                                       _ => s.paletteBlue,
                                     },
                                     selected: draft.palette == palette,

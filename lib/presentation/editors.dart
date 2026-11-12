@@ -662,7 +662,8 @@ class _EntryEditorState extends State<EntryEditor> {
                         ScheduleKind.weekdays => s.byWeekday,
                         ScheduleKind.interval => s.everyNDays,
                         ScheduleKind.weekly => s.weeklyTarget,
-                        ScheduleKind.weeklyTotal => s.weeklyTotalLabel,
+                        ScheduleKind.weeklyTotal =>
+                          '${s.weeklyTotalLabel} · PLUS',
                       },
                       key: Key('habit-schedule-${mode.name}'),
                       icon: scheduleChosen && schedule == mode

@@ -1,1 +1,4 @@
-<resources><string name="panel_widget_name">DayPanel · 组合面板</string></resources>
+<resources>
+    <string name="panel_widget_name">DayPanel · 组合面板</string>
+    <string name="panel_widget_description">集中展示多个习惯与小事的桌面组合面板。</string>
+</resources>

@@ -199,7 +199,100 @@ class _CardCollectionState extends State<CardCollection> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
+                    if (!favorites && widget.app.cards.isNotEmpty) ...[
+                      Builder(
+                        builder: (ctx) {
+                          final count = widget.app.cards.length;
+                          final milestones = [
+                            (
+                              7,
+                              s.cardMilestone7,
+                              s.cardMilestone7Desc,
+                              Icons.bolt_rounded,
+                            ),
+                            (
+                              21,
+                              s.cardMilestone21,
+                              s.cardMilestone21Desc,
+                              Icons.all_inclusive_rounded,
+                            ),
+                            (
+                              30,
+                              s.cardMilestone30,
+                              s.cardMilestone30Desc,
+                              Icons.nightlight_round,
+                            ),
+                            (
+                              100,
+                              s.cardMilestone100,
+                              s.cardMilestone100Desc,
+                              Icons.park_rounded,
+                            ),
+                            (
+                              365,
+                              s.cardMilestone365,
+                              s.cardMilestone365Desc,
+                              Icons.wb_sunny_rounded,
+                            ),
+                          ];
+                          final next = milestones
+                              .where((m) => m.$1 > count)
+                              .firstOrNull;
+                          if (next == null) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: SoftPanel(
+                              tone: UiTone.violet,
+                              tinted: true,
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        next.$4,
+                                        size: 18,
+                                        color: UiTone.violet.ink(ctx),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          '${s.cardNextMilestone}: ${next.$2}',
+                                          style: Theme.of(
+                                            ctx,
+                                          ).textTheme.titleSmall,
+                                        ),
+                                      ),
+                                      Text(
+                                        '$count / ${next.$1}',
+                                        style: Theme.of(ctx).textTheme.bodySmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  LinearProgressIndicator(
+                                    value: (count / next.$1).clamp(0.0, 1.0),
+                                    minHeight: 3,
+                                    borderRadius: BorderRadius.circular(2),
+                                    color: UiTone.violet.ink(ctx),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    next.$3,
+                                    style: Theme.of(ctx).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                     if (cards.isEmpty)
                       EmptyState(
                         icon: Icons.collections_bookmark_outlined,
@@ -328,6 +421,75 @@ class CardGuidePage extends StatelessWidget {
                     ),
                 ],
               ),
+              const SizedBox(height: 20),
+              Text(
+                s.cardMilestonesTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                s.cardMilestonesHint,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              for (final (_, title, desc, icon) in [
+                (7, s.cardMilestone7, s.cardMilestone7Desc, Icons.bolt_rounded),
+                (
+                  21,
+                  s.cardMilestone21,
+                  s.cardMilestone21Desc,
+                  Icons.all_inclusive_rounded,
+                ),
+                (
+                  30,
+                  s.cardMilestone30,
+                  s.cardMilestone30Desc,
+                  Icons.nightlight_round,
+                ),
+                (
+                  100,
+                  s.cardMilestone100,
+                  s.cardMilestone100Desc,
+                  Icons.park_rounded,
+                ),
+                (
+                  365,
+                  s.cardMilestone365,
+                  s.cardMilestone365Desc,
+                  Icons.wb_sunny_rounded,
+                ),
+              ])
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: SoftPanel(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(icon, size: 22, color: UiTone.violet.ink(context)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                desc,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               const SizedBox(height: 20),
               Text(s.cardShare, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),

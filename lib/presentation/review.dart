@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'theme.dart';
 import 'statistics.dart';
+import 'insights.dart';
 
 class ReviewPage extends StatelessWidget {
   const ReviewPage({super.key, required this.app});
@@ -192,6 +193,73 @@ class ReviewPage extends StatelessWidget {
                       if (i > 0) const Divider(),
                     ],
                   ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                key: const Key('review-insights-bridge'),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => InsightsPage(app: app),
+                  ),
+                ),
+                borderRadius: BorderRadius.circular(16),
+                child: SoftPanel(
+                  tone: UiTone.violet,
+                  tinted: true,
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: UiTone.violet
+                              .ink(context)
+                              .withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.auto_graph_rounded,
+                          size: 20,
+                          color: UiTone.violet.ink(context),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'zh'
+                                  ? '✦ Plus 深度洞察 · 多周期规律'
+                                  : '✦ Plus Deep Insights · Long-term Rhythm',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: UiTone.violet.ink(context),
+                                  ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'zh'
+                                  ? '想要洞悉哪一天最容易放弃、哪两个习惯总是一起完成？前往深度洞察 >'
+                                  : 'Discover your peak days, weak points & habit pairs >',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: UiTone.violet.ink(context),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

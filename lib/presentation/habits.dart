@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../application/app_controller.dart';
+import '../domain/habit_templates.dart';
 import '../domain/models.dart';
+import '../domain/record_event.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'editors.dart';
@@ -73,6 +76,45 @@ class HabitTile extends StatelessWidget {
         }
       }
 
+      final quickStep = habit.kind == HabitKind.count
+          ? 1000
+          : ((display.unit.toLowerCase() == 'ml' || display.unit == '毫升') &&
+                    display.target >= 1000000
+                ? 250000
+                : (quantityIncrementSuggestions(
+                        display.target,
+                        display.unit,
+                        wholeCounts: false,
+                      ).firstOrNull ??
+                      (display.target % 1000 == 0 && display.target <= 10000
+                          ? 1000
+                          : (display.target ~/ 4 > 0
+                                ? display.target ~/ 4
+                                : 1000))));
+      final stepText = quantityText(quickStep);
+      final quickLabel = habit.kind == HabitKind.count
+          ? '+1'
+          : '+$stepText${display.unit.isNotEmpty && display.unit.length <= 4 ? display.unit : ''}';
+      void quickAdd() {
+        if (!enabled) return;
+        final current = app.value(habit, day) ?? 0;
+        final next = current + quickStep;
+        final capped = next > 999999999999 ? 999999999999 : next;
+        if (app.plus.enabled && day == app.today) {
+          final now = app.clock();
+          final event = RecordEvent(
+            id: const Uuid().v4(),
+            habitId: habit.id,
+            day: day,
+            value: quickStep,
+            minute: now.hour * 60 + now.minute,
+          );
+          app.recordIndividual(event, epoch);
+        } else {
+          app.recordHabit(habit, day, capped, epoch);
+        }
+      }
+
       final label = rest != null
           ? s.restTitle
           : isQuantity
@@ -98,6 +140,43 @@ class HabitTile extends StatelessWidget {
         tone: tone,
         onTap: rest != null || enabled ? record : null,
       );
+      final quickAction = Semantics(
+        button: true,
+        label: quickLabel,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            key: Key('habit-quick-add-${habit.id}'),
+            borderRadius: BorderRadius.circular(14),
+            onTap: rest != null || enabled ? quickAdd : null,
+            child: Ink(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                color: tone.wash(context),
+                border: Border.all(
+                  color: tone.ink(context).withValues(alpha: .2),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add_rounded, size: 16, color: tone.ink(context)),
+                  const SizedBox(width: 4),
+                  Text(
+                    quickLabel,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: tone.ink(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
       return RepaintBoundary(
         child: SoftPanel(
           key: Key('habit-card-${habit.id}'),
@@ -106,18 +185,24 @@ class HabitTile extends StatelessWidget {
           child: LayoutBuilder(
             builder: (context, c) {
               final stacked =
-                  c.maxWidth < 280 ||
-                  MediaQuery.textScalerOf(context).scale(1) > 1.3;
+                  c.maxWidth < (isQuantity ? 390 : 280) ||
+                  MediaQuery.textScalerOf(context).scale(1) > 1.2;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(
                     children: [
-                      HabitIcon(
-                        habit.icon,
-                        color: habit.color,
-                        frame: habit.frame,
-                        size: 44,
+                      InkWell(
+                        onTap: rest != null || enabled
+                            ? (isQuantity ? quickAdd : record)
+                            : null,
+                        borderRadius: BorderRadius.circular(12),
+                        child: HabitIcon(
+                          habit.icon,
+                          color: habit.color,
+                          frame: habit.frame,
+                          size: 44,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -155,10 +240,21 @@ class HabitTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       if (!stacked)
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 128),
-                          child: action,
-                        )
+                        isQuantity
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  quickAction,
+                                  const SizedBox(width: 6),
+                                  action,
+                                ],
+                              )
+                            : ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 128,
+                                ),
+                                child: action,
+                              )
                       else
                         IconButton(
                           tooltip: s.history,
@@ -172,7 +268,15 @@ class HabitTile extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 8),
                       child: Align(
                         alignment: Alignment.centerRight,
-                        child: action,
+                        child: isQuantity
+                            ? Wrap(
+                                alignment: WrapAlignment.end,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [quickAction, action],
+                              )
+                            : action,
                       ),
                     ),
                   if (plan.schedule.isWeekly)

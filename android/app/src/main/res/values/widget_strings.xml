@@ -1,1 +1,5 @@
-<resources><string name="habit_widget_name">DayPanel · Habit</string><string name="task_widget_name">DayPanel · Task</string></resources>
+<resources>
+    <string name="habit_widget_name">DayPanel · Habit</string>
+    <string name="task_widget_name">DayPanel · Task</string>
+    <string name="habit_widget_description">Track and complete habits directly from your home screen.</string>
+</resources>

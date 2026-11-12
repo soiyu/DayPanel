@@ -1,4 +1,5 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/habit_widget_description"
     android:minWidth="160dp" android:minHeight="140dp" android:minResizeWidth="128dp" android:minResizeHeight="140dp"
     android:targetCellWidth="3" android:targetCellHeight="2" android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/daypanel_widget" android:previewLayout="@layout/daypanel_widget"

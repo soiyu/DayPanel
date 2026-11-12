@@ -77,20 +77,73 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           appBar: AppBar(
             toolbarHeight: 56,
             titleSpacing: 20,
-            title: Text(
-              titles[tab],
-              style: Theme.of(context).textTheme.titleLarge,
+            title: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    titles[tab],
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  if (app.plus.enabled) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.35),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.auto_awesome,
+                            size: 11,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            'PLUS',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Theme.of(context).colorScheme.primary,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
             actions: [
               if (tab == 0)
                 AppIconAction(
-                  icon: Icons.bar_chart_rounded,
-                  label: s.review,
+                  key: const Key('home-insights-action'),
+                  icon: app.plus.enabled
+                      ? Icons.auto_graph_rounded
+                      : Icons.bar_chart_rounded,
+                  label: app.plus.enabled ? s.insightsTitle : s.review,
                   tone: UiTone.violet,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute<void>(
-                      builder: (_) => ReviewPage(app: app),
+                      builder: (_) => app.plus.enabled
+                          ? InsightsPage(app: app)
+                          : ReviewPage(app: app),
                     ),
                   ),
                 ),
@@ -470,6 +523,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
           ),
         DailyCardPanel(app: app, day: day),
+        const SizedBox(height: 12),
+        _DailyInsightsStrip(app: app),
       ],
     );
   }
@@ -574,6 +629,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        _PlusMemberCard(app: app),
         SectionTitle(s.yourSpace, tone: UiTone.violet),
         SoftPanel(
           padding: const EdgeInsets.all(2),
@@ -646,7 +703,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         SettingRow(
           icon: Icons.auto_awesome_outlined,
           title: s.plusTitle,
-          subtitle: s.plusBase,
+          subtitle: app.plus.enabled
+              ? (Localizations.localeOf(context).languageCode == 'zh'
+                    ? '✦ 终身会员已生效 · 查看全部 6 项特权'
+                    : '✦ Lifetime Active · View all 6 privileges')
+              : s.plusBase,
           tone: UiTone.violet,
           onTap: () => open(PlusPage(app: app)),
         ),
@@ -726,5 +787,375 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (selected != null) {
       await app.run(() => app.store.preference(key, selected));
     }
+  }
+}
+
+class _PlusMemberCard extends StatelessWidget {
+  const _PlusMemberCard({required this.app});
+  final AppController app;
+
+  @override
+  Widget build(BuildContext context) {
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
+    final theme = Theme.of(context);
+    final isPlus = app.plus.enabled;
+
+    if (isPlus) {
+      return SoftPanel(
+        key: const Key('plus-vip-card'),
+        tone: UiTone.violet,
+        tinted: true,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (_) => PlusPage(app: app)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: Color(0xFFFDE047),
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            Text(
+                              isZh
+                                  ? '✦ DayPanel Plus 终身会员'
+                                  : '✦ DayPanel Plus Lifetime',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFFF59E0B,
+                                ).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: const Color(0xFFF59E0B),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                isZh ? '已激活' : 'ACTIVE',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFD97706),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isZh
+                              ? '尊享 6 大高级特权 · 纯本地私密无订阅'
+                              : 'All 6 premium privileges active · 100% Private',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: UiTone.violet.ink(context),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _FeatureChip(
+                  icon: Icons.auto_graph_rounded,
+                  label: isZh ? '深度洞察' : 'Insights',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => InsightsPage(app: app),
+                    ),
+                  ),
+                ),
+                _FeatureChip(
+                  icon: Icons.dashboard_customize_outlined,
+                  label: isZh ? '组合组件' : 'Widgets',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => WidgetsHelpPage(app: app),
+                    ),
+                  ),
+                ),
+                _FeatureChip(
+                  icon: Icons.palette_outlined,
+                  label: isZh ? '专属装扮' : 'Themes',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => AppearancePage(app: app),
+                    ),
+                  ),
+                ),
+                _FeatureChip(
+                  icon: Icons.insights_outlined,
+                  label: isZh ? '复盘长图' : 'Cards',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => ReviewCardPage(app: app),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return InkWell(
+      key: const Key('plus-upgrade-card'),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute<void>(builder: (_) => PlusPage(app: app)),
+      ),
+      borderRadius: BorderRadius.circular(16),
+      child: SoftPanel(
+        tone: UiTone.violet,
+        tinted: true,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: UiTone.violet.ink(context).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.auto_awesome,
+                size: 20,
+                color: UiTone.violet.ink(context),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isZh ? '升级到 DayPanel Plus' : 'Upgrade to DayPanel Plus',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    isZh
+                        ? '解锁深度洞察、周累计目标、组合桌面与原创主题'
+                        : 'Unlock Insights, weekly goals, combo widgets & palettes',
+                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: UiTone.violet.ink(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FeatureChip extends StatelessWidget {
+  const _FeatureChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: UiTone.violet.ink(context)),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DailyInsightsStrip extends StatelessWidget {
+  const _DailyInsightsStrip({required this.app});
+
+  final AppController app;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 4),
+      child: InkWell(
+        key: const Key('daily-insights-strip'),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute<void>(builder: (_) => InsightsPage(app: app)),
+        ),
+        borderRadius: BorderRadius.circular(16),
+        child: SoftPanel(
+          tone: UiTone.violet,
+          tinted: true,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: UiTone.violet.ink(context).withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  app.plus.enabled
+                      ? Icons.auto_graph_rounded
+                      : Icons.auto_awesome_rounded,
+                  size: 16,
+                  color: UiTone.violet.ink(context),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: app.plus.enabled
+                                ? (Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'zh'
+                                      ? '✦ Plus 深度洞察'
+                                      : '✦ Plus Deep Insights')
+                                : (Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'zh'
+                                      ? '✦ 深度洞察效果预览'
+                                      : '✦ Insights Demo Preview'),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: UiTone.violet.ink(context),
+                            ),
+                          ),
+                          TextSpan(
+                            text:
+                                Localizations.localeOf(context).languageCode ==
+                                    'zh'
+                                ? (app.plus.enabled
+                                      ? ' · 周期节律分析'
+                                      : ' · 查看周期节律报表')
+                                : (app.plus.enabled
+                                      ? ' · Rhythm & Trends'
+                                      : ' · See Sample Report'),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      app.plus.enabled
+                          ? (Localizations.localeOf(context).languageCode ==
+                                    'zh'
+                                ? '查看 30/90/365 天完成率趋势、星期强弱与共现规律 >'
+                                : 'View 30/90/365d trends, weekdays & co-occurrence >')
+                          : (Localizations.localeOf(context).languageCode ==
+                                    'zh'
+                                ? '点击预览 30/90 天完成率趋势、星期强弱与习惯共现样例 >'
+                                : 'Tap to preview 30/90d trends, weekdays & habit pairs >'),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(fontSize: 11),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: UiTone.violet.ink(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

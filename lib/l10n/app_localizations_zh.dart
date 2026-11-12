@@ -2231,4 +2231,47 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insightsTrendSteady => '持平';
+
+  @override
+  String get widgetPinTroubleshoot =>
+      '若桌面未弹出确认窗口，请在手机「应用权限」中允许 DayPanel 的「桌面快捷方式」权限，或在桌面长按手动添加。';
+
+  @override
+  String get cardMilestonesTitle => '成长里程碑';
+
+  @override
+  String get cardMilestonesHint => '每当完成当天全部日习惯即可获得一张专属日记卡。随着时间推移，你将依次点亮自律里程碑。';
+
+  @override
+  String get cardMilestone7 => '初始之火';
+
+  @override
+  String get cardMilestone7Desc => '7 天动能启程，点亮习惯的初始微光。';
+
+  @override
+  String get cardMilestone21 => '习惯回路';
+
+  @override
+  String get cardMilestone21Desc => '21 天神经突触连接，日常秩序逐渐成为本能。';
+
+  @override
+  String get cardMilestone30 => '月相周期';
+
+  @override
+  String get cardMilestone30Desc => '满月循环达成，一个整月的专注与坚持。';
+
+  @override
+  String get cardMilestone100 => '百日苍翠';
+
+  @override
+  String get cardMilestone100Desc => '100 天恒心扎根，如参天橡树般坚毅从容。';
+
+  @override
+  String get cardMilestone365 => '日冕年轮';
+
+  @override
+  String get cardMilestone365Desc => '绕太阳公转整整一圈，沉淀一整年的自我重塑。';
+
+  @override
+  String get cardNextMilestone => '下一里程碑';
 }

@@ -909,5 +909,19 @@
   },
   "insightsTrendUp": "Up",
   "insightsTrendDown": "Down",
-  "insightsTrendSteady": "Steady"
+  "insightsTrendSteady": "Steady",
+  "widgetPinTroubleshoot": "If no confirmation dialog appeared, allow 'Home screen shortcuts' in your phone's App Permissions, or touch and hold the home screen to add manually.",
+  "cardMilestonesTitle": "Growth Milestones",
+  "cardMilestonesHint": "Earned cards mark each day you complete all habits. As your journey continues, unlock consistency milestones.",
+  "cardMilestone7": "The Spark",
+  "cardMilestone7Desc": "7 days of momentum. A pattern begins.",
+  "cardMilestone21": "The Habit Loop",
+  "cardMilestone21Desc": "21 days of neuroplasticity. The routine becomes second nature.",
+  "cardMilestone30": "Lunar Orbit",
+  "cardMilestone30Desc": "A full 30-day lunar cycle of steady consistency.",
+  "cardMilestone100": "Centennial Oak",
+  "cardMilestone100Desc": "100 days of discipline. Deep roots weathering any storm.",
+  "cardMilestone365": "Solar Orbit",
+  "cardMilestone365Desc": "One full trip around the sun. A year of mindful transformation.",
+  "cardNextMilestone": "Next milestone"
 }

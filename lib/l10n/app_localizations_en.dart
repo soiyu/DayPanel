@@ -2385,4 +2385,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightsTrendSteady => 'Steady';
+
+  @override
+  String get widgetPinTroubleshoot =>
+      'If no confirmation dialog appeared, allow \'Home screen shortcuts\' in your phone\'s App Permissions, or touch and hold the home screen to add manually.';
+
+  @override
+  String get cardMilestonesTitle => 'Growth Milestones';
+
+  @override
+  String get cardMilestonesHint =>
+      'Earned cards mark each day you complete all habits. As your journey continues, unlock consistency milestones.';
+
+  @override
+  String get cardMilestone7 => 'The Spark';
+
+  @override
+  String get cardMilestone7Desc => '7 days of momentum. A pattern begins.';
+
+  @override
+  String get cardMilestone21 => 'The Habit Loop';
+
+  @override
+  String get cardMilestone21Desc =>
+      '21 days of neuroplasticity. The routine becomes second nature.';
+
+  @override
+  String get cardMilestone30 => 'Lunar Orbit';
+
+  @override
+  String get cardMilestone30Desc =>
+      'A full 30-day lunar cycle of steady consistency.';
+
+  @override
+  String get cardMilestone100 => 'Centennial Oak';
+
+  @override
+  String get cardMilestone100Desc =>
+      '100 days of discipline. Deep roots weathering any storm.';
+
+  @override
+  String get cardMilestone365 => 'Solar Orbit';
+
+  @override
+  String get cardMilestone365Desc =>
+      'One full trip around the sun. A year of mindful transformation.';
+
+  @override
+  String get cardNextMilestone => 'Next milestone';
 }

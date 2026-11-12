@@ -10,10 +10,27 @@ class PlusAccess extends ChangeNotifier {
     super.dispose();
   }
 
-  bool owned = false, available = false, pending = false, busy = false;
-  bool testing = kDebugMode;
+  static const bool _forceFree = bool.fromEnvironment(
+    'DAYPANEL_FORCE_FREE',
+    defaultValue: false,
+  );
+  static const bool _forcePlus = bool.fromEnvironment(
+    'DAYPANEL_FORCE_PLUS',
+    defaultValue: false,
+  );
+
+  bool owned = _forcePlus,
+      available = _forcePlus,
+      pending = false,
+      busy = false;
+  bool testing = kDebugMode && !_forceFree && !_forcePlus;
   String? price, error;
-  bool get enabled => testing || owned;
+  bool get enabled {
+    if (_forceFree) return false;
+    if (_forcePlus) return true;
+    return testing || owned;
+  }
+
   Future<void> refresh() => _request('status');
   Future<void> restore() => _request('restore');
   Future<void> buy() => _request('buy');
@@ -23,6 +40,21 @@ class PlusAccess extends ChangeNotifier {
     error = null;
     notifyListeners();
     try {
+      if (_forcePlus) {
+        owned = true;
+        available = true;
+        pending = false;
+        testing = false;
+        error = null;
+        return;
+      }
+      if (_forceFree) {
+        owned = false;
+        available = false;
+        pending = false;
+        testing = false;
+        return;
+      }
       final map = await channel.invokeMapMethod<String, Object?>(method);
       if (_closed) return;
       if (map != null) {

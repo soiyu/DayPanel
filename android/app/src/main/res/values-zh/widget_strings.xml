@@ -1,1 +1,5 @@
-<resources><string name="habit_widget_name">DayPanel · 习惯</string><string name="task_widget_name">DayPanel · 小事</string></resources>
+<resources>
+    <string name="habit_widget_name">DayPanel · 习惯</string>
+    <string name="task_widget_name">DayPanel · 小事</string>
+    <string name="habit_widget_description">在桌面直接打卡与查看习惯进度。</string>
+</resources>

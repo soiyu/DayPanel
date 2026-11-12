@@ -459,7 +459,7 @@ class _WidgetsHelpPageState extends State<WidgetsHelpPage> {
             ],
             if (widget.app != null) ...[
               AppAction(
-                label: s.panelTitle,
+                label: '${s.panelTitle} · PLUS',
                 icon: Icons.dashboard_customize_outlined,
                 onTap: () => Navigator.push(
                   context,
@@ -470,11 +470,20 @@ class _WidgetsHelpPageState extends State<WidgetsHelpPage> {
               ),
               const SizedBox(height: 16),
             ],
-            if (message != null)
+            if (message != null) ...[
               Padding(
-                padding: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Text(message!, key: const Key('pin-result')),
               ),
+              if (message == s.widgetPinRequested)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    s.widgetPinTroubleshoot,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+            ],
             if (supported == false && widget.app != null && !widget.reconnect)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),

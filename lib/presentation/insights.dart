@@ -171,17 +171,20 @@ class _Locked extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
+    final sample = sampleInsightReport(app.today, isZh);
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       children: [
         SoftPanel(
           tinted: true,
           tone: UiTone.violet,
-          padding: const EdgeInsets.all(22),
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              ToneIcon(Icons.auto_graph_rounded, tone: UiTone.violet, size: 52),
-              const SizedBox(height: 16),
+              ToneIcon(Icons.auto_graph_rounded, tone: UiTone.violet, size: 48),
+              const SizedBox(height: 14),
               Text(
                 s.insightsLockedTitle,
                 textAlign: TextAlign.center,
@@ -193,7 +196,43 @@ class _Locked extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium,
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.6),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.verified_rounded,
+                      size: 14,
+                      color: Color(0xFFD97706),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      isZh
+                          ? '一次买断 · 享后续全部 Plus 新功能免费升级'
+                          : 'Lifetime Access · Includes all future Plus updates',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFD97706),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               AppAction(
                 key: const Key('insights-unlock'),
                 label: s.insightsUnlock,
@@ -207,9 +246,148 @@ class _Locked extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 20),
+        SectionTitle(
+          isZh ? '深度洞察效果演示 (样例报表)' : 'Insights Demo Preview (Sample)',
+          tone: UiTone.violet,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          isZh
+              ? '开通 Plus 后，系统将在本地离线挖掘属于您的真实习惯节律与数据规律：'
+              : 'Once unlocked, insights are computed locally from your real check-in history:',
+          style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: 14),
+        _Summary(s: s, days: 30, report: sample),
+        SectionTitle(s.insightsWeekdayTitle, tone: UiTone.teal),
+        _Weekdays(s: s, report: sample),
+        SectionTitle(s.insightsHabitsTitle, tone: UiTone.violet),
+        _HabitRows(s: s, habits: sample.habits),
+        SectionTitle(s.insightsPairsTitle, tone: UiTone.rose),
+        _Pairs(s: s, pairs: sample.pairs),
+        const SizedBox(height: 20),
+        SoftPanel(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.update_rounded,
+                    size: 20,
+                    color: UiTone.violet.ink(context),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      isZh ? '持续迭代优化与升级承诺' : 'Continuous Evolution & Updates',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isZh
+                    ? 'DayPanel 坚持纯本地私密、零广告、零云端上传。Plus 采用终身买断制：未来版本中持续增加的所有深度洞察新维度、桌面小部件与专属装扮，终身会员均永久免费享有，绝无二次收费或隐藏订阅。'
+                    : 'DayPanel commits to 100% offline privacy, zero ads, and no cloud uploads. Plus is a true lifetime license: all future analytical views, widget layouts, and premium styles will be free updates for lifetime members.',
+                style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              AppAction(
+                label: isZh ? '查看 Plus 完整权益' : 'Explore All Plus Benefits',
+                tone: UiTone.violet,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(builder: (_) => PlusPage(app: app)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
+}
+
+InsightReport sampleInsightReport(Day today, bool isZh) {
+  final start = today.plus(-30);
+  final end = today.plus(-1);
+  return InsightReport(
+    start: start,
+    end: end,
+    due: 75,
+    done: 66,
+    perfectDays: 18,
+    activeDays: 28,
+    previousDue: 75,
+    previousDone: 59,
+    habits: [
+      HabitInsight(
+        habitId: 'demo-reading',
+        title: isZh ? '晨间阅读 20 页' : 'Morning Reading 20p',
+        due: 30,
+        done: 28,
+        currentStreak: 21,
+        bestStreak: 21,
+        previousDue: 30,
+        previousDone: 24,
+      ),
+      HabitInsight(
+        habitId: 'demo-water',
+        title: isZh ? '每天喝水 2000ml' : 'Hydration 2000ml',
+        due: 30,
+        done: 26,
+        currentStreak: 12,
+        bestStreak: 19,
+        previousDue: 30,
+        previousDone: 22,
+      ),
+      HabitInsight(
+        habitId: 'demo-run',
+        title: isZh ? '户外慢跑 3 公里' : 'Morning Run 3km',
+        due: 15,
+        done: 12,
+        currentStreak: 4,
+        bestStreak: 7,
+        previousDue: 15,
+        previousDone: 13,
+      ),
+    ],
+    weeklyHabits: const [],
+    weekdays: const [
+      WeekdayInsight(weekday: 1, due: 12, done: 11),
+      WeekdayInsight(weekday: 2, due: 12, done: 12),
+      WeekdayInsight(weekday: 3, due: 11, done: 10),
+      WeekdayInsight(weekday: 4, due: 11, done: 10),
+      WeekdayInsight(weekday: 5, due: 11, done: 9),
+      WeekdayInsight(weekday: 6, due: 9, done: 8),
+      WeekdayInsight(weekday: 7, due: 9, done: 6),
+    ],
+    pairs: [
+      HabitPairInsight(
+        aId: 'demo-reading',
+        aTitle: isZh ? '晨间阅读 20 页' : 'Morning Reading 20p',
+        bId: 'demo-water',
+        bTitle: isZh ? '每天喝水 2000ml' : 'Hydration 2000ml',
+        together: 24,
+        commonDue: 30,
+        expected: 24.2,
+        lift: 1.15,
+      ),
+    ],
+    journal: const JournalInsight(notes: 14, days: 12, characters: 1680),
+    events: 36,
+    months: const [],
+    bestStreak: 21,
+    bestStreakHabit: isZh ? '晨间阅读 20 页' : 'Morning Reading 20p',
+    strongestWeekday: 2,
+    weakestWeekday: 7,
+  );
 }
 
 class _Summary extends StatelessWidget {

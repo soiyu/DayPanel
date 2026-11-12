@@ -4416,6 +4416,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Steady'**
   String get insightsTrendSteady;
+
+  /// No description provided for @widgetPinTroubleshoot.
+  ///
+  /// In en, this message translates to:
+  /// **'If no confirmation dialog appeared, allow \'Home screen shortcuts\' in your phone\'s App Permissions, or touch and hold the home screen to add manually.'**
+  String get widgetPinTroubleshoot;
+
+  /// No description provided for @cardMilestonesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth Milestones'**
+  String get cardMilestonesTitle;
+
+  /// No description provided for @cardMilestonesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Earned cards mark each day you complete all habits. As your journey continues, unlock consistency milestones.'**
+  String get cardMilestonesHint;
+
+  /// No description provided for @cardMilestone7.
+  ///
+  /// In en, this message translates to:
+  /// **'The Spark'**
+  String get cardMilestone7;
+
+  /// No description provided for @cardMilestone7Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days of momentum. A pattern begins.'**
+  String get cardMilestone7Desc;
+
+  /// No description provided for @cardMilestone21.
+  ///
+  /// In en, this message translates to:
+  /// **'The Habit Loop'**
+  String get cardMilestone21;
+
+  /// No description provided for @cardMilestone21Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'21 days of neuroplasticity. The routine becomes second nature.'**
+  String get cardMilestone21Desc;
+
+  /// No description provided for @cardMilestone30.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar Orbit'**
+  String get cardMilestone30;
+
+  /// No description provided for @cardMilestone30Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'A full 30-day lunar cycle of steady consistency.'**
+  String get cardMilestone30Desc;
+
+  /// No description provided for @cardMilestone100.
+  ///
+  /// In en, this message translates to:
+  /// **'Centennial Oak'**
+  String get cardMilestone100;
+
+  /// No description provided for @cardMilestone100Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'100 days of discipline. Deep roots weathering any storm.'**
+  String get cardMilestone100Desc;
+
+  /// No description provided for @cardMilestone365.
+  ///
+  /// In en, this message translates to:
+  /// **'Solar Orbit'**
+  String get cardMilestone365;
+
+  /// No description provided for @cardMilestone365Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'One full trip around the sun. A year of mindful transformation.'**
+  String get cardMilestone365Desc;
+
+  /// No description provided for @cardNextMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'Next milestone'**
+  String get cardNextMilestone;
 }
 
 class _AppLocalizationsDelegate
