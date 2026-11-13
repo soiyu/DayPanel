@@ -43,12 +43,9 @@ void main() {
     final font = await rootBundle.load('assets/fonts/NotoSerifSC.ttf');
     await (FontLoader('Roboto')..addFont(Future.value(font))).load();
     await (FontLoader('Ahem')..addFont(Future.value(font))).load();
-    final icons = ByteData.sublistView(
-      await File(
-        '.local/sdk/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
-      ).readAsBytes(),
-    );
-    await (FontLoader('MaterialIcons')..addFont(Future.value(icons))).load();
+    await (FontLoader(
+      'MaterialIcons',
+    )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
     await (FontLoader('NotoSerifSC')..addFont(Future.value(font))).load();
   });
   setUp(() async {

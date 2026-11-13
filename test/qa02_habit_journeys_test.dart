@@ -26,12 +26,9 @@ void main() {
     final fallback = await rootBundle.load('assets/fonts/NotoSerifSC.ttf');
     await (FontLoader('Roboto')..addFont(Future.value(fallback))).load();
     await (FontLoader('Ahem')..addFont(Future.value(fallback))).load();
-    final icons = ByteData.sublistView(
-      await File(
-        '.local/sdk/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
-      ).readAsBytes(),
-    );
-    await (FontLoader('MaterialIcons')..addFont(Future.value(icons))).load();
+    await (FontLoader(
+      'MaterialIcons',
+    )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
   });
   late AppStore store;
   late AppController app;
