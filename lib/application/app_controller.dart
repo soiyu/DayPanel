@@ -23,11 +23,13 @@ class AppController extends ChangeNotifier {
   }) : clock = clock ?? DateTime.now {
     selectedDay = today;
     journalQuery = JournalQuery(month: today);
+    plus.addListener(notifyListeners);
   }
   final AppStore store;
   final PlusAccess plus = PlusAccess();
   @override
   void dispose() {
+    plus.removeListener(notifyListeners);
     plus.dispose();
     super.dispose();
   }
