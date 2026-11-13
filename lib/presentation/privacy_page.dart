@@ -5,6 +5,7 @@ import 'theme.dart';
 
 class PrivacyPage extends StatefulWidget {
   const PrivacyPage({super.key});
+
   @override
   State<PrivacyPage> createState() => _PrivacyPageState();
 }
@@ -13,6 +14,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
   static const channel = MethodChannel('app.daypanel.next/about');
   Map<String, Object?> info = {};
   String? error;
+
   @override
   void initState() {
     super.initState();
@@ -28,57 +30,196 @@ class _PrivacyPageState extends State<PrivacyPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final zh = Localizations.localeOf(context).languageCode == 'zh';
     String t(String a, String b) => zh ? a : b;
-    final rows = <String, String>{
-      t('本机数据', 'On-device data'): t(
-        '习惯、每次记录、任务、手记、卡片和外观保存在这台设备。DayPanel不提供云同步，不要求注册账号，不接入广告或分析SDK。',
-        'Habits, individual records, tasks, notes, cards and appearance are stored on this device. DayPanel has no cloud synchronization, developer account, advertising or analytics SDK.',
+
+    final sections = <_PrivacySection>[
+      _PrivacySection(
+        icon: Icons.shield_outlined,
+        title: t('本机私密存储', '100% Local & Private'),
+        body: t(
+          '您的习惯、打卡记录、小事清单、手记与成就卡片完全保存在当前设备。DayPanel 不提供任何云端同步，无需注册账号，不接入任何第三方广告或数据统计追踪。',
+          'All your habits, logs, tasks, notes and cards stay strictly on this device. DayPanel requires no account, does not sync to the cloud, and contains zero ads or third-party tracking.',
+        ),
       ),
-      t('购买', 'Purchases'): t(
-        'Plus由Google Play处理付款。DayPanel读取并验证商店收据以恢复权益，不读取银行卡资料。收据与业务备份分开保存；离线可使用已经验证的权益，联网后可重新核对。',
-        'Google Play processes Plus payments. DayPanel reads and verifies store receipts to restore access; it does not receive card details. Receipts are separate from your data backup. Previously verified access can work offline and is checked again when the store is available.',
+      _PrivacySection(
+        icon: Icons.verified_user_outlined,
+        title: t('购买凭证安全', 'Purchase Security'),
+        body: t(
+          'Plus 终身授权由应用商店官方渠道处理与结算。DayPanel 仅在本地验证购买凭证以激活会员权益，绝不接触银行卡或支付信息。离线时已验证的权益依然可用，连接网络后可随时一键恢复。',
+          'Plus lifetime access is handled by the official store. DayPanel only verifies store receipts to unlock features and never receives payment details. Verified access remains available offline and can be restored anytime.',
+        ),
       ),
-      t('导出、分享与日历', 'Export, sharing and calendar'): t(
-        '只有你发起时才将选定文件交给系统保存或分享，或将日历事件草稿交给日历应用。请在预览和系统页面核对内容。其它应用、日历账号或文件提供方使用自己的隐私政策。',
-        'Only your explicit actions hand a file to system storage/sharing, or an event draft to a calendar app. Review the content first. Receiving apps, calendar accounts and document providers have their own policies.',
+      _PrivacySection(
+        icon: Icons.folder_shared_outlined,
+        title: t('自主掌控与导出', 'Your Data, Your Control'),
+        body: t(
+          '仅在您主动发起导出备份、分享卡片或同步日历时，系统才会调用相应功能。导出的备份文件由您完全掌控，建议保存在私密安全的个人存储中。',
+          'Files are exported, cards shared, and calendar events created only upon your direct action. Your exported files belong entirely to you.',
+        ),
       ),
-      t('删除与保留', 'Deleting your data'): t(
-        '可以在App中删除内容，或通过系统应用设置清除存储/卸载删除本机数据。恢复前副本用于回退，会被下一次恢复替换。你导出到App外的文件及日历副本需要在相应位置自行删除。已获卡片保留解锁时快照，删除习惯不会删除卡片；可单独管理卡片。',
-        'You can delete content in the app, or clear app storage/uninstall to remove on-device data. The pre-restore copy is replaced by the next restore. Delete externally exported files and calendar copies separately. Earned cards keep their original snapshots when a habit is deleted.',
+      _PrivacySection(
+        icon: Icons.auto_delete_outlined,
+        title: t('数据删除与清除', 'Data Deletion'),
+        body: t(
+          '您可以随时在应用内单项删除记录，或通过手机系统“清除存储空间”或卸载应用彻底抹除所有本地数据。已获得的成就卡片保留当时的精美快照，删除习惯不会影响已生成的卡片。',
+          'You can delete records inside the app anytime, or erase local data via system settings or uninstalling. Unlocked cards retain their original milestone snapshots.',
+        ),
       ),
-    };
+    ];
+
+    final hasPrivacyUrl = (info['privacy'] as String? ?? '').isNotEmpty;
+    final hasSupportEmail = (info['support'] as String? ?? '').isNotEmpty;
+
     return AppCanvas(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(title: Text(t('隐私与支持', 'Privacy & support'))),
         body: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
-              if (info['version'] != null)
-                Text('DayPanel ${info['version']} (${info['code']})'),
-              for (final row in rows.entries) ...[
-                const SizedBox(height: 20),
-                Text(row.key, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Text(row.value),
-              ],
-              if ((info['privacy'] as String? ?? '').isNotEmpty) ...[
-                const SizedBox(height: 20),
-                AppAction(
-                  label: t('查看公开隐私政策', 'View published privacy policy'),
-                  onTap: () => open('privacy'),
+              SoftPanel(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: UiTone.violet
+                            .ink(context)
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        Icons.spa_rounded,
+                        color: UiTone.violet.ink(context),
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'DayPanel',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            info['version'] != null
+                                ? 'v${info['version']}'
+                                : t('纯本地日常记录', 'Offline daily tracker'),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-              if ((info['support'] as String? ?? '').isNotEmpty) ...[
+              ),
+              const SizedBox(height: 16),
+              for (final section in sections) ...[
+                SoftPanel(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            section.icon,
+                            size: 18,
+                            color: UiTone.violet.ink(context),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              section.title,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        section.body,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          height: 1.45,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 12),
-                AppAction(
-                  label: t('联系支持', 'Contact support'),
-                  onTap: () => open('support'),
+              ],
+              SoftPanel(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.help_outline_rounded,
+                          size: 18,
+                          color: UiTone.violet.ink(context),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            t('意见反馈与支持', 'Feedback & Support'),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      t(
+                        '如果您在使用过程中有任何疑问、建议或需要支持，欢迎联系我们。我们致力于为您提供纯净、无打扰的离线记录体验。',
+                        'If you have questions, feedback or need assistance, feel free to reach out. We are dedicated to providing a clean, distraction-free experience.',
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(height: 1.45),
+                    ),
+                    if (hasSupportEmail) ...[
+                      const SizedBox(height: 12),
+                      AppAction(
+                        label: t('联系支持', 'Contact support'),
+                        tone: UiTone.violet,
+                        onTap: () => open('support'),
+                      ),
+                    ],
+                    if (hasPrivacyUrl) ...[
+                      const SizedBox(height: 8),
+                      AppAction(
+                        label: t('查看公开隐私政策', 'View published privacy policy'),
+                        onTap: () => open('privacy'),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  error!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
                 ),
               ],
-              if (error != null) Text(error!),
             ],
           ),
         ),
@@ -99,4 +240,16 @@ class _PrivacyPageState extends State<PrivacyPage> {
       }
     }
   }
+}
+
+class _PrivacySection {
+  const _PrivacySection({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+
+  final IconData icon;
+  final String title;
+  final String body;
 }

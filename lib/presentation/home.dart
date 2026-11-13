@@ -700,31 +700,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ),
         ),
         const SizedBox(height: 12),
-        SettingRow(
-          icon: Icons.auto_awesome_outlined,
-          title: s.plusTitle,
-          subtitle: app.plus.enabled
-              ? (Localizations.localeOf(context).languageCode == 'zh'
-                    ? '✦ 终身会员已生效 · 查看全部 6 项特权'
-                    : '✦ Lifetime Active · View all 6 privileges')
-              : s.plusBase,
-          tone: UiTone.violet,
-          onTap: () => open(PlusPage(app: app)),
-        ),
         DetailDisclosure(title: s.freeTitle, child: Text(s.freeBody)),
-        SettingRow(
-          icon: Icons.privacy_tip_outlined,
-          title: Localizations.localeOf(context).languageCode == 'zh'
-              ? '隐私与支持'
-              : 'Privacy & support',
-          onTap: () => open(const PrivacyPage()),
-        ),
-        SettingRow(
-          icon: Icons.code_rounded,
-          title: s.licenses,
-          tone: UiTone.violet,
-          onTap: () =>
-              showLicensePage(context: context, applicationName: 'DayPanel'),
+        const SizedBox(height: 8),
+        SoftPanel(
+          padding: const EdgeInsets.all(2),
+          child: SettingRow(
+            icon: Icons.privacy_tip_outlined,
+            title: Localizations.localeOf(context).languageCode == 'zh'
+                ? '隐私与支持'
+                : 'Privacy & support',
+            onTap: () => open(const PrivacyPage()),
+          ),
         ),
       ],
     );

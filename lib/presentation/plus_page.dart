@@ -264,7 +264,7 @@ class _PlusPageState extends State<PlusPage> {
                         const SizedBox(height: 8),
                         Text(
                           isZh
-                              ? 'DayPanel 由独立开发者持续打磨优化。作为 Plus 终身会员，您将永久享有未来版本中新增的所有 Plus 高级功能、桌面组件、新图表维度与专属装扮，绝无后续订阅与二次收费。'
+                              ? 'DayPanel 坚持极简打磨与持续演进。作为 Plus 终身会员，您将永久享有未来版本中新增的所有 Plus 高级功能、桌面组件、新图表维度与专属装扮，绝无后续订阅与二次收费。'
                               : 'DayPanel is continuously refined. As a Plus Lifetime member, you permanently receive all future Plus features, new widget types, advanced analytics, and exclusive themes for free—no subscriptions, ever.',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
@@ -385,7 +385,7 @@ class _PlusPageState extends State<PlusPage> {
                         const SizedBox(height: 8),
                         Text(
                           isZh
-                              ? 'DayPanel 由独立开发者持续打磨优化。作为 Plus 终身会员，您将永久享有未来版本中新增的所有 Plus 高级功能、桌面组件、新图表维度与专属装扮，绝无后续订阅与二次收费。'
+                              ? 'DayPanel 坚持极简打磨与持续演进。作为 Plus 终身会员，您将永久享有未来版本中新增的所有 Plus 高级功能、桌面组件、新图表维度与专属装扮，绝无后续订阅与二次收费。'
                               : 'DayPanel is continuously refined. As a Plus Lifetime member, you permanently receive all future Plus features, new widget types, advanced analytics, and exclusive themes for free—no subscriptions, ever.',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
