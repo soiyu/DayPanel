@@ -64,72 +64,77 @@ class TasksPage extends StatelessWidget {
                 child: TaskTile(app: app, task: task, tone: tone),
               ),
           ];
-    return ListView(
-      key: const PageStorageKey('taskList'),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      children: [
-        Row(
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: ListView(
+          key: const PageStorageKey('taskList'),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           children: [
-            Expanded(
-              child: Text(
-                '${s.taskSummaryPending} ${singles.where((t) => !t.done).length}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-            IconButton(
-              key: const Key('task-history'),
-              tooltip: s.taskHistory,
-              icon: const Icon(Icons.history_rounded),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (_) => TaskHistoryPage(app: app),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${s.taskSummaryPending} ${singles.where((t) => !t.done).length}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
-              ),
+                IconButton(
+                  key: const Key('task-history'),
+                  tooltip: s.taskHistory,
+                  icon: const Icon(Icons.history_rounded),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => TaskHistoryPage(app: app),
+                    ),
+                  ),
+                ),
+                if (app.tasks.any((t) => t.resident && t.archived))
+                  IconButton(
+                    tooltip: s.archived,
+                    icon: const Icon(Icons.archive_outlined),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => TaskArchivePage(app: app),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            if (app.tasks.any((t) => t.resident && t.archived))
-              IconButton(
-                tooltip: s.archived,
-                icon: const Icon(Icons.archive_outlined),
-                onPressed: () => Navigator.push(
+            if (app.tasks.isEmpty)
+              EmptyState(
+                icon: Icons.checklist_rounded,
+                title: s.emptyTasks,
+                body: s.emptyTasksBody,
+                action: s.newTask,
+                onAction: () => openEditor(context, app, 'task'),
+                tone: UiTone.peach,
+              ),
+            for (final group in groups.take(2))
+              ...section(group.$1, group.$2, group.$3),
+            ...section(s.residentTasks, app.residentTasks, UiTone.violet),
+            for (final group in groups.skip(2).take(2))
+              ...section(group.$1, group.$2, group.$3),
+            ...section(groups.last.$1, groups.last.$2, groups.last.$3),
+            if (singles.any((t) => t.done && t.completedDay != today))
+              SettingRow(
+                icon: Icons.history_rounded,
+                title: s.completedEarlier,
+                subtitle:
+                    '${singles.where((t) => t.done && t.completedDay != today).length}',
+                tone: UiTone.violet,
+                onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute<void>(
-                    builder: (_) => TaskArchivePage(app: app),
+                    builder: (_) => TaskHistoryPage(app: app),
                   ),
                 ),
               ),
           ],
         ),
-        if (app.tasks.isEmpty)
-          EmptyState(
-            icon: Icons.checklist_rounded,
-            title: s.emptyTasks,
-            body: s.emptyTasksBody,
-            action: s.newTask,
-            onAction: () => openEditor(context, app, 'task'),
-            tone: UiTone.peach,
-          ),
-        for (final group in groups.take(2))
-          ...section(group.$1, group.$2, group.$3),
-        ...section(s.residentTasks, app.residentTasks, UiTone.violet),
-        for (final group in groups.skip(2).take(2))
-          ...section(group.$1, group.$2, group.$3),
-        ...section(groups.last.$1, groups.last.$2, groups.last.$3),
-        if (singles.any((t) => t.done && t.completedDay != today))
-          SettingRow(
-            icon: Icons.history_rounded,
-            title: s.completedEarlier,
-            subtitle:
-                '${singles.where((t) => t.done && t.completedDay != today).length}',
-            tone: UiTone.violet,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => TaskHistoryPage(app: app),
-              ),
-            ),
-          ),
-      ],
+      ),
     );
   }
 }

@@ -71,6 +71,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     builder: (context, _) {
       final s = AppLocalizations.of(context);
       final titles = [s.today, s.tasks, s.notes, s.mine];
+      final width = MediaQuery.sizeOf(context).width;
+      final isTablet = width >= 600;
       return AppCanvas(
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -167,53 +169,70 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ),
           body: SafeArea(
             bottom: false,
-            child: Column(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (app.busy) const LinearProgressIndicator(minHeight: 2),
-                if (app.error != null)
+                if (isTablet)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: SoftPanel(
-                      tone: UiTone.peach,
-                      tinted: true,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(s.storageError),
-                          Wrap(
-                            spacing: 8,
-                            children: [
-                              TextButton(
-                                onPressed: app.busy
-                                    ? null
-                                    : () => app.run(() async {}),
-                                child: Text(s.retry),
-                              ),
-                              TextButton(
-                                onPressed: app.acknowledgeError,
-                                child: Text(s.cancel),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                    padding: const EdgeInsets.fromLTRB(16, 4, 4, 16),
+                    child: GlassSideNavigation(
+                      index: tab,
+                      onSelected: (i) => setState(() => tab = i),
                     ),
                   ),
                 Expanded(
-                  child: switch (tab) {
-                    0 => daily(context),
-                    1 => TasksPage(app: app),
-                    2 => JournalPage(app: app),
-                    _ => preferences(context),
-                  },
+                  child: Column(
+                    children: [
+                      if (app.busy) const LinearProgressIndicator(minHeight: 2),
+                      if (app.error != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: SoftPanel(
+                            tone: UiTone.peach,
+                            tinted: true,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(s.storageError),
+                                Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    TextButton(
+                                      onPressed: app.busy
+                                          ? null
+                                          : () => app.run(() async {}),
+                                      child: Text(s.retry),
+                                    ),
+                                    TextButton(
+                                      onPressed: app.acknowledgeError,
+                                      child: Text(s.cancel),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      Expanded(
+                        child: switch (tab) {
+                          0 => daily(context),
+                          1 => TasksPage(app: app),
+                          2 => JournalPage(app: app),
+                          _ => preferences(context),
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          bottomNavigationBar: GlassNavigation(
-            index: tab,
-            onSelected: (i) => setState(() => tab = i),
-          ),
+          bottomNavigationBar: isTablet
+              ? null
+              : GlassNavigation(
+                  index: tab,
+                  onSelected: (i) => setState(() => tab = i),
+                ),
         ),
       );
     },
@@ -240,292 +259,306 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         )
         .toList();
     final scale = MediaQuery.textScalerOf(context).scale(1);
-    return ListView(
-      key: const PageStorageKey('daily'),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      children: [
-        Row(
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: ListView(
+          key: const PageStorageKey('daily'),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           children: [
-            Expanded(
-              child: TextButton.icon(
-                key: const Key('daily-date'),
-                icon: Icon(
-                  Icons.calendar_today_outlined,
-                  size: 18,
-                  color: UiTone.peach.ink(context),
-                ),
-                label: Text(
-                  DateFormat.yMMMd(
-                    Localizations.localeOf(context).languageCode,
-                  ).format(day.date),
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                style: TextButton.styleFrom(
-                  alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                ),
-                onPressed: () async {
-                  final d = await showDatePicker(
-                    context: context,
-                    initialDate: day.date,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (d != null) app.select(Day(d));
-                },
-              ),
-            ),
-            if (day != app.today)
-              TextButton(
-                onPressed: () => app.select(app.today),
-                child: Text(s.todayLabel),
-              ),
-            IconButton(
-              key: const Key('daily-filter'),
-              tooltip: s.filterHabits,
-              onPressed: () => showHabitFilter(context, app),
-              icon: Icon(Icons.tune_rounded, color: UiTone.violet.ink(context)),
-            ),
-          ],
-        ),
-        if (scale <= 1.3)
-          LayoutBuilder(
-            builder: (context, c) {
-              final cell =
-                  ((c.maxWidth - 6 * 4) / 7).clamp(48.0, 64.0) *
-                  scale.clamp(1.0, 1.35);
-              return SizedBox(
-                height: 54 * scale.clamp(1.0, 1.8),
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 7,
-                  separatorBuilder: (_, _) => const SizedBox(width: 4),
-                  itemBuilder: (context, i) {
-                    final d = day.plus(i - (day.date.weekday - 1));
-                    final selected = d == day;
-                    return SizedBox(
-                      width: cell,
-                      child: Semantics(
-                        label: MaterialLocalizations.of(
-                          context,
-                        ).formatFullDate(d.date),
-                        selected: selected,
-                        button: true,
-                        child: Material(
-                          color: selected ? scheme.primary : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap: () => app.select(d),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  DateFormat.E(
-                                    Localizations.localeOf(
-                                      context,
-                                    ).languageCode,
-                                  ).format(d.date),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: selected
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                    color: selected
-                                        ? scheme.onPrimary
-                                        : scheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                Text(
-                                  '${d.date.day}',
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w700,
-                                    color: selected
-                                        ? scheme.onPrimary
-                                        : scheme.onSurface,
-                                  ),
-                                ),
-                                if (d == app.today)
-                                  Container(
-                                    width: 4,
-                                    height: 4,
-                                    margin: const EdgeInsets.only(top: 2),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: selected
-                                          ? scheme.onPrimary
-                                          : scheme.primary,
-                                    ),
-                                  )
-                                else
-                                  const SizedBox(height: 6),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-        if (app.contextFilter != null || app.groupFilter != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Text(
-              [
-                if (app.contextFilter != null)
-                  contextName(s, app.contextFilter!),
-                if (app.groupFilter != null)
-                  app.groups.firstWhere((g) => g.id == app.groupFilter).name,
-              ].join(' · '),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-        if (summaryCount > 0)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
+            Row(
               children: [
-                Flexible(
-                  flex: 2,
-                  child: Text(
-                    filtered ? s.allHabitsProgress : s.planned,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
-                  child: LinearProgressIndicator(
-                    value: summaryDone / summaryCount,
-                    minHeight: 3,
-                    borderRadius: BorderRadius.circular(3),
-                    semanticsLabel:
-                        '${filtered ? s.allHabitsProgress : s.planned} $summaryDone/$summaryCount',
+                  child: TextButton.icon(
+                    key: const Key('daily-date'),
+                    icon: Icon(
+                      Icons.calendar_today_outlined,
+                      size: 18,
+                      color: UiTone.peach.ink(context),
+                    ),
+                    label: Text(
+                      DateFormat.yMMMd(
+                        Localizations.localeOf(context).languageCode,
+                      ).format(day.date),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    style: TextButton.styleFrom(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    onPressed: () async {
+                      final d = await showDatePicker(
+                        context: context,
+                        initialDate: day.date,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (d != null) app.select(Day(d));
+                    },
                   ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  '$summaryDone / $summaryCount',
-                  style: Theme.of(context).textTheme.bodySmall,
+                if (day != app.today)
+                  TextButton(
+                    onPressed: () => app.select(app.today),
+                    child: Text(s.todayLabel),
+                  ),
+                IconButton(
+                  key: const Key('daily-filter'),
+                  tooltip: s.filterHabits,
+                  onPressed: () => showHabitFilter(context, app),
+                  icon: Icon(
+                    Icons.tune_rounded,
+                    color: UiTone.violet.ink(context),
+                  ),
                 ),
               ],
             ),
-          ),
-        if (planned.isEmpty &&
-            weekly.isEmpty &&
-            !app.habits.any(
+            if (scale <= 1.3)
+              LayoutBuilder(
+                builder: (context, c) {
+                  final cell =
+                      ((c.maxWidth - 6 * 4) / 7).clamp(48.0, 64.0) *
+                      scale.clamp(1.0, 1.35);
+                  return SizedBox(
+                    height: 54 * scale.clamp(1.0, 1.8),
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: 7,
+                      separatorBuilder: (_, _) => const SizedBox(width: 4),
+                      itemBuilder: (context, i) {
+                        final d = day.plus(i - (day.date.weekday - 1));
+                        final selected = d == day;
+                        return SizedBox(
+                          width: cell,
+                          child: Semantics(
+                            label: MaterialLocalizations.of(
+                              context,
+                            ).formatFullDate(d.date),
+                            selected: selected,
+                            button: true,
+                            child: Material(
+                              color: selected
+                                  ? scheme.primary
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(14),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: () => app.select(d),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      DateFormat.E(
+                                        Localizations.localeOf(
+                                          context,
+                                        ).languageCode,
+                                      ).format(d.date),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: selected
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                        color: selected
+                                            ? scheme.onPrimary
+                                            : scheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${d.date.day}',
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w700,
+                                        color: selected
+                                            ? scheme.onPrimary
+                                            : scheme.onSurface,
+                                      ),
+                                    ),
+                                    if (d == app.today)
+                                      Container(
+                                        width: 4,
+                                        height: 4,
+                                        margin: const EdgeInsets.only(top: 2),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: selected
+                                              ? scheme.onPrimary
+                                              : scheme.primary,
+                                        ),
+                                      )
+                                    else
+                                      const SizedBox(height: 6),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            if (app.contextFilter != null || app.groupFilter != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  [
+                    if (app.contextFilter != null)
+                      contextName(s, app.contextFilter!),
+                    if (app.groupFilter != null)
+                      app.groups
+                          .firstWhere((g) => g.id == app.groupFilter)
+                          .name,
+                  ].join(' · '),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            if (summaryCount > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Flexible(
+                      flex: 2,
+                      child: Text(
+                        filtered ? s.allHabitsProgress : s.planned,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: summaryDone / summaryCount,
+                        minHeight: 3,
+                        borderRadius: BorderRadius.circular(3),
+                        semanticsLabel:
+                            '${filtered ? s.allHabitsProgress : s.planned} $summaryDone/$summaryCount',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '$summaryDone / $summaryCount',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            if (planned.isEmpty &&
+                weekly.isEmpty &&
+                !app.habits.any(
+                  (h) =>
+                      !h.archived &&
+                      app.restOn(h, day) != null &&
+                      app.matchesFilter(h),
+                ))
+              EmptyState(
+                icon: Icons.spa_outlined,
+                title: app.contextFilter != null || app.groupFilter != null
+                    ? s.noFilterMatches
+                    : anyActive
+                    ? s.emptyDay
+                    : s.emptyHabits,
+                body: filtered
+                    ? s.filterEmptyHelp
+                    : anyActive
+                    ? s.emptyDayHelp
+                    : s.emptyHabitsBody,
+                action: filtered
+                    ? s.resetFilter
+                    : !anyActive
+                    ? s.newHabit
+                    : day != app.today
+                    ? s.todayLabel
+                    : s.manageHabits,
+                onAction: filtered
+                    ? () => app.filter()
+                    : !anyActive
+                    ? () => openEditor(context, app, 'habit')
+                    : day != app.today
+                    ? () => app.select(app.today)
+                    : () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => HabitLibrary(app: app),
+                        ),
+                      ),
+              ),
+            for (final h in planned)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: HabitTile(app: app, habit: h, day: day),
+              ),
+            if (weekly.isNotEmpty) ...[
+              SectionTitle(
+                s.weeklyAvailable,
+                count: weekly.length,
+                tone: UiTone.violet,
+              ),
+              for (final h in weekly)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: HabitTile(app: app, habit: h, day: day),
+                ),
+            ],
+            if (app.habits.any(
               (h) =>
                   !h.archived &&
                   app.restOn(h, day) != null &&
                   app.matchesFilter(h),
-            ))
-          EmptyState(
-            icon: Icons.spa_outlined,
-            title: app.contextFilter != null || app.groupFilter != null
-                ? s.noFilterMatches
-                : anyActive
-                ? s.emptyDay
-                : s.emptyHabits,
-            body: filtered
-                ? s.filterEmptyHelp
-                : anyActive
-                ? s.emptyDayHelp
-                : s.emptyHabitsBody,
-            action: filtered
-                ? s.resetFilter
-                : !anyActive
-                ? s.newHabit
-                : day != app.today
-                ? s.todayLabel
-                : s.manageHabits,
-            onAction: filtered
-                ? () => app.filter()
-                : !anyActive
-                ? () => openEditor(context, app, 'habit')
-                : day != app.today
-                ? () => app.select(app.today)
-                : () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => HabitLibrary(app: app),
-                    ),
-                  ),
-          ),
-        for (final h in planned)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: HabitTile(app: app, habit: h, day: day),
-          ),
-        if (weekly.isNotEmpty) ...[
-          SectionTitle(
-            s.weeklyAvailable,
-            count: weekly.length,
-            tone: UiTone.violet,
-          ),
-          for (final h in weekly)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: HabitTile(app: app, habit: h, day: day),
-            ),
-        ],
-        if (app.habits.any(
-          (h) =>
-              !h.archived && app.restOn(h, day) != null && app.matchesFilter(h),
-        )) ...[
-          SectionTitle(s.restTitle, tone: UiTone.violet),
-          for (final h in app.habits.where(
-            (h) =>
-                !h.archived &&
-                app.restOn(h, day) != null &&
-                app.matchesFilter(h),
-          ))
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: HabitTile(app: app, habit: h, day: day),
-            ),
-        ],
-        if (app.habits.any(
-          (h) =>
-              !h.archived &&
-              !app.scheduled(h, day) &&
-              app.restOn(h, day) == null &&
-              app.matchesFilter(h) &&
-              app.value(h, day) != null,
-        )) ...[
-          SectionTitle(s.extraRecords, tone: UiTone.violet),
-          for (final h in app.habits.where(
-            (h) =>
-                !h.archived &&
-                !app.scheduled(h, day) &&
-                app.restOn(h, day) == null &&
-                app.matchesFilter(h) &&
-                app.value(h, day) != null,
-          ))
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: HabitTile(app: app, habit: h, day: day),
-            ),
-        ],
-        if (extras.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: AppAction(
-              key: const Key('record-other-habit'),
-              label: s.recordOtherHabit,
-              icon: Icons.playlist_add_check_rounded,
-              tone: UiTone.violet,
-              onTap: app.busy
-                  ? null
-                  : () => chooseExtraRecord(context, day, extras),
-            ),
-          ),
-        DailyCardPanel(app: app, day: day),
-        const SizedBox(height: 12),
-        _DailyInsightsStrip(app: app),
-      ],
+            )) ...[
+              SectionTitle(s.restTitle, tone: UiTone.violet),
+              for (final h in app.habits.where(
+                (h) =>
+                    !h.archived &&
+                    app.restOn(h, day) != null &&
+                    app.matchesFilter(h),
+              ))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: HabitTile(app: app, habit: h, day: day),
+                ),
+            ],
+            if (app.habits.any(
+              (h) =>
+                  !h.archived &&
+                  !app.scheduled(h, day) &&
+                  app.restOn(h, day) == null &&
+                  app.matchesFilter(h) &&
+                  app.value(h, day) != null,
+            )) ...[
+              SectionTitle(s.extraRecords, tone: UiTone.violet),
+              for (final h in app.habits.where(
+                (h) =>
+                    !h.archived &&
+                    !app.scheduled(h, day) &&
+                    app.restOn(h, day) == null &&
+                    app.matchesFilter(h) &&
+                    app.value(h, day) != null,
+              ))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: HabitTile(app: app, habit: h, day: day),
+                ),
+            ],
+            if (extras.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: AppAction(
+                  key: const Key('record-other-habit'),
+                  label: s.recordOtherHabit,
+                  icon: Icons.playlist_add_check_rounded,
+                  tone: UiTone.violet,
+                  onTap: app.busy
+                      ? null
+                      : () => chooseExtraRecord(context, day, extras),
+                ),
+              ),
+            DailyCardPanel(app: app, day: day),
+            const SizedBox(height: 12),
+            _DailyInsightsStrip(app: app),
+          ],
+        ),
+      ),
     );
   }
 
@@ -580,139 +613,144 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final s = AppLocalizations.of(context);
     void open(Widget page) =>
         Navigator.push(context, MaterialPageRoute<void>(builder: (_) => page));
-    return ListView(
-      key: const PageStorageKey('preferences'),
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-      children: [
-        SoftPanel(
-          padding: const EdgeInsets.all(2),
-          child: Column(
-            children: [
-              SettingRow(
-                key: const Key('settings-habits'),
-                icon: Icons.grid_view_rounded,
-                title: s.manageHabits,
-                onTap: () => open(HabitLibrary(app: app)),
-              ),
-              SettingRow(
-                key: const Key('settings-appearance'),
-                icon: Icons.palette_outlined,
-                title: s.appearance,
-                tone: UiTone.peach,
-                onTap: () => open(AppearancePage(app: app)),
-              ),
-              SettingRow(
-                key: const Key('settings-reminders'),
-                icon: Icons.notifications_none_rounded,
-                title: s.remindersTitle,
-                tone: UiTone.peach,
-                onTap: () => open(RemindersPage(app: app)),
-              ),
-              SettingRow(
-                key: const Key('settings-backup'),
-                icon: Icons.shield_outlined,
-                title: s.dataBackup,
-                tone: UiTone.teal,
-                onTap: () => open(
-                  BackupPage(
-                    app: app,
-                    onReturnToday: () => setState(() => tab = 0),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: ListView(
+          key: const PageStorageKey('preferences'),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+          children: [
+            SoftPanel(
+              padding: const EdgeInsets.all(2),
+              child: Column(
+                children: [
+                  SettingRow(
+                    key: const Key('settings-habits'),
+                    icon: Icons.grid_view_rounded,
+                    title: s.manageHabits,
+                    onTap: () => open(HabitLibrary(app: app)),
                   ),
-                ),
+                  SettingRow(
+                    key: const Key('settings-appearance'),
+                    icon: Icons.palette_outlined,
+                    title: s.appearance,
+                    tone: UiTone.peach,
+                    onTap: () => open(AppearancePage(app: app)),
+                  ),
+                  SettingRow(
+                    key: const Key('settings-reminders'),
+                    icon: Icons.notifications_none_rounded,
+                    title: s.remindersTitle,
+                    tone: UiTone.peach,
+                    onTap: () => open(RemindersPage(app: app)),
+                  ),
+                  SettingRow(
+                    key: const Key('settings-backup'),
+                    icon: Icons.shield_outlined,
+                    title: s.dataBackup,
+                    tone: UiTone.teal,
+                    onTap: () => open(
+                      BackupPage(
+                        app: app,
+                        onReturnToday: () => setState(() => tab = 0),
+                      ),
+                    ),
+                  ),
+                  SettingRow(
+                    icon: Icons.widgets_outlined,
+                    title: s.widgetsHelpTitle,
+                    tone: UiTone.violet,
+                    onTap: () => open(WidgetsHelpPage(app: app)),
+                  ),
+                ],
               ),
-              SettingRow(
-                icon: Icons.widgets_outlined,
-                title: s.widgetsHelpTitle,
-                tone: UiTone.violet,
-                onTap: () => open(WidgetsHelpPage(app: app)),
+            ),
+            const SizedBox(height: 12),
+            _PlusMemberCard(app: app),
+            SectionTitle(s.yourSpace, tone: UiTone.violet),
+            SoftPanel(
+              padding: const EdgeInsets.all(2),
+              child: Column(
+                children: [
+                  SettingRow(
+                    icon: Icons.collections_bookmark_outlined,
+                    title: s.cardCollection,
+                    tone: UiTone.violet,
+                    onTap: () => open(CardCollection(app: app)),
+                  ),
+                  SettingRow(
+                    icon: Icons.insights_outlined,
+                    title: s.statisticsTitle,
+                    tone: UiTone.violet,
+                    onTap: () => open(StatisticsPage(app: app)),
+                  ),
+                  SettingRow(
+                    key: const Key('home-insights'),
+                    icon: Icons.auto_graph_rounded,
+                    title: s.insightsTitle,
+                    subtitle: s.insightsRowSubtitle,
+                    tone: UiTone.violet,
+                    onTap: () => open(InsightsPage(app: app)),
+                  ),
+                  SettingRow(
+                    icon: Icons.auto_graph_outlined,
+                    title: s.reviewBuilder,
+                    tone: UiTone.violet,
+                    onTap: () => open(ReviewCardPage(app: app)),
+                  ),
+                  SettingRow(
+                    icon: Icons.bar_chart_rounded,
+                    title: s.review,
+                    tone: UiTone.violet,
+                    onTap: () => open(ReviewPage(app: app)),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            SectionTitle(s.preferencesTitle, tone: UiTone.peach),
+            SoftPanel(
+              padding: const EdgeInsets.all(2),
+              child: Column(
+                children: [
+                  SettingRow(
+                    icon: Icons.touch_app_outlined,
+                    title: s.completionFeedback,
+                    tone: UiTone.violet,
+                    onTap: () => open(FeedbackPage(app: app)),
+                  ),
+                  SettingRow(
+                    icon: Icons.translate_rounded,
+                    title: s.language,
+                    subtitle: switch (app.preferences['locale']) {
+                      'zh' => s.chinese,
+                      'en' => s.english,
+                      _ => s.system,
+                    },
+                    onTap: () => preferencePicker(context, 'locale', {
+                      'system': s.system,
+                      'zh': s.chinese,
+                      'en': s.english,
+                    }),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            DetailDisclosure(title: s.freeTitle, child: Text(s.freeBody)),
+            const SizedBox(height: 8),
+            SoftPanel(
+              padding: const EdgeInsets.all(2),
+              child: SettingRow(
+                icon: Icons.privacy_tip_outlined,
+                title: Localizations.localeOf(context).languageCode == 'zh'
+                    ? '隐私与支持'
+                    : 'Privacy & support',
+                onTap: () => open(const PrivacyPage()),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        _PlusMemberCard(app: app),
-        SectionTitle(s.yourSpace, tone: UiTone.violet),
-        SoftPanel(
-          padding: const EdgeInsets.all(2),
-          child: Column(
-            children: [
-              SettingRow(
-                icon: Icons.collections_bookmark_outlined,
-                title: s.cardCollection,
-                tone: UiTone.violet,
-                onTap: () => open(CardCollection(app: app)),
-              ),
-              SettingRow(
-                icon: Icons.insights_outlined,
-                title: s.statisticsTitle,
-                tone: UiTone.violet,
-                onTap: () => open(StatisticsPage(app: app)),
-              ),
-              SettingRow(
-                key: const Key('home-insights'),
-                icon: Icons.auto_graph_rounded,
-                title: s.insightsTitle,
-                subtitle: s.insightsRowSubtitle,
-                tone: UiTone.violet,
-                onTap: () => open(InsightsPage(app: app)),
-              ),
-              SettingRow(
-                icon: Icons.auto_graph_outlined,
-                title: s.reviewBuilder,
-                tone: UiTone.violet,
-                onTap: () => open(ReviewCardPage(app: app)),
-              ),
-              SettingRow(
-                icon: Icons.bar_chart_rounded,
-                title: s.review,
-                tone: UiTone.violet,
-                onTap: () => open(ReviewPage(app: app)),
-              ),
-            ],
-          ),
-        ),
-        SectionTitle(s.preferencesTitle, tone: UiTone.peach),
-        SoftPanel(
-          padding: const EdgeInsets.all(2),
-          child: Column(
-            children: [
-              SettingRow(
-                icon: Icons.touch_app_outlined,
-                title: s.completionFeedback,
-                tone: UiTone.violet,
-                onTap: () => open(FeedbackPage(app: app)),
-              ),
-              SettingRow(
-                icon: Icons.translate_rounded,
-                title: s.language,
-                subtitle: switch (app.preferences['locale']) {
-                  'zh' => s.chinese,
-                  'en' => s.english,
-                  _ => s.system,
-                },
-                onTap: () => preferencePicker(context, 'locale', {
-                  'system': s.system,
-                  'zh': s.chinese,
-                  'en': s.english,
-                }),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        DetailDisclosure(title: s.freeTitle, child: Text(s.freeBody)),
-        const SizedBox(height: 8),
-        SoftPanel(
-          padding: const EdgeInsets.all(2),
-          child: SettingRow(
-            icon: Icons.privacy_tip_outlined,
-            title: Localizations.localeOf(context).languageCode == 'zh'
-                ? '隐私与支持'
-                : 'Privacy & support',
-            onTap: () => open(const PrivacyPage()),
-          ),
-        ),
-      ],
+      ),
     );
   }
 

@@ -516,6 +516,145 @@ class GlassNavigation extends StatelessWidget {
   }
 }
 
+class GlassSideNavigation extends StatelessWidget {
+  const GlassSideNavigation({
+    super.key,
+    required this.index,
+    required this.onSelected,
+  });
+  final int index;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
+    final labels = [s.today, s.tasks, s.notes, s.mine];
+    final shadowColor = dark
+        ? Colors.black.withValues(alpha: .30)
+        : Color.alphaBlend(
+            scheme.primary.withValues(alpha: .06),
+            const Color(0xFF0F172A),
+          ).withValues(alpha: .06);
+    const icons = [
+      Icons.wb_sunny_outlined,
+      Icons.checklist_rounded,
+      Icons.auto_stories_outlined,
+      Icons.person_outline_rounded,
+    ];
+    const tones = [UiTone.blue, UiTone.peach, UiTone.violet, UiTone.teal];
+
+    return RepaintBoundary(
+      child: SafeArea(
+        right: false,
+        bottom: false,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(26),
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                blurRadius: 24,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(26),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: Container(
+                width: 82,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerLowest.withValues(
+                    alpha: dark ? .88 : .92,
+                  ),
+                  border: Border.all(
+                    color: dark
+                        ? scheme.outlineVariant.withValues(alpha: .25)
+                        : Colors.white.withValues(alpha: .85),
+                  ),
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var i = 0; i < 4; i++) ...[
+                      Semantics(
+                        selected: index == i,
+                        button: true,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            key: Key('tab-$i'),
+                            borderRadius: BorderRadius.circular(19),
+                            onTap: () => onSelected(i),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: index == i
+                                    ? tones[i].wash(context)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(19),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    icons[i],
+                                    size: 22,
+                                    color: index == i
+                                        ? tones[i].ink(context)
+                                        : scheme.onSurfaceVariant.withValues(
+                                            alpha: .75,
+                                          ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    labels[i],
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: index == i
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                      color: index == i
+                                          ? tones[i].ink(context)
+                                          : scheme.onSurfaceVariant.withValues(
+                                              alpha: .75,
+                                            ),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (i < 3) const SizedBox(height: 8),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SheetFrame extends StatefulWidget {
   const SheetFrame({
     super.key,
@@ -553,105 +692,126 @@ class _SheetFrameState extends State<SheetFrame> {
       _lastBottomInset = currentInset;
     }
     final bottomInset = isClosing ? _lastBottomInset : currentInset;
+    final isTablet = MediaQuery.sizeOf(context).width >= 600;
     return RepaintBoundary(
       child: PopScope(
         canPop: !widget.busy,
         child: Padding(
           padding: EdgeInsets.only(bottom: bottomInset),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * .9 - bottomInset,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(30),
-                ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 560,
+                maxHeight: MediaQuery.sizeOf(context).height * .9 - bottomInset,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 10),
-                  Container(
-                    width: 32,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
-                            child: Row(
-                              children: [
-                                widget.leading ??
-                                    ToneIcon(widget.icon, tone: widget.tone),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        widget.title,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleLarge,
-                                      ),
-                                      if (widget.subtitle != null) ...[
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          widget.subtitle!,
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  tooltip: s.cancel,
-                                  onPressed: widget.busy
-                                      ? null
-                                      : () {
-                                          FocusManager.instance.primaryFocus
-                                              ?.unfocus();
-                                          Navigator.pop(context);
-                                        },
-                                  icon: const Icon(Icons.close_rounded),
-                                ),
-                              ],
-                            ),
+              child: Container(
+                margin: isTablet
+                    ? const EdgeInsets.only(bottom: 20)
+                    : EdgeInsets.zero,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                  borderRadius: isTablet
+                      ? BorderRadius.circular(28)
+                      : const BorderRadius.vertical(top: Radius.circular(30)),
+                  boxShadow: isTablet
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: .18),
+                            blurRadius: 32,
+                            offset: const Offset(0, 8),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                            child: widget.body,
-                          ),
-                        ],
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 10),
+                    Container(
+                      width: 32,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outlineVariant.withValues(alpha: .6),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                20,
+                                12,
+                                16,
+                              ),
+                              child: Row(
+                                children: [
+                                  widget.leading ??
+                                      ToneIcon(widget.icon, tone: widget.tone),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          widget.title,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleLarge,
+                                        ),
+                                        if (widget.subtitle != null) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            widget.subtitle!,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    tooltip: s.cancel,
+                                    onPressed: widget.busy
+                                        ? null
+                                        : () {
+                                            FocusManager.instance.primaryFocus
+                                                ?.unfocus();
+                                            Navigator.pop(context);
+                                          },
+                                    icon: const Icon(Icons.close_rounded),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                              child: widget.body,
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    child: SafeArea(top: false, child: widget.footer),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outlineVariant.withValues(alpha: .6),
+                          ),
+                        ),
+                      ),
+                      child: SafeArea(top: false, child: widget.footer),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

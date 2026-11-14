@@ -108,314 +108,333 @@ class _JournalPageState extends State<JournalPage> {
           q.habitId != null ||
           q.independent ||
           q.day != null;
-      return ListView.builder(
-        key: const PageStorageKey('journal'),
-        controller: scroll,
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        itemCount: notes.length + 1,
-        itemBuilder: (context, index) {
-          if (index > 0) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: NoteCard(app: app, note: notes[index - 1]),
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextField(
-                      key: const Key('note-search'),
-                      controller: search,
-                      textInputAction: TextInputAction.search,
-                      decoration: InputDecoration(
-                        hintText: s.searchNotes,
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        suffixIcon: search.text.isEmpty
-                            ? null
-                            : IconButton(
-                                tooltip: s.clearSearch,
-                                onPressed: () => app.filterNotes(
-                                  JournalQuery(
-                                    month: q.month,
-                                    day: q.day,
-                                    habitId: q.habitId,
-                                    independent: q.independent,
-                                  ),
-                                ),
-                                icon: const Icon(Icons.close_rounded),
-                              ),
-                      ),
-                      onChanged: (text) => app.filterNotes(
-                        JournalQuery(
-                          month: q.month,
-                          day: q.day,
-                          habitId: q.habitId,
-                          independent: q.independent,
-                          text: text,
-                        ),
-                      ),
-                    ),
-                    if (q.text.trim().isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        s.pmSearchScope(searchScope),
-                        key: const Key('note-search-scope'),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLowest,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant
-                              .withValues(
-                                alpha:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? .3
-                                    : .6,
-                              ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            key: const Key('previous-month'),
-                            tooltip: s.previousMonth,
-                            onPressed:
-                                q.month == null ||
-                                    (currentMonth.date.year == 1900 &&
-                                        currentMonth.date.month == 1)
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: ListView.builder(
+            key: const PageStorageKey('journal'),
+            controller: scroll,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            itemCount: notes.length + 1,
+            itemBuilder: (context, index) {
+              if (index > 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: NoteCard(app: app, note: notes[index - 1]),
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextField(
+                          key: const Key('note-search'),
+                          controller: search,
+                          textInputAction: TextInputAction.search,
+                          decoration: InputDecoration(
+                            hintText: s.searchNotes,
+                            prefixIcon: const Icon(Icons.search_rounded),
+                            suffixIcon: search.text.isEmpty
                                 ? null
-                                : () => month(
-                                    Day(
-                                      DateTime(
-                                        currentMonth.date.year,
-                                        currentMonth.date.month - 1,
+                                : IconButton(
+                                    tooltip: s.clearSearch,
+                                    onPressed: () => app.filterNotes(
+                                      JournalQuery(
+                                        month: q.month,
+                                        day: q.day,
+                                        habitId: q.habitId,
+                                        independent: q.independent,
                                       ),
                                     ),
+                                    icon: const Icon(Icons.close_rounded),
                                   ),
-                            icon: const Icon(Icons.chevron_left_rounded),
                           ),
-                          Expanded(
-                            child: Center(
-                              child: q.day != null
-                                  ? Tooltip(
-                                      message: s.showWholeMonth,
-                                      child: InkWell(
-                                        key: const Key('clear-day-filter'),
-                                        borderRadius: BorderRadius.circular(12),
-                                        onTap: () => month(q.month),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: UiTone.peach.wash(context),
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                Icons.event_available_rounded,
-                                                size: 16,
-                                                color: UiTone.peach.ink(
-                                                  context,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                q.day!.key,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  color: UiTone.peach.ink(
-                                                    context,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Icon(
-                                                Icons.close_rounded,
-                                                size: 16,
-                                                color: UiTone.peach.ink(
-                                                  context,
-                                                ),
-                                              ),
-                                            ],
+                          onChanged: (text) => app.filterNotes(
+                            JournalQuery(
+                              month: q.month,
+                              day: q.day,
+                              habitId: q.habitId,
+                              independent: q.independent,
+                              text: text,
+                            ),
+                          ),
+                        ),
+                        if (q.text.trim().isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            s.pmSearchScope(searchScope),
+                            key: const Key('note-search-scope'),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerLowest,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .outlineVariant
+                                  .withValues(
+                                    alpha:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? .3
+                                        : .6,
+                                  ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                key: const Key('previous-month'),
+                                tooltip: s.previousMonth,
+                                onPressed:
+                                    q.month == null ||
+                                        (currentMonth.date.year == 1900 &&
+                                            currentMonth.date.month == 1)
+                                    ? null
+                                    : () => month(
+                                        Day(
+                                          DateTime(
+                                            currentMonth.date.year,
+                                            currentMonth.date.month - 1,
                                           ),
                                         ),
                                       ),
-                                    )
-                                  : Text(
-                                      monthName,
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleMedium,
-                                    ),
-                            ),
-                          ),
-                          IconButton(
-                            key: const Key('next-month'),
-                            tooltip: s.nextMonth,
-                            onPressed:
-                                q.month == null ||
-                                    (currentMonth.date.year ==
-                                            app.today.date.year &&
-                                        currentMonth.date.month ==
-                                            app.today.date.month)
-                                ? null
-                                : () => month(
-                                    Day(
-                                      DateTime(
-                                        currentMonth.date.year,
-                                        currentMonth.date.month + 1,
+                                icon: const Icon(Icons.chevron_left_rounded),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: q.day != null
+                                      ? Tooltip(
+                                          message: s.showWholeMonth,
+                                          child: InkWell(
+                                            key: const Key('clear-day-filter'),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            onTap: () => month(q.month),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 6,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: UiTone.peach.wash(
+                                                  context,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons
+                                                        .event_available_rounded,
+                                                    size: 16,
+                                                    color: UiTone.peach.ink(
+                                                      context,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    q.day!.key,
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: UiTone.peach.ink(
+                                                        context,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Icon(
+                                                    Icons.close_rounded,
+                                                    size: 16,
+                                                    color: UiTone.peach.ink(
+                                                      context,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : Text(
+                                          monthName,
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleMedium,
+                                        ),
+                                ),
+                              ),
+                              IconButton(
+                                key: const Key('next-month'),
+                                tooltip: s.nextMonth,
+                                onPressed:
+                                    q.month == null ||
+                                        (currentMonth.date.year ==
+                                                app.today.date.year &&
+                                            currentMonth.date.month ==
+                                                app.today.date.month)
+                                    ? null
+                                    : () => month(
+                                        Day(
+                                          DateTime(
+                                            currentMonth.date.year,
+                                            currentMonth.date.month + 1,
+                                          ),
+                                        ),
                                       ),
+                                icon: const Icon(Icons.chevron_right_rounded),
+                              ),
+                              Container(
+                                height: 24,
+                                width: 1,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outlineVariant
+                                    .withValues(
+                                      alpha:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? .3
+                                          : .6,
                                     ),
-                                  ),
-                            icon: const Icon(Icons.chevron_right_rounded),
-                          ),
-                          Container(
-                            height: 24,
-                            width: 1,
-                            color: Theme.of(context).colorScheme.outlineVariant
-                                .withValues(
-                                  alpha:
-                                      Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? .3
-                                      : .6,
+                              ),
+                              IconButton(
+                                key: const Key('locate-note-date'),
+                                tooltip: s.locateDate,
+                                onPressed: locate,
+                                icon: Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: q.day != null
+                                      ? UiTone.peach.ink(context)
+                                      : Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                 ),
+                              ),
+                            ],
                           ),
-                          IconButton(
-                            key: const Key('locate-note-date'),
-                            tooltip: s.locateDate,
-                            onPressed: locate,
-                            icon: Icon(
-                              Icons.calendar_month_outlined,
-                              color: q.day != null
-                                  ? UiTone.peach.ink(context)
-                                  : Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        QuietChoice(
-                          selected: q.habitId != null || q.independent,
-                          key: const Key('note-filter'),
-                          label: q.habitId != null
-                              ? noteHabitLabel(context, app, q.habitId)
-                              : q.independent
-                              ? s.independentNote
-                              : s.allNotes,
-                          icon: Icons.tune_rounded,
-                          tone: UiTone.violet,
-                          onTap: () async {
-                            FocusScope.of(context).unfocus();
-                            final choice = await chooseNoteHabit(
-                              context,
-                              app,
-                              selected: q.habitId,
-                              all: q.habitId == null && !q.independent,
-                              filter: true,
-                            );
-                            if (choice != null && mounted) {
-                              app.filterNotes(
-                                JournalQuery(
-                                  month: q.month,
-                                  day: q.day,
-                                  text: q.text,
-                                  independent:
-                                      !choice.all && choice.habitId == null,
-                                  habitId: choice.habitId,
-                                ),
-                              );
-                            }
-                          },
                         ),
-                        QuietChoice(
-                          selected: q.month == null,
-                          label: q.month == null ? s.thisMonth : s.allMonths,
-                          icon: Icons.date_range_outlined,
-                          tone: UiTone.violet,
-                          onTap: () =>
-                              month(q.month == null ? app.today : null),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            QuietChoice(
+                              selected: q.habitId != null || q.independent,
+                              key: const Key('note-filter'),
+                              label: q.habitId != null
+                                  ? noteHabitLabel(context, app, q.habitId)
+                                  : q.independent
+                                  ? s.independentNote
+                                  : s.allNotes,
+                              icon: Icons.tune_rounded,
+                              tone: UiTone.violet,
+                              onTap: () async {
+                                FocusScope.of(context).unfocus();
+                                final choice = await chooseNoteHabit(
+                                  context,
+                                  app,
+                                  selected: q.habitId,
+                                  all: q.habitId == null && !q.independent,
+                                  filter: true,
+                                );
+                                if (choice != null && mounted) {
+                                  app.filterNotes(
+                                    JournalQuery(
+                                      month: q.month,
+                                      day: q.day,
+                                      text: q.text,
+                                      independent:
+                                          !choice.all && choice.habitId == null,
+                                      habitId: choice.habitId,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                            QuietChoice(
+                              selected: q.month == null,
+                              label: q.month == null
+                                  ? s.thisMonth
+                                  : s.allMonths,
+                              icon: Icons.date_range_outlined,
+                              tone: UiTone.violet,
+                              onTap: () =>
+                                  month(q.month == null ? app.today : null),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Expanded(
-                    child: SectionTitle(
-                      s.notes,
-                      count: notes.length,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SectionTitle(
+                          s.notes,
+                          count: notes.length,
+                          tone: UiTone.violet,
+                        ),
+                      ),
+                      if (hasFilter) ...[
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: TextButton(
+                            onPressed: () =>
+                                app.filterNotes(JournalQuery(month: q.month)),
+                            child: Text(s.resetFilter),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (notes.isEmpty)
+                    EmptyState(
+                      icon: hasFilter
+                          ? Icons.search_off_rounded
+                          : Icons.edit_note_rounded,
+                      title: hasFilter ? s.noNotesFound : s.emptyNoteMonth,
+                      body: hasFilter
+                          ? s.noNotesFoundHint
+                          : s.emptyNoteMonthHint,
+                      action: canExpandSearch
+                          ? s.pmSearchAllMonths
+                          : hasFilter
+                          ? s.resetFilter
+                          : s.newNote,
+                      onAction: canExpandSearch
+                          ? () => month(null)
+                          : hasFilter
+                          ? () => app.filterNotes(JournalQuery(month: q.month))
+                          : () => openEditor(context, app, 'note'),
                       tone: UiTone.violet,
                     ),
-                  ),
-                  if (hasFilter) ...[
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: TextButton(
-                        onPressed: () =>
-                            app.filterNotes(JournalQuery(month: q.month)),
-                        child: Text(s.resetFilter),
-                      ),
-                    ),
-                  ],
                 ],
-              ),
-              if (notes.isEmpty)
-                EmptyState(
-                  icon: hasFilter
-                      ? Icons.search_off_rounded
-                      : Icons.edit_note_rounded,
-                  title: hasFilter ? s.noNotesFound : s.emptyNoteMonth,
-                  body: hasFilter ? s.noNotesFoundHint : s.emptyNoteMonthHint,
-                  action: canExpandSearch
-                      ? s.pmSearchAllMonths
-                      : hasFilter
-                      ? s.resetFilter
-                      : s.newNote,
-                  onAction: canExpandSearch
-                      ? () => month(null)
-                      : hasFilter
-                      ? () => app.filterNotes(JournalQuery(month: q.month))
-                      : () => openEditor(context, app, 'note'),
-                  tone: UiTone.violet,
-                ),
-            ],
-          );
-        },
+              );
+            },
+          ),
+        ),
       );
     },
   );

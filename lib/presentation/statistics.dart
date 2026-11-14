@@ -407,38 +407,45 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 ),
             ],
           ),
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-            children: [
-              _navigation(context, s),
-              const SizedBox(height: 8),
-              if (tab != 3) ...[
-                AppAction(
-                  key: const Key('statistics-habit-filter'),
-                  maxLines: selected == null ? null : 2,
-                  label: selected == null
-                      ? s.allHabits
-                      : '${selected.title}${selected.archived ? ' (${s.archived})' : ''}',
-                  icon: Icons.tune_rounded,
-                  tone: UiTone.violet,
-                  onTap: () async {
-                    final choice = await selectStatisticsHabit(
-                      context,
-                      app,
-                      habitId,
-                    );
-                    if (choice != null && mounted) {
-                      setState(() => habitId = choice.isEmpty ? null : choice);
-                    }
-                  },
-                ),
-                const SizedBox(height: 8),
-              ],
-              if (tab == 0) ...matrix(context, habits),
-              if (tab == 1) ...summary(context, selected),
-              if (tab == 2) ...calendar(context, habits),
-              if (tab == 3) ...events(context),
-            ],
+          body: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                children: [
+                  _navigation(context, s),
+                  const SizedBox(height: 8),
+                  if (tab != 3) ...[
+                    AppAction(
+                      key: const Key('statistics-habit-filter'),
+                      maxLines: selected == null ? null : 2,
+                      label: selected == null
+                          ? s.allHabits
+                          : '${selected.title}${selected.archived ? ' (${s.archived})' : ''}',
+                      icon: Icons.tune_rounded,
+                      tone: UiTone.violet,
+                      onTap: () async {
+                        final choice = await selectStatisticsHabit(
+                          context,
+                          app,
+                          habitId,
+                        );
+                        if (choice != null && mounted) {
+                          setState(
+                            () => habitId = choice.isEmpty ? null : choice,
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (tab == 0) ...matrix(context, habits),
+                  if (tab == 1) ...summary(context, selected),
+                  if (tab == 2) ...calendar(context, habits),
+                  if (tab == 3) ...events(context),
+                ],
+              ),
+            ),
           ),
         ),
       );
