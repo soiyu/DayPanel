@@ -11,9 +11,9 @@
         <text class="row-title">{{ t('privacy') }}</text>
         <text class="row-arrow" @tap="openPrivacy">›</text>
       </view>
-      <view class="row">
-        <text class="row-title">{{ t('reminderDefaults') }}</text>
-        <text class="row-meta">21:00</text>
+      <view class="row" @tap="openReminders">
+        <text class="row-title">{{ t('reminderCenter') }}</text>
+        <text class="row-meta">{{ t('reminderDefaults') }}</text>
       </view>
       <view class="row">
         <text class="row-title">云端状态</text>
@@ -54,6 +54,10 @@ onShow(() => {
 
 function openPrivacy(): void {
   uni.navigateTo({ url: '/pages/settings/privacy' });
+}
+
+function openReminders(): void {
+  uni.navigateTo({ url: '/pages/settings/reminders' });
 }
 
 async function confirmDelete(): Promise<void> {

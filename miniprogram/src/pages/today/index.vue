@@ -45,7 +45,12 @@
       </view>
 
       <view v-else class="habit-list">
-        <view v-for="habit in store.planned" :key="habit.id" class="habit">
+        <view
+          v-for="habit in store.planned"
+          :key="habit.id"
+          class="habit"
+          @longpress="openHabitActions(habit)"
+        >
           <view class="habit-main">
             <text class="habit-title">{{ habit.title }}</text>
             <text class="habit-meta">
@@ -116,6 +121,28 @@ function targetText(habit: Habit): string {
   const plan = currentPlan(habit, store.today);
   if (habit.kind === 'count') return `${countText(plan.target)} ${plan.unit}`.trim();
   return `${quantityText(plan.target)} ${plan.unit}`.trim();
+}
+
+function openHabitActions(habit: Habit): void {
+  uni.showActionSheet({
+    itemList: [t('archiveHabit'), t('deleteHabit')],
+    success: async (result) => {
+      if (result.tapIndex === 0) {
+        const ok = await store.archive(habit.id);
+        if (!ok) uni.showToast({ title: errorText(store.error), icon: 'none' });
+      }
+      if (result.tapIndex === 1) {
+        const confirmed = await showModal({
+          title: t('deleteHabit'),
+          content: habit.title,
+          confirmColor: '#be123c',
+        });
+        if (!confirmed.confirm) return;
+        const ok = await store.removeHabit(habit.id);
+        if (!ok) uni.showToast({ title: errorText(store.error), icon: 'none' });
+      }
+    },
+  });
 }
 
 async function onHabit(habit: Habit): Promise<void> {

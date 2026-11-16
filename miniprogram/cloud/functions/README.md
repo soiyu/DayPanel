@@ -25,5 +25,18 @@ P1 actions: `today`, `createHabit`, `recordHabit`, `clearHabit`,
   business collections; retries are allowed when the tombstone exists.
 
 The function requires the `wx-server-sdk` dependency from its own
-`package.json`; the bundle externalizes it. Subscription reminder jobs and the
-scheduled sender are P2, not implemented here yet.
+`package.json`; the bundle externalizes it.
+
+## reminder
+
+Scheduled sender for `dp_jobs` with status `pending` and `sendAt <= now`:
+
+- `config.json` declares a one-minute timer trigger.
+- Calls `cloud.openapi.subscribeMessage.send`.
+- Marks `sent`, `invalid` (43101/47003), or `failed`.
+- One accepted authorization = one message; there is no long-term subscription
+  for ordinary tool mini programs.
+
+The template id and payload field mapping still need the real MP template; the
+client reminder page therefore does not fake a send when the template is
+missing.

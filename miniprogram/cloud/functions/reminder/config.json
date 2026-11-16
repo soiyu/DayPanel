@@ -1,0 +1,9 @@
+{
+  "triggers": [
+    {
+      "name": "send-due-reminders",
+      "type": "timer",
+      "config": "0 * * * * * *"
+    }
+  ]
+}

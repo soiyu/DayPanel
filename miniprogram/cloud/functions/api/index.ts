@@ -322,6 +322,70 @@ async function deleteAccount(openid, expected) {
   return { revision: revision + (meta?.deleted === true ? 0 : 1) };
 }
 
+function normalizeJobPayload(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const result = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (typeof item === 'string' || typeof item === 'number') result[key] = String(item);
+  }
+  return result;
+}
+
+async function createReminderJob(openid, event) {
+  const kind = event?.kind;
+  if (kind !== 'once' && kind !== 'digest') return fail('bad_reminder_kind');
+  const templateId = String(event?.templateId ?? '').trim();
+  if (!templateId) return fail('template_missing');
+  const sendAt = Number(event?.sendAt);
+  if (!Number.isFinite(sendAt) || sendAt < Date.now() - 60_000) {
+    return fail('invalid_send_at');
+  }
+  let day;
+  try {
+    day = event?.day ? parseDay(event.day) : todayKey();
+  } catch {
+    return fail('invalid_day');
+  }
+  const jobId = `${openid}_${randomUUID()}`;
+  await db.collection('dp_jobs').doc(jobId).set({
+    data: {
+      _openid: openid,
+      id: jobId,
+      kind,
+      habitId: event?.habitId ? String(event.habitId) : null,
+      day,
+      sendAt: new Date(sendAt),
+      status: 'pending',
+      templateId,
+      page: typeof event?.page === 'string' ? event.page : '',
+      payload: normalizeJobPayload(event?.payload),
+      createdAt: db.serverDate(),
+    },
+  });
+  return { ok: true, jobId };
+}
+
+async function reminderStatus(openid, event) {
+  const day = event?.day ? parseDay(event.day) : todayKey();
+  const result = await db
+    .collection('dp_jobs')
+    .where({ _openid: openid, day })
+    .limit(50)
+    .get();
+  return {
+    ok: true,
+    jobs: result.data.map((row) => ({
+      id: row.id,
+      kind: row.kind,
+      habitId: row.habitId ?? null,
+      day: row.day,
+      sendAt: row.sendAt instanceof Date ? row.sendAt.toISOString() : row.sendAt,
+      status: row.status,
+      templateId: row.templateId,
+    })),
+  };
+}
+
 function contextFrom(event) {
   const day = event?.today;
   const today = day ? parseDay(day) : todayKey();
@@ -433,6 +497,12 @@ export async function main(event) {
   if (!OPENID) return fail('unauthenticated');
 
   try {
+    if (event?.action === 'reminderStatus') {
+      return await reminderStatus(OPENID, event);
+    }
+    if (event?.action === 'createReminderJob') {
+      return await createReminderJob(OPENID, event);
+    }
     if (event?.action === 'today') {
       const day = event?.day ? parseDay(event.day) : todayKey();
       const loaded = await loadUser(OPENID, day);

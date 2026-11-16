@@ -44,6 +44,12 @@
       }
     },
     {
+      "path": "pages/settings/reminders",
+      "style": {
+        "navigationBarTitleText": "提醒中心"
+      }
+    },
+    {
       "path": "pages/settings/privacy",
       "style": {
         "navigationBarTitleText": "隐私与数据"

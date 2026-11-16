@@ -41,6 +41,26 @@ export interface NotesView {
   notes: Note[];
 }
 
+export interface ReminderJobView {
+  id: string;
+  kind: 'once' | 'digest';
+  habitId: string | null;
+  day: DayKey;
+  sendAt: string;
+  status: 'pending' | 'sent' | 'invalid' | 'failed';
+  templateId: string;
+}
+
+export interface CreateReminderJobInput {
+  kind: 'once' | 'digest';
+  habitId?: string | null;
+  day: DayKey;
+  sendAt: number;
+  templateId: string;
+  page: string;
+  payload: Record<string, string | number>;
+}
+
 export class GatewayError extends Error {
   readonly code: string;
 
@@ -55,6 +75,8 @@ export interface CloudGateway {
   today(day: DayKey): Promise<TodayView>;
   tasks(): Promise<TasksView>;
   notes(query: NoteQuery): Promise<NotesView>;
+  reminderStatus(day: DayKey): Promise<ReminderJobView[]>;
+  createReminderJob(input: CreateReminderJobInput): Promise<{ jobId: string }>;
   createHabit(input: CreateHabitInput, expectedRevision: number): Promise<MutateResult>;
   recordHabit(
     habitId: string,
@@ -201,6 +223,20 @@ export class WechatCloudGateway implements CloudGateway {
 
   async deleteTask(taskId: string, expectedRevision: number): Promise<MutateResult> {
     return call<MutateResult>('deleteTask', { taskId, expectedRevision });
+  }
+
+  async reminderStatus(day: DayKey): Promise<ReminderJobView[]> {
+    const result = await call<{ jobs: ReminderJobView[] }>('reminderStatus', {
+      day,
+    });
+    return result.jobs;
+  }
+
+  async createReminderJob(
+    input: CreateReminderJobInput,
+  ): Promise<{ jobId: string }> {
+    const result = await call<{ jobId: string }>('createReminderJob', { ...input });
+    return { jobId: result.jobId };
   }
 
   async notes(query: NoteQuery): Promise<NotesView> {
