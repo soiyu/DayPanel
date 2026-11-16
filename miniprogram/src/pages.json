@@ -1,0 +1,71 @@
+{
+  "pages": [
+    {
+      "path": "pages/today/index",
+      "style": {
+        "navigationBarTitleText": "日常",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/tasks/index",
+      "style": {
+        "navigationBarTitleText": "小事"
+      }
+    },
+    {
+      "path": "pages/journal/index",
+      "style": {
+        "navigationBarTitleText": "手记"
+      }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/habit/new",
+      "style": {
+        "navigationBarTitleText": "新建习惯"
+      }
+    },
+    {
+      "path": "pages/settings/privacy",
+      "style": {
+        "navigationBarTitleText": "隐私与数据"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "DayPanel",
+    "navigationBarBackgroundColor": "#F8FAFC",
+    "backgroundColor": "#F8FAFC"
+  },
+  "tabBar": {
+    "color": "#64748B",
+    "selectedColor": "#2563EB",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/today/index",
+        "text": "日常"
+      },
+      {
+        "pagePath": "pages/tasks/index",
+        "text": "小事"
+      },
+      {
+        "pagePath": "pages/journal/index",
+        "text": "手记"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的"
+      }
+    ]
+  }
+}

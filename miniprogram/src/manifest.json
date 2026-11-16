@@ -1,0 +1,23 @@
+{
+  "name": "DayPanel",
+  "appid": "touristappid",
+  "description": "Habits, tasks and journal — cloud-first WeChat mini program",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "vueVersion": "3",
+  "uniStatistics": {
+    "enable": false
+  },
+  "mp-weixin": {
+    "appid": "touristappid",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true,
+      "postcss": true
+    },
+    "usingComponents": true,
+    "darkmode": true
+  }
+}
