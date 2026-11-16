@@ -21,6 +21,18 @@ import {
   updateReminderPrefs,
   ValidationError,
 } from '../../../src/application/habit-actions.ts';
+import {
+  archiveTask,
+  completeTask,
+  createTask,
+  deleteTask,
+} from '../../../src/application/task-actions.ts';
+import {
+  createNote,
+  deleteNote,
+  filterNotes,
+  updateNote,
+} from '../../../src/application/journal-actions.ts';
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -81,6 +93,15 @@ async function loadUser(openid, day) {
     for (const row of await listAll('dp_days', openid)) {
       state.days[row.day] = { day: row.day, entries: row.entries ?? {} };
     }
+    for (const row of await listAll('dp_tasks', openid)) {
+      if (row.task) state.tasks.push(row.task);
+    }
+    for (const row of await listAll('dp_task_days', openid)) {
+      if (row.day) state.taskDays[row.day] = row.taskIds ?? [];
+    }
+    for (const row of await listAll('dp_notes', openid)) {
+      if (row.note) state.notes.push(row.note);
+    }
   }
 
   let card = null;
@@ -121,6 +142,45 @@ function changedDays(previous, next) {
   return changed;
 }
 
+function changedTasks(previous, next) {
+  const before = new Map(previous.tasks.map((task) => [task.id, task]));
+  const after = new Map(next.tasks.map((task) => [task.id, task]));
+  const changed = [];
+  for (const [id, task] of after) {
+    if (JSON.stringify(before.get(id) ?? null) !== JSON.stringify(task)) {
+      changed.push(task);
+    }
+  }
+  const removed = [...before.keys()].filter((id) => !after.has(id));
+  return { changed, removed };
+}
+
+function changedTaskDays(previous, next) {
+  const days = new Set([...Object.keys(previous.taskDays), ...Object.keys(next.taskDays)]);
+  const changed = [];
+  for (const day of days) {
+    const before = previous.taskDays[day] ?? [];
+    const after = next.taskDays[day] ?? [];
+    if (JSON.stringify(before) !== JSON.stringify(after)) {
+      changed.push({ day, taskIds: after.length ? after : null });
+    }
+  }
+  return changed;
+}
+
+function changedNotes(previous, next) {
+  const before = new Map(previous.notes.map((note) => [note.id, note]));
+  const after = new Map(next.notes.map((note) => [note.id, note]));
+  const changed = [];
+  for (const [id, note] of after) {
+    if (JSON.stringify(before.get(id) ?? null) !== JSON.stringify(note)) {
+      changed.push(note);
+    }
+  }
+  const removed = [...before.keys()].filter((id) => !after.has(id));
+  return { changed, removed };
+}
+
 async function persist(openid, expected, previous, next) {
   const tx = await db.startTransaction();
   try {
@@ -156,6 +216,53 @@ async function persist(openid, expected, previous, next) {
             updatedAt: db.serverDate(),
           },
         });
+      }
+    }
+
+    const taskDiff = changedTasks(previous, next);
+    for (const task of taskDiff.changed) {
+      await tx.collection('dp_tasks').doc(`${openid}_${task.id}`).set({
+        data: { _openid: openid, task, updatedAt: db.serverDate() },
+      });
+    }
+    for (const id of taskDiff.removed) {
+      try {
+        await tx.collection('dp_tasks').doc(`${openid}_${id}`).remove();
+      } catch {
+        // already absent
+      }
+    }
+    for (const record of changedTaskDays(previous, next)) {
+      const id = `${openid}_${record.day}`;
+      if (record.taskIds === null) {
+        try {
+          await tx.collection('dp_task_days').doc(id).remove();
+        } catch {
+          // already absent
+        }
+      } else {
+        await tx.collection('dp_task_days').doc(id).set({
+          data: {
+            _openid: openid,
+            day: record.day,
+            taskIds: record.taskIds,
+            updatedAt: db.serverDate(),
+          },
+        });
+      }
+    }
+
+    const noteDiff = changedNotes(previous, next);
+    for (const note of noteDiff.changed) {
+      await tx.collection('dp_notes').doc(`${openid}_${note.id}`).set({
+        data: { _openid: openid, note, updatedAt: db.serverDate() },
+      });
+    }
+    for (const id of noteDiff.removed) {
+      try {
+        await tx.collection('dp_notes').doc(`${openid}_${id}`).remove();
+      } catch {
+        // already absent
       }
     }
 
@@ -271,6 +378,42 @@ async function mutate(openid, event) {
       case 'updateReminderPrefs':
         next = updateReminderPrefs(loaded.state, event.patch ?? {});
         break;
+      case 'createTask':
+        next = createTask(loaded.state, event.input, ctx);
+        break;
+      case 'completeTask':
+        next = completeTask(
+          loaded.state,
+          String(event.taskId ?? ''),
+          event.done === true,
+          String(event.day ?? ''),
+          ctx,
+        );
+        break;
+      case 'archiveTask':
+        next = archiveTask(
+          loaded.state,
+          String(event.taskId ?? ''),
+          event.archived !== false,
+        );
+        break;
+      case 'deleteTask':
+        next = deleteTask(loaded.state, String(event.taskId ?? ''));
+        break;
+      case 'createNote':
+        next = createNote(loaded.state, event.input, ctx);
+        break;
+      case 'updateNote':
+        next = updateNote(
+          loaded.state,
+          String(event.noteId ?? ''),
+          event.patch ?? {},
+          ctx,
+        );
+        break;
+      case 'deleteNote':
+        next = deleteNote(loaded.state, String(event.noteId ?? ''));
+        break;
       default:
         return fail('bad_action');
     }
@@ -299,6 +442,23 @@ export async function main(event) {
         profile: loaded.profile,
         day: loaded.todayRecord,
         card: loaded.card,
+      };
+    }
+    if (event?.action === 'tasks') {
+      const loaded = await loadUser(OPENID, event?.day);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        tasks: loaded.state.tasks,
+        taskDays: loaded.state.taskDays,
+      };
+    }
+    if (event?.action === 'notes') {
+      const loaded = await loadUser(OPENID, event?.day);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        notes: filterNotes(loaded.state, event?.query ?? {}),
       };
     }
     return await mutate(OPENID, event);

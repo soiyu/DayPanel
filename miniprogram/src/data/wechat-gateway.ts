@@ -4,13 +4,20 @@ import type {
   AchievementCard,
   DayRecord,
   Profile,
+  Note,
   ReminderPrefs,
+  SmallTask,
   UserState,
 } from '../domain/models.ts';
 import type {
   CreateHabitInput,
   ReminderPrefsPatch,
 } from '../application/habit-actions.ts';
+import type {
+  CreateNoteInput,
+  NoteQuery,
+  UpdateNoteInput,
+} from '../application/journal-actions.ts';
 
 export interface TodayView {
   revision: number;
@@ -21,6 +28,17 @@ export interface TodayView {
 
 export interface MutateResult {
   revision: number;
+}
+
+export interface TasksView {
+  revision: number;
+  tasks: SmallTask[];
+  taskDays: Record<string, string[]>;
+}
+
+export interface NotesView {
+  revision: number;
+  notes: Note[];
 }
 
 export class GatewayError extends Error {
@@ -35,6 +53,8 @@ export class GatewayError extends Error {
 
 export interface CloudGateway {
   today(day: DayKey): Promise<TodayView>;
+  tasks(): Promise<TasksView>;
+  notes(query: NoteQuery): Promise<NotesView>;
   createHabit(input: CreateHabitInput, expectedRevision: number): Promise<MutateResult>;
   recordHabit(
     habitId: string,
@@ -57,6 +77,29 @@ export interface CloudGateway {
     patch: ReminderPrefsPatch,
     expectedRevision: number,
   ): Promise<MutateResult>;
+  createTask(
+    input: { title: string; resident?: boolean; dueDay?: DayKey | null },
+    expectedRevision: number,
+  ): Promise<MutateResult>;
+  completeTask(
+    taskId: string,
+    done: boolean,
+    day: DayKey,
+    expectedRevision: number,
+  ): Promise<MutateResult>;
+  archiveTask(
+    taskId: string,
+    archived: boolean,
+    expectedRevision: number,
+  ): Promise<MutateResult>;
+  deleteTask(taskId: string, expectedRevision: number): Promise<MutateResult>;
+  createNote(input: CreateNoteInput, expectedRevision: number): Promise<MutateResult>;
+  updateNote(
+    noteId: string,
+    patch: UpdateNoteInput,
+    expectedRevision: number,
+  ): Promise<MutateResult>;
+  deleteNote(noteId: string, expectedRevision: number): Promise<MutateResult>;
   deleteAccount(expectedRevision: number): Promise<MutateResult>;
 }
 
@@ -108,6 +151,85 @@ export class WechatCloudGateway implements CloudGateway {
       day: result.day,
       card: result.card,
     };
+  }
+
+  async tasks(): Promise<TasksView> {
+    const result = await call<{
+      revision: number;
+      tasks: SmallTask[];
+      taskDays: Record<string, string[]>;
+    }>('tasks', {});
+    return {
+      revision: result.revision,
+      tasks: result.tasks,
+      taskDays: result.taskDays,
+    };
+  }
+
+  async createTask(
+    input: { title: string; resident?: boolean; dueDay?: DayKey | null },
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('createTask', { input, expectedRevision });
+  }
+
+  async completeTask(
+    taskId: string,
+    done: boolean,
+    day: DayKey,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('completeTask', {
+      taskId,
+      done,
+      day,
+      expectedRevision,
+    });
+  }
+
+  async archiveTask(
+    taskId: string,
+    archived: boolean,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('archiveTask', {
+      taskId,
+      archived,
+      expectedRevision,
+    });
+  }
+
+  async deleteTask(taskId: string, expectedRevision: number): Promise<MutateResult> {
+    return call<MutateResult>('deleteTask', { taskId, expectedRevision });
+  }
+
+  async notes(query: NoteQuery): Promise<NotesView> {
+    const result = await call<{ revision: number; notes: Note[] }>('notes', {
+      query,
+    });
+    return { revision: result.revision, notes: result.notes };
+  }
+
+  async createNote(
+    input: CreateNoteInput,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('createNote', { input, expectedRevision });
+  }
+
+  async updateNote(
+    noteId: string,
+    patch: UpdateNoteInput,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('updateNote', { noteId, patch, expectedRevision });
+  }
+
+  async deleteNote(
+    noteId: string,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('deleteNote', { noteId, expectedRevision });
   }
 
   async createHabit(

@@ -384,6 +384,150 @@ function updateReminderPrefs(state, patch) {
   return next;
 }
 
+// src/application/task-actions.ts
+function uniqueId(state, id) {
+  return !state.tasks.some((task) => task.id === id) && !state.profile.habits.some((habit) => habit.id === id) && !state.notes.some((note) => note.id === id);
+}
+function createTask(state, input, context) {
+  const today = parseDay(context.today);
+  const title = input.title.trim();
+  if (!title || title.length > 100) throw new ValidationError("invalid_title");
+  const resident = input.resident === true;
+  const dueDay = input.dueDay ? parseDay(input.dueDay) : null;
+  if (resident && dueDay) throw new ValidationError("resident_has_due");
+  const id = (context.idFactory ?? defaultId)();
+  if (!uniqueId(state, id)) throw new ValidationError("id_conflict");
+  const next = cloneState(state);
+  const task = {
+    id,
+    title,
+    dueDay: resident ? null : dueDay,
+    completedDay: null,
+    resident,
+    startDay: resident ? today : null,
+    archived: false
+  };
+  next.tasks.push(task);
+  return next;
+}
+function completeTask(state, taskId, done, day, context) {
+  const today = parseDay(context.today);
+  const targetDay = parseDay(day);
+  if (compareDay(targetDay, today) > 0) throw new ValidationError("future_day");
+  const task = state.tasks.find((item) => item.id === taskId);
+  if (!task) throw new ValidationError("task_missing");
+  if (task.archived) throw new ValidationError("task_archived");
+  const next = cloneState(state);
+  if (task.resident) {
+    const ids = next.taskDays[targetDay] ?? [];
+    const has = ids.includes(taskId);
+    if (done && !has) next.taskDays[targetDay] = [...ids, taskId];
+    if (!done && has) {
+      const remaining = ids.filter((id) => id !== taskId);
+      if (remaining.length) next.taskDays[targetDay] = remaining;
+      else delete next.taskDays[targetDay];
+    }
+    return next;
+  }
+  const stored = next.tasks.find((item) => item.id === taskId);
+  if (!stored) throw new ValidationError("task_missing");
+  stored.completedDay = done ? targetDay : null;
+  return next;
+}
+function archiveTask(state, taskId, archived = true) {
+  const next = cloneState(state);
+  const task = next.tasks.find((item) => item.id === taskId);
+  if (!task) throw new ValidationError("task_missing");
+  task.archived = archived;
+  return next;
+}
+function deleteTask(state, taskId) {
+  if (!state.tasks.some((task) => task.id === taskId)) {
+    throw new ValidationError("task_missing");
+  }
+  const next = cloneState(state);
+  next.tasks = next.tasks.filter((task) => task.id !== taskId);
+  for (const [day, ids] of Object.entries(next.taskDays)) {
+    const remaining = ids.filter((id) => id !== taskId);
+    if (remaining.length) next.taskDays[day] = remaining;
+    else delete next.taskDays[day];
+  }
+  return next;
+}
+
+// src/application/journal-actions.ts
+function normalizeBody(body) {
+  const value = body.trim();
+  if (!value) throw new ValidationError("empty_note");
+  if (value.length > 1e4) throw new ValidationError("note_too_long");
+  return value;
+}
+function validHabit(state, habitId) {
+  if (habitId === void 0 || habitId === null) return null;
+  if (!state.profile.habits.some((habit) => habit.id === habitId)) {
+    throw new ValidationError("habit_missing");
+  }
+  return habitId;
+}
+function uniqueId2(state, id) {
+  return !state.notes.some((note) => note.id === id) && !state.tasks.some((task) => task.id === id) && !state.profile.habits.some((habit) => habit.id === id);
+}
+function createNote(state, input, context) {
+  const today = parseDay(context.today);
+  const day = input.day ? parseDay(input.day) : today;
+  if (compareDay(day, today) > 0) throw new ValidationError("future_day");
+  const body = normalizeBody(input.body);
+  const habitId = validHabit(state, input.habitId);
+  const id = (context.idFactory ?? defaultId)();
+  if (!uniqueId2(state, id)) throw new ValidationError("id_conflict");
+  const next = cloneState(state);
+  next.notes.push({ id, body, day, habitId });
+  return next;
+}
+function updateNote(state, noteId, input, context) {
+  const today = parseDay(context.today);
+  const next = cloneState(state);
+  const note = next.notes.find((item) => item.id === noteId);
+  if (!note) throw new ValidationError("note_missing");
+  if (input.body !== void 0) note.body = normalizeBody(input.body);
+  if (input.day !== void 0) {
+    const day = parseDay(input.day);
+    if (compareDay(day, today) > 0) throw new ValidationError("future_day");
+    note.day = day;
+  }
+  if (input.habitId !== void 0) {
+    note.habitId = validHabit(next, input.habitId);
+  }
+  return next;
+}
+function deleteNote(state, noteId) {
+  if (!state.notes.some((note) => note.id === noteId)) {
+    throw new ValidationError("note_missing");
+  }
+  const next = cloneState(state);
+  next.notes = next.notes.filter((note) => note.id !== noteId);
+  return next;
+}
+function filterNotes(state, query) {
+  const text = (query.text ?? "").trim().toLowerCase();
+  const month = query.month ?? null;
+  if (month !== null && !/^\d{4}-\d{2}$/.test(month)) {
+    throw new ValidationError("invalid_month");
+  }
+  const day = query.day ? parseDay(query.day) : null;
+  const habitId = query.habitId ?? null;
+  return state.notes.filter((note) => {
+    if (month && !note.day.startsWith(`${month}-`)) return false;
+    if (day && note.day !== day) return false;
+    if (habitId && note.habitId !== habitId) return false;
+    if (text && !note.body.toLowerCase().includes(text)) return false;
+    return true;
+  }).sort((a, b) => {
+    const dayOrder = compareDay(b.day, a.day);
+    return dayOrder !== 0 ? dayOrder : a.id.localeCompare(b.id);
+  });
+}
+
 // cloud/functions/api/index.ts
 import_wx_server_sdk.default.init({ env: import_wx_server_sdk.default.DYNAMIC_CURRENT_ENV });
 var db = import_wx_server_sdk.default.database();
@@ -433,6 +577,15 @@ async function loadUser(openid, day) {
     for (const row of await listAll("dp_days", openid)) {
       state.days[row.day] = { day: row.day, entries: row.entries ?? {} };
     }
+    for (const row of await listAll("dp_tasks", openid)) {
+      if (row.task) state.tasks.push(row.task);
+    }
+    for (const row of await listAll("dp_task_days", openid)) {
+      if (row.day) state.taskDays[row.day] = row.taskIds ?? [];
+    }
+    for (const row of await listAll("dp_notes", openid)) {
+      if (row.note) state.notes.push(row.note);
+    }
   }
   let card = null;
   if (!deleted && day) {
@@ -464,6 +617,42 @@ function changedDays(previous, next) {
     if (!next.days[day]) changed.push({ day, entries: null });
   }
   return changed;
+}
+function changedTasks(previous, next) {
+  const before = new Map(previous.tasks.map((task) => [task.id, task]));
+  const after = new Map(next.tasks.map((task) => [task.id, task]));
+  const changed = [];
+  for (const [id, task] of after) {
+    if (JSON.stringify(before.get(id) ?? null) !== JSON.stringify(task)) {
+      changed.push(task);
+    }
+  }
+  const removed = [...before.keys()].filter((id) => !after.has(id));
+  return { changed, removed };
+}
+function changedTaskDays(previous, next) {
+  const days = /* @__PURE__ */ new Set([...Object.keys(previous.taskDays), ...Object.keys(next.taskDays)]);
+  const changed = [];
+  for (const day of days) {
+    const before = previous.taskDays[day] ?? [];
+    const after = next.taskDays[day] ?? [];
+    if (JSON.stringify(before) !== JSON.stringify(after)) {
+      changed.push({ day, taskIds: after.length ? after : null });
+    }
+  }
+  return changed;
+}
+function changedNotes(previous, next) {
+  const before = new Map(previous.notes.map((note) => [note.id, note]));
+  const after = new Map(next.notes.map((note) => [note.id, note]));
+  const changed = [];
+  for (const [id, note] of after) {
+    if (JSON.stringify(before.get(id) ?? null) !== JSON.stringify(note)) {
+      changed.push(note);
+    }
+  }
+  const removed = [...before.keys()].filter((id) => !after.has(id));
+  return { changed, removed };
 }
 async function persist(openid, expected, previous, next) {
   const tx = await db.startTransaction();
@@ -497,6 +686,48 @@ async function persist(openid, expected, previous, next) {
             updatedAt: db.serverDate()
           }
         });
+      }
+    }
+    const taskDiff = changedTasks(previous, next);
+    for (const task of taskDiff.changed) {
+      await tx.collection("dp_tasks").doc(`${openid}_${task.id}`).set({
+        data: { _openid: openid, task, updatedAt: db.serverDate() }
+      });
+    }
+    for (const id of taskDiff.removed) {
+      try {
+        await tx.collection("dp_tasks").doc(`${openid}_${id}`).remove();
+      } catch {
+      }
+    }
+    for (const record of changedTaskDays(previous, next)) {
+      const id = `${openid}_${record.day}`;
+      if (record.taskIds === null) {
+        try {
+          await tx.collection("dp_task_days").doc(id).remove();
+        } catch {
+        }
+      } else {
+        await tx.collection("dp_task_days").doc(id).set({
+          data: {
+            _openid: openid,
+            day: record.day,
+            taskIds: record.taskIds,
+            updatedAt: db.serverDate()
+          }
+        });
+      }
+    }
+    const noteDiff = changedNotes(previous, next);
+    for (const note of noteDiff.changed) {
+      await tx.collection("dp_notes").doc(`${openid}_${note.id}`).set({
+        data: { _openid: openid, note, updatedAt: db.serverDate() }
+      });
+    }
+    for (const id of noteDiff.removed) {
+      try {
+        await tx.collection("dp_notes").doc(`${openid}_${id}`).remove();
+      } catch {
       }
     }
     await tx.collection("dp_meta").doc(openid).set({
@@ -599,6 +830,42 @@ async function mutate(openid, event) {
       case "updateReminderPrefs":
         next = updateReminderPrefs(loaded.state, event.patch ?? {});
         break;
+      case "createTask":
+        next = createTask(loaded.state, event.input, ctx);
+        break;
+      case "completeTask":
+        next = completeTask(
+          loaded.state,
+          String(event.taskId ?? ""),
+          event.done === true,
+          String(event.day ?? ""),
+          ctx
+        );
+        break;
+      case "archiveTask":
+        next = archiveTask(
+          loaded.state,
+          String(event.taskId ?? ""),
+          event.archived !== false
+        );
+        break;
+      case "deleteTask":
+        next = deleteTask(loaded.state, String(event.taskId ?? ""));
+        break;
+      case "createNote":
+        next = createNote(loaded.state, event.input, ctx);
+        break;
+      case "updateNote":
+        next = updateNote(
+          loaded.state,
+          String(event.noteId ?? ""),
+          event.patch ?? {},
+          ctx
+        );
+        break;
+      case "deleteNote":
+        next = deleteNote(loaded.state, String(event.noteId ?? ""));
+        break;
       default:
         return fail("bad_action");
     }
@@ -624,6 +891,23 @@ async function main(event) {
         profile: loaded.profile,
         day: loaded.todayRecord,
         card: loaded.card
+      };
+    }
+    if (event?.action === "tasks") {
+      const loaded = await loadUser(OPENID, event?.day);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        tasks: loaded.state.tasks,
+        taskDays: loaded.state.taskDays
+      };
+    }
+    if (event?.action === "notes") {
+      const loaded = await loadUser(OPENID, event?.day);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        notes: filterNotes(loaded.state, event?.query ?? {})
       };
     }
     return await mutate(OPENID, event);

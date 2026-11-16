@@ -7,10 +7,10 @@
 ### 2026-11-16 P1 进度
 
 - 已实现：`Day` 本地日历日、数量千分位、频率/计划、习惯创建/打卡/清除/归档/删除、提醒默认值/三通道策略、注销状态。
-- 已实现：uni-app 四 tab 壳、今日页、新建习惯、隐私页、注销入口；`uni build` 通过，主包约 0.10 MB；uni 统计已关闭。
-- 已实现：CloudBase `api` 云函数源码与 esbuild 打包（`cloud/functions/api/index.js`）；`today`/`mutate`/`deleteAccount`，revision + 事务，客户端不直写 DB。
+- 已实现：uni-app 四 tab 壳、今日页、新建习惯、小事页/新建小事、手记页/新建/编辑、隐私页、注销入口；`uni build` 通过，主包约 0.12 MB；uni 统计已关闭。
+- 已实现：CloudBase `api` 云函数源码与 esbuild 打包（`cloud/functions/api/index.js`）；`today`/`tasks`/`notes`/`mutate`/`deleteAccount`，revision + 事务，客户端不直写 DB。
 - 已实现：`MemoryCloud` revision 校验测试替身；`create → record → reload → stale conflict → deleteAccount` 纵切通过。
-- 证据：`npm run typecheck` 通过；`npm test` 22 项通过；`npm run verify`（构建+云函数打包+prepare+包审计）通过。
+- 证据：`npm run typecheck` 通过；`npm test` 32 项通过；`npm run verify`（构建+云函数打包+prepare+包审计）通过。
 - 未实现/外部：真实 CloudBase 环境/集合/索引/权限与云函数部署、微信开发者工具/真机、换设备/断网、三通道提醒任务云函数、小事/手记 P2。
 - MemoryCloud 只是测试替身，不是生产持久化，不能对外宣称“已上云”。
 
@@ -23,8 +23,8 @@
 | WM04 | P1 | `api.today`/`api.mutate` + `dp_meta/profile/days` | revision 冲突、事务、断网/重试 | 源码+打包完成；真实部署/事务设备验证未做 |
 | WM05 | P1 | 首个纵切：新建→完成→云端持久化→换设备可见 | 无本地业务文件；杀进程/换设备可见 | 测试纵切通过；真实云端/换设备未验 |
 | WM06 | P2 | 习惯 CRUD/三种记录/历史纠正/计划版本/休息/分组 | 真实云端写入、边界/并发 | 未开始 |
-| WM07 | P2 | 小事一次性/常驻/历史/归档/删除 | 完成日/计划日分离、按日记录 | 未开始 |
-| WM08 | P2 | 手记/关联/月份/搜索/删除解除关联 | 服务端交集筛选、分页、归档保文 | 未开始 |
+| WM07 | P2 | 小事一次性/常驻/历史/归档/删除 | 完成日/计划日分离、按日记录 | 部分：创建/完成/归档/删除/页面；历史页待补 |
+| WM08 | P2 | 手记/关联/月份/搜索/删除解除关联 | 服务端交集筛选、分页、归档保文 | 部分：创建/编辑/删除/月份/搜索；关联 UI 待补 |
 | WM09 | P2 | 成就卡/收藏/心得/六卡面 | 每天一张、事务发卡、撤销保留 | 未开始 |
 | WM10 | P2 | 统计/年历/时间线/单日历史 | 服务端聚合、历史分母、单位隔离 | 未开始 |
 | WM11 | P2 | 外观/主题/图标/边框/字体降级 | 预览取消、明暗、28 图标 | 未开始 |

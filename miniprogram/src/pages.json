@@ -32,6 +32,18 @@
       }
     },
     {
+      "path": "pages/task/new",
+      "style": {
+        "navigationBarTitleText": "新建小事"
+      }
+    },
+    {
+      "path": "pages/journal/edit",
+      "style": {
+        "navigationBarTitleText": "手记"
+      }
+    },
+    {
       "path": "pages/settings/privacy",
       "style": {
         "navigationBarTitleText": "隐私与数据"
