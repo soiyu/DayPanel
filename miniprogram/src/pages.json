@@ -80,6 +80,24 @@
       }
     },
     {
+      "path": "pages/statistics/year",
+      "style": {
+        "navigationBarTitleText": "年历"
+      }
+    },
+    {
+      "path": "pages/statistics/timeline",
+      "style": {
+        "navigationBarTitleText": "时间线"
+      }
+    },
+    {
+      "path": "pages/statistics/day",
+      "style": {
+        "navigationBarTitleText": "单日历史"
+      }
+    },
+    {
       "path": "pages/cards/index",
       "style": {
         "navigationBarTitleText": "卡片册"

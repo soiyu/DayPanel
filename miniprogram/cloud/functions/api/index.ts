@@ -639,6 +639,92 @@ export async function main(event) {
         ),
       };
     }
+    if (event?.action === 'year') {
+      const year = Number(event?.year);
+      if (!Number.isInteger(year) || year < 1900 || year > 2200) {
+        return fail('invalid_year');
+      }
+      const loaded = await loadUser(OPENID, event?.day);
+      const prefix = `${year}-`;
+      return {
+        ok: true,
+        revision: loaded.revision,
+        year,
+        days: Object.values(loaded.state.days)
+          .filter((record) => record.day.startsWith(prefix))
+          .map((record) => ({ day: record.day, entries: record.entries })),
+        cards: loaded.state.cards.filter((card) => card.day.startsWith(prefix)),
+      };
+    }
+    if (event?.action === 'timeline') {
+      const month = String(event?.month ?? '');
+      if (!/^\d{4}-\d{2}$/.test(month)) return fail('invalid_month');
+      const loaded = await loadUser(OPENID, event?.day);
+      const days = Object.keys(loaded.state.days).filter((day) =>
+        day.startsWith(`${month}-`),
+      );
+      const events = [];
+      const habitById = new Map(
+        loaded.state.profile.habits.map((habit) => [habit.id, habit]),
+      );
+      for (const day of days) {
+        const record = loaded.state.days[day];
+        for (const [habitId, value] of Object.entries(record.entries)) {
+          const habit = habitById.get(habitId);
+          if (!habit) continue;
+          events.push({
+            type: 'habit',
+            day,
+            id: habitId,
+            title: habit.title,
+            value,
+            kind: habit.kind,
+          });
+        }
+      }
+      for (const task of loaded.state.tasks) {
+        if (!task.resident && task.completedDay?.startsWith(`${month}-`)) {
+          events.push({
+            type: 'task',
+            day: task.completedDay,
+            id: task.id,
+            title: task.title,
+            resident: false,
+          });
+        }
+      }
+      for (const [day, ids] of Object.entries(loaded.state.taskDays)) {
+        if (!day.startsWith(`${month}-`)) continue;
+        for (const id of ids) {
+          const task = loaded.state.tasks.find((item) => item.id === id);
+          if (!task) continue;
+          events.push({
+            type: 'task',
+            day,
+            id,
+            title: task.title,
+            resident: true,
+          });
+        }
+      }
+      for (const note of loaded.state.notes) {
+        if (note.day.startsWith(`${month}-`)) {
+          events.push({
+            type: 'note',
+            day: note.day,
+            id: note.id,
+            title: note.body.slice(0, 80),
+          });
+        }
+      }
+      for (const card of loaded.state.cards) {
+        if (card.day.startsWith(`${month}-`)) {
+          events.push({ type: 'card', day: card.day, id: card.day, title: '成就卡' });
+        }
+      }
+      events.sort((a, b) => String(b.day).localeCompare(String(a.day)));
+      return { ok: true, revision: loaded.revision, month, events };
+    }
     if (event?.action === 'insights') {
       const today = event?.today ? parseDay(event.today) : todayKey();
       const range = Number(event?.range ?? 30);

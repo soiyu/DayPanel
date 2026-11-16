@@ -27,6 +27,14 @@
         <text class="row-title">{{ t('insightsTitle') }}</text>
         <text class="row-meta">30 / 90 / 365</text>
       </view>
+      <view class="row" @tap="openYear">
+        <text class="row-title">{{ t('yearCalendar') }}</text>
+        <text class="row-meta">›</text>
+      </view>
+      <view class="row" @tap="openTimeline">
+        <text class="row-title">{{ t('timeline') }}</text>
+        <text class="row-meta">›</text>
+      </view>
       <view class="row">
         <text class="row-title">云端状态</text>
         <text class="row-meta">{{ store.view ? '已连接' : store.error ? '未连接' : '加载中' }}</text>
@@ -82,6 +90,14 @@ function openCards(): void {
 
 function openInsights(): void {
   uni.navigateTo({ url: '/pages/insights/index' });
+}
+
+function openYear(): void {
+  uni.navigateTo({ url: '/pages/statistics/year' });
+}
+
+function openTimeline(): void {
+  uni.navigateTo({ url: '/pages/statistics/timeline' });
 }
 
 async function confirmDelete(): Promise<void> {

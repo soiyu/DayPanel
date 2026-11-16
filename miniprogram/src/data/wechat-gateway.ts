@@ -52,6 +52,23 @@ export interface CardsView {
   cards: AchievementCard[];
 }
 
+export interface YearView {
+  revision: number;
+  year: number;
+  days: DayRecord[];
+  cards: AchievementCard[];
+}
+
+export interface TimelineEvent {
+  type: 'habit' | 'task' | 'note' | 'card';
+  day: DayKey;
+  id: string;
+  title: string;
+  value?: number;
+  kind?: string;
+  resident?: boolean;
+}
+
 export interface ReminderJobView {
   id: string;
   kind: 'once' | 'digest';
@@ -90,6 +107,8 @@ export interface CloudGateway {
   stats(rangeDays: number): Promise<HabitStat[]>;
   cards(): Promise<CardsView>;
   insights(range: InsightRange): Promise<Insights>;
+  year(year: number): Promise<YearView>;
+  timeline(month: string): Promise<TimelineEvent[]>;
   favoriteCard(
     day: DayKey,
     favorite: boolean,
@@ -286,6 +305,21 @@ export class WechatCloudGateway implements CloudGateway {
       reflection,
       expectedRevision,
     });
+  }
+
+  async year(year: number): Promise<YearView> {
+    const result = await call<{
+      revision: number;
+      year: number;
+      days: DayRecord[];
+      cards: AchievementCard[];
+    }>('year', { year });
+    return result;
+  }
+
+  async timeline(month: string): Promise<TimelineEvent[]> {
+    const result = await call<{ events: TimelineEvent[] }>('timeline', { month });
+    return result.events;
   }
 
   async insights(range: InsightRange): Promise<Insights> {
