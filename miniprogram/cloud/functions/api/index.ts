@@ -304,11 +304,9 @@ async function removeAll(collection, openid) {
     }
     if (!batch?.data?.length) return;
     for (const row of batch.data) {
-      try {
-        await db.collection(collection).doc(row._id).remove();
-      } catch {
-        // retry the next invocation; tombstone keeps the account in deleting state
-      }
+      // Fail the run on a delete error; re-running is safe because the
+      // tombstone remains. Ignoring errors could loop forever on the same page.
+      await db.collection(collection).doc(row._id).remove();
     }
     if (batch.data.length < 100) return;
   }

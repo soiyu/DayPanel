@@ -760,10 +760,7 @@ async function removeAll(collection, openid) {
     }
     if (!batch?.data?.length) return;
     for (const row of batch.data) {
-      try {
-        await db.collection(collection).doc(row._id).remove();
-      } catch {
-      }
+      await db.collection(collection).doc(row._id).remove();
     }
     if (batch.data.length < 100) return;
   }
