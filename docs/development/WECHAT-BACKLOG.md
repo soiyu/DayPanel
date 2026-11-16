@@ -2,16 +2,24 @@
 
 2026-11-16。分支 `feat/wechat-miniprogram`，基线 `main` 24292a4。设计见 [WECHAT-MINIPROGRAM](../design/WECHAT-MINIPROGRAM.md)，决策见 [ADR0019](../adr/0019-free-ads-reminders-no-export.md) 与 [ADR0018](../adr/0018-cloud-first-wechat.md)。
 
-状态：本轮只完成设计 v3；除 WM00 外均未开始。已按用户确认：v1 全免费、后续广告、一次性+每日摘要+系统日历三通道**默认全开**、无导出、个人设置可注销、无桌面组件、无旧程序迁移。
+状态：P1 进行中。设计 v3 已确认（全免费、后续广告、三通道默认全开、无导出、个人设置可注销、无桌面组件、无旧程序迁移）。已落地纯领域、习惯动作、MemoryCloud 纵切测试与 TypeScript 检查；CloudBase 环境/AppID、uni-app 依赖/构建、真实云函数和页面尚未接入。
+
+### 2026-11-16 P1 进度
+
+- 已实现：`Day` 本地日历日、数量千分位、频率/计划、习惯创建/打卡/清除/归档/删除、提醒默认值、注销状态。
+- 已实现：`MemoryCloud` revision 校验测试替身；`create → record → reload → stale conflict → deleteAccount` 纵切通过。
+- 证据：`cd miniprogram && npm test` 16 项通过；`npm run typecheck` 通过。
+- 未实现/外部：CloudBase 集合/索引/权限、真实 `api.today`/`api.mutate`、uni-app 页面与依赖、微信开发者工具/真机、账号注销云函数。
+- MemoryCloud 只是测试替身，不是生产持久化，不能对外宣称“已上云”。
 
 | ID | 阶段 | 任务 | 验收 | 状态 |
 |---|---|---|---|---|
-| WM00 | P0 | 云优先/免费/三通道提醒/广告预留/合规边界 | 设计/ADR/台账；未开始业务代码 | 设计 v3 完成，待确认 |
-| WM01 | P1 | CloudBase 环境/集合/索引/权限规则 | 仅创建者读、客户端不可写、云函数部署成功 | 未开始 |
-| WM02 | P1 | uni-app CLI/TS/Vitest/包体审计 | typecheck、单测、空工程构建、主包体积 | 未开始 |
-| WM03 | P1 | 共享领域包（客户端/云函数同源） | 日期/数量/频率/计划同值夹具 | 未开始 |
-| WM04 | P1 | `api.today`/`api.mutate` + `dp_meta/profile/days` | revision 冲突、事务、断网/重试 | 未开始 |
-| WM05 | P1 | 首个纵切：新建→完成→云端持久化→换设备可见 | 无本地业务文件；杀进程/换设备可见 | 未开始 |
+| WM00 | P0 | 云优先/免费/三通道提醒/广告预留/注销 | 设计/ADR/台账；未开始业务代码 | 设计 v3 完成，已确认 |
+| WM01 | P1 | CloudBase 环境/集合/索引/权限规则 | 仅创建者读、客户端不可写、云函数部署成功 | 未开始，需 AppID/CloudBase 环境 |
+| WM02 | P1 | uni-app CLI/TS/Vitest/包体审计 | typecheck、单测、空工程构建、主包体积 | 部分：TS/测试通过；uni-app 构建未接 |
+| WM03 | P1 | 共享领域包（客户端/云函数同源） | 日期/数量/频率/计划同值夹具 | 部分：day/quantity/schedule/习惯动作 |
+| WM04 | P1 | `api.today`/`api.mutate` + `dp_meta/profile/days` | revision 冲突、事务、断网/重试 | 部分：MemoryCloud revision；真实云函数未接 |
+| WM05 | P1 | 首个纵切：新建→完成→云端持久化→换设备可见 | 无本地业务文件；杀进程/换设备可见 | 部分：测试纵切通过；真实云端/换设备未验 |
 | WM06 | P2 | 习惯 CRUD/三种记录/历史纠正/计划版本/休息/分组 | 真实云端写入、边界/并发 | 未开始 |
 | WM07 | P2 | 小事一次性/常驻/历史/归档/删除 | 完成日/计划日分离、按日记录 | 未开始 |
 | WM08 | P2 | 手记/关联/月份/搜索/删除解除关联 | 服务端交集筛选、分页、归档保文 | 未开始 |

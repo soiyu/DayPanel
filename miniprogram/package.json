@@ -1,0 +1,16 @@
+{
+  "name": "daypanel-miniprogram",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DayPanel WeChat mini program (uni-app, cloud-first)",
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:one": "node --experimental-strip-types --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3"
+  }
+}
