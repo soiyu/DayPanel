@@ -66,6 +66,15 @@ function utcMillis(day) {
   if (!match) throw new FormatException("Invalid calendar date");
   return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 }
+function addDays(day, delta) {
+  if (!Number.isInteger(delta)) throw new RangeError("Invalid day delta");
+  const date = new Date(utcMillis(parseDay(day)) + delta * MS_PER_DAY);
+  return makeDay(
+    date.getUTCFullYear(),
+    date.getUTCMonth() + 1,
+    date.getUTCDate()
+  );
+}
 function daysSince(day, other) {
   return Math.round((utcMillis(parseDay(day)) - utcMillis(parseDay(other))) / MS_PER_DAY);
 }
@@ -528,6 +537,109 @@ function filterNotes(state, query) {
   });
 }
 
+// src/domain/stats.ts
+function habitStats(state, rangeDays, today) {
+  if (!Number.isInteger(rangeDays) || rangeDays < 1 || rangeDays > 365) {
+    throw new RangeError("Invalid stats range");
+  }
+  const end = addDays(today, -1);
+  const start = addDays(end, -(rangeDays - 1));
+  return state.profile.habits.filter((habit) => !habit.archived).sort((a, b) => a.position - b.position).map((habit) => statsForHabit(state, habit, start, end, today));
+}
+function statsForHabit(state, habit, start, end, today) {
+  let planned = 0;
+  let completed = 0;
+  let totalValue = 0;
+  let streak = 0;
+  let streakOpen = true;
+  for (let day = start; compareDay(day, end) <= 0; day = addDays(day, 1)) {
+    if (compareDay(day, habit.startDay) < 0) continue;
+    if (isRestOn(state.breaks, habit.id, day)) continue;
+    const plan2 = currentPlan(habit, day);
+    if (!scheduledOn(plan2, day)) continue;
+    planned += 1;
+    const value = state.days[day]?.entries[habit.id];
+    const achieved = value !== void 0 && value >= plan2.target;
+    if (value !== void 0) totalValue += value;
+    if (achieved) completed += 1;
+  }
+  for (let day = end; compareDay(day, start) >= 0; day = addDays(day, -1)) {
+    if (compareDay(day, habit.startDay) < 0) break;
+    if (isRestOn(state.breaks, habit.id, day)) continue;
+    const plan2 = currentPlan(habit, day);
+    if (!scheduledOn(plan2, day)) continue;
+    const value = state.days[day]?.entries[habit.id];
+    if (value !== void 0 && value >= plan2.target) {
+      if (streakOpen) streak += 1;
+    } else {
+      streakOpen = false;
+    }
+  }
+  const plan = currentPlan(habit, today);
+  return {
+    habitId: habit.id,
+    title: habit.title,
+    kind: habit.kind,
+    target: plan.target,
+    unit: plan.unit,
+    planFrom: plan.effectiveDay,
+    planned,
+    completed,
+    rate: planned === 0 ? 0 : completed / planned,
+    streak,
+    totalValue,
+    rangeStart: start,
+    rangeEnd: end
+  };
+}
+
+// src/domain/achievement.ts
+var CARD_ARTWORKS = 6;
+function hasDailyObligation(state, habitId, day) {
+  const habit = state.profile.habits.find((item) => item.id === habitId);
+  if (!habit) return false;
+  const plan = currentPlan(habit, day);
+  return plan.schedule !== "weekly" && plan.schedule !== "weeklyTotal";
+}
+function cardEvidence(state, day) {
+  const targetDay = parseDay(day);
+  const qualifying = state.profile.habits.filter(
+    (habit) => !habit.archived && compareDay(targetDay, habit.startDay) >= 0 && !isRestOn(state.breaks, habit.id, targetDay) && scheduledOn(currentPlan(habit, targetDay), targetDay) && hasDailyObligation(state, habit.id, targetDay)
+  );
+  if (qualifying.length === 0) return null;
+  const evidence = [];
+  for (const habit of qualifying) {
+    const plan = currentPlan(habit, targetDay);
+    const value = state.days[targetDay]?.entries[habit.id];
+    if (value === void 0 || value < plan.target) return null;
+    evidence.push({
+      habitId: habit.id,
+      title: habit.title,
+      kind: habit.kind,
+      target: plan.target,
+      unit: plan.unit,
+      effectiveDay: plan.effectiveDay
+    });
+  }
+  return evidence;
+}
+function artworkForDay(day) {
+  return Math.abs(daysSince(day, "2026-01-01")) % CARD_ARTWORKS;
+}
+function ensureCard(state, day) {
+  if (state.cards.some((card2) => card2.day === day)) return state;
+  const evidence = cardEvidence(state, day);
+  if (!evidence) return state;
+  const card = {
+    day,
+    artwork: artworkForDay(day),
+    favorite: false,
+    reflection: "",
+    evidence: JSON.stringify(evidence)
+  };
+  return { ...state, cards: [...state.cards, card] };
+}
+
 // cloud/functions/api/index.ts
 import_wx_server_sdk.default.init({ env: import_wx_server_sdk.default.DYNAMIC_CURRENT_ENV });
 var db = import_wx_server_sdk.default.database();
@@ -586,6 +698,12 @@ async function loadUser(openid, day) {
     for (const row of await listAll("dp_notes", openid)) {
       if (row.note) state.notes.push(row.note);
     }
+    for (const row of await listAll("dp_breaks", openid)) {
+      if (row.breakItem) state.breaks.push(row.breakItem);
+    }
+    for (const row of await listAll("dp_cards", openid)) {
+      if (row.card) state.cards.push(row.card);
+    }
   }
   let card = null;
   if (!deleted && day) {
@@ -641,6 +759,29 @@ function changedTaskDays(previous, next) {
     }
   }
   return changed;
+}
+function changedCards(previous, next) {
+  const before = new Map(previous.cards.map((card) => [card.day, card]));
+  const after = new Map(next.cards.map((card) => [card.day, card]));
+  const changed = [];
+  for (const [day, card] of after) {
+    if (JSON.stringify(before.get(day) ?? null) !== JSON.stringify(card)) {
+      changed.push(card);
+    }
+  }
+  return changed;
+}
+function changedBreaks(previous, next) {
+  const before = new Map(previous.breaks.map((item) => [item.id, item]));
+  const after = new Map(next.breaks.map((item) => [item.id, item]));
+  const changed = [];
+  for (const [id, item] of after) {
+    if (JSON.stringify(before.get(id) ?? null) !== JSON.stringify(item)) {
+      changed.push(item);
+    }
+  }
+  const removed = [...before.keys()].filter((id) => !after.has(id));
+  return { changed, removed };
 }
 function changedNotes(previous, next) {
   const before = new Map(previous.notes.map((note) => [note.id, note]));
@@ -727,6 +868,23 @@ async function persist(openid, expected, previous, next) {
     for (const id of noteDiff.removed) {
       try {
         await tx.collection("dp_notes").doc(`${openid}_${id}`).remove();
+      } catch {
+      }
+    }
+    for (const card of changedCards(previous, next)) {
+      await tx.collection("dp_cards").doc(`${openid}_${card.day}`).set({
+        data: { _openid: openid, card, updatedAt: db.serverDate() }
+      });
+    }
+    const breakDiff = changedBreaks(previous, next);
+    for (const item of breakDiff.changed) {
+      await tx.collection("dp_breaks").doc(`${openid}_${item.id}`).set({
+        data: { _openid: openid, breakItem: item, updatedAt: db.serverDate() }
+      });
+    }
+    for (const id of breakDiff.removed) {
+      try {
+        await tx.collection("dp_breaks").doc(`${openid}_${id}`).remove();
       } catch {
       }
     }
@@ -935,6 +1093,9 @@ async function mutate(openid, event) {
       default:
         return fail("bad_action");
     }
+    if (event.action === "recordHabit" && event.day === ctx.today) {
+      next = ensureCard(next, ctx.today);
+    }
   } catch (error) {
     if (error instanceof ValidationError) return fail(error.code);
     if (error?.message === "Invalid calendar date") return fail("invalid_day");
@@ -962,7 +1123,8 @@ async function main(event) {
         revision: loaded.revision,
         profile: loaded.profile,
         day: loaded.todayRecord,
-        card: loaded.card
+        card: loaded.card,
+        breaks: loaded.state.breaks
       };
     }
     if (event?.action === "tasks") {
@@ -972,6 +1134,26 @@ async function main(event) {
         revision: loaded.revision,
         tasks: loaded.state.tasks,
         taskDays: loaded.state.taskDays
+      };
+    }
+    if (event?.action === "cards") {
+      const loaded = await loadUser(OPENID, event?.day);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        cards: [...loaded.state.cards].sort(
+          (a, b) => String(b.day).localeCompare(String(a.day))
+        )
+      };
+    }
+    if (event?.action === "stats") {
+      const today = event?.today ? parseDay(event.today) : todayKey();
+      const rangeDays = Number(event?.rangeDays ?? 30);
+      const loaded = await loadUser(OPENID, today);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        stats: habitStats(loaded.state, rangeDays, today)
       };
     }
     if (event?.action === "notes") {

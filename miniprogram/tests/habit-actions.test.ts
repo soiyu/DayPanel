@@ -6,11 +6,19 @@ import {
   createHabit,
   deleteAccount,
   deleteHabit,
+  endBreak,
   recordHabit,
+  startBreak,
+  updateHabit,
   updateReminderPrefs,
   type ActionContext,
 } from '../src/application/habit-actions.ts';
-import { emptyState, findHabit } from '../src/domain/models.ts';
+import {
+  currentPlan,
+  emptyState,
+  findHabit,
+  isRestOn,
+} from '../src/domain/models.ts';
 import { MemoryCloud, RevisionConflict } from '../src/data/cloud-store.ts';
 
 const TODAY = '2026-11-16'; // Monday
@@ -296,4 +304,109 @@ test('vertical slice: create -> record -> reload -> stale conflict -> account de
     () => cloud.deleteAccount(third.revision),
     (error: unknown) => error instanceof RevisionConflict,
   );
+});
+
+test('habit edit: plan changes take effect tomorrow and replace pending versions', () => {
+  const ctx = context();
+  const created = createHabit(
+    emptyState(),
+    { title: 'Water', kind: 'quantity', target: 10_000, unit: 'ml' },
+    ctx,
+  );
+  const changed = updateHabit(
+    created,
+    'h1',
+    { target: 20_000, unit: 'ml' },
+    ctx,
+  );
+  assert.equal(currentPlan(findHabit(changed, 'h1')!, TODAY).target, 10_000);
+  assert.equal(
+    currentPlan(findHabit(changed, 'h1')!, '2026-11-17').target,
+    20_000,
+  );
+  assert.equal(findHabit(changed, 'h1')!.plans.length, 2);
+
+  const replaced = updateHabit(changed, 'h1', { target: 30_000 }, ctx);
+  const plans = findHabit(replaced, 'h1')!.plans.filter(
+    (plan) => plan.effectiveDay === '2026-11-17',
+  );
+  assert.equal(plans.length, 1);
+  assert.equal(plans[0].target, 30_000);
+
+  const reverted = updateHabit(replaced, 'h1', { target: 10_000 }, ctx);
+  assert.equal(
+    findHabit(reverted, 'h1')!.plans.some(
+      (plan) => plan.effectiveDay === '2026-11-17',
+    ),
+    false,
+  );
+});
+
+test('habit edit: title-only change does not discard a pending plan', () => {
+  const ctx = context();
+  const created = createHabit(
+    emptyState(),
+    { title: 'Read', kind: 'check', target: 1000 },
+    ctx,
+  );
+  const changed = updateHabit(created, 'h1', { title: 'Read more' }, ctx);
+  assert.equal(findHabit(changed, 'h1')!.title, 'Read more');
+  assert.equal(currentPlan(findHabit(changed, 'h1')!, TODAY).target, 1000);
+});
+
+test('rest: pause blocks recording, ends explicitly, and rejects overlap', () => {
+  const ctx = context();
+  const created = createHabit(
+    emptyState(),
+    { title: 'Read', kind: 'check', target: 1000 },
+    ctx,
+  );
+  const paused = startBreak(created, 'h1', 'pause', TODAY, null, ctx);
+  assert.equal(isRestOn(paused.breaks, 'h1', TODAY), true);
+  assert.throws(() => recordHabit(paused, 'h1', TODAY, 1000, ctx), /rest_day/);
+  assert.throws(
+    () => startBreak(paused, 'h1', 'pause', TODAY, null, ctx),
+    /break_overlap/,
+  );
+  const breakId = paused.breaks[0].id;
+  assert.throws(
+    () => endBreak(paused, breakId, '2026-11-17', ctx),
+    /future_day/,
+  );
+  const ended = endBreak(paused, breakId, TODAY, ctx);
+  assert.equal(ended.breaks[0].endDay, TODAY);
+  assert.equal(isRestOn(ended.breaks, 'h1', TODAY), true);
+  // Resuming a pause today keeps today a rest day; tomorrow is recordable.
+  assert.throws(() => recordHabit(ended, 'h1', TODAY, 1000, ctx), /rest_day/);
+});
+
+test('rest: vacation range and skip validation', () => {
+  const ctx = context();
+  const created = createHabit(
+    emptyState(),
+    { title: 'Read', kind: 'check', target: 1000 },
+    ctx,
+  );
+  const vacation = startBreak(
+    created,
+    'h1',
+    'vacation',
+    TODAY,
+    '2026-11-20',
+    ctx,
+  );
+  assert.equal(isRestOn(vacation.breaks, 'h1', '2026-11-20'), true);
+  assert.equal(isRestOn(vacation.breaks, 'h1', '2026-11-21'), false);
+  assert.throws(
+    () => startBreak(created, 'h1', 'vacation', TODAY, '2027-11-17', ctx),
+    /vacation_too_long/,
+  );
+
+  const withRecord = recordHabit(created, 'h1', TODAY, 1000, ctx);
+  assert.throws(
+    () => startBreak(withRecord, 'h1', 'skip', TODAY, TODAY, ctx),
+    /skip_has_record/,
+  );
+  const skipped = startBreak(created, 'h1', 'skip', '2026-11-15', '2026-11-15', ctx);
+  assert.equal(isRestOn(skipped.breaks, 'h1', '2026-11-15'), true);
 });

@@ -4,26 +4,31 @@ import type {
   AchievementCard,
   DayRecord,
   Profile,
+  HabitBreak,
   Note,
   ReminderPrefs,
   SmallTask,
   UserState,
 } from '../domain/models.ts';
 import type {
+  BreakKind,
   CreateHabitInput,
   ReminderPrefsPatch,
+  UpdateHabitInput,
 } from '../application/habit-actions.ts';
 import type {
   CreateNoteInput,
   NoteQuery,
   UpdateNoteInput,
 } from '../application/journal-actions.ts';
+import type { HabitStat } from '../domain/stats.ts';
 
 export interface TodayView {
   revision: number;
   profile: Profile;
   day: DayRecord | null;
   card: AchievementCard | null;
+  breaks: HabitBreak[];
 }
 
 export interface MutateResult {
@@ -76,6 +81,8 @@ export interface CloudGateway {
   tasks(): Promise<TasksView>;
   notes(query: NoteQuery): Promise<NotesView>;
   reminderStatus(day: DayKey): Promise<ReminderJobView[]>;
+  stats(rangeDays: number): Promise<HabitStat[]>;
+  cards(): Promise<AchievementCard[]>;
   createReminderJob(input: CreateReminderJobInput): Promise<{ jobId: string }>;
   createHabit(input: CreateHabitInput, expectedRevision: number): Promise<MutateResult>;
   recordHabit(
@@ -166,12 +173,14 @@ export class WechatCloudGateway implements CloudGateway {
       profile: Profile;
       day: DayRecord | null;
       card: AchievementCard | null;
+      breaks: HabitBreak[];
     }>('today', { day });
     return {
       revision: result.revision,
       profile: result.profile,
       day: result.day,
       card: result.card,
+      breaks: result.breaks ?? [],
     };
   }
 
@@ -223,6 +232,16 @@ export class WechatCloudGateway implements CloudGateway {
 
   async deleteTask(taskId: string, expectedRevision: number): Promise<MutateResult> {
     return call<MutateResult>('deleteTask', { taskId, expectedRevision });
+  }
+
+  async cards(): Promise<AchievementCard[]> {
+    const result = await call<{ cards: AchievementCard[] }>('cards', {});
+    return result.cards;
+  }
+
+  async stats(rangeDays: number): Promise<HabitStat[]> {
+    const result = await call<{ stats: HabitStat[] }>('stats', { rangeDays });
+    return result.stats;
   }
 
   async reminderStatus(day: DayKey): Promise<ReminderJobView[]> {
@@ -322,6 +341,49 @@ export class WechatCloudGateway implements CloudGateway {
     expectedRevision: number,
   ): Promise<MutateResult> {
     return call<MutateResult>('updateReminderPrefs', { patch, expectedRevision });
+  }
+
+  async updateHabit(
+    habitId: string,
+    patch: UpdateHabitInput,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('updateHabit', {
+      habitId,
+      patch,
+      expectedRevision,
+    });
+  }
+
+  async startBreak(
+    habitId: string,
+    kind: BreakKind,
+    startDay: DayKey,
+    endDay: DayKey | null,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('startBreak', {
+      habitId,
+      kind,
+      startDay,
+      endDay,
+      expectedRevision,
+    });
+  }
+
+  async endBreak(
+    breakId: string,
+    endDay: DayKey,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('endBreak', { breakId, endDay, expectedRevision });
+  }
+
+  async deleteBreak(
+    breakId: string,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('deleteBreak', { breakId, expectedRevision });
   }
 
   async deleteAccount(expectedRevision: number): Promise<MutateResult> {

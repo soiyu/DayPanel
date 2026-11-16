@@ -32,15 +32,45 @@
       }
     },
     {
+      "path": "pages/habit/detail",
+      "style": {
+        "navigationBarTitleText": "习惯详情"
+      }
+    },
+    {
+      "path": "pages/habit/edit",
+      "style": {
+        "navigationBarTitleText": "编辑习惯"
+      }
+    },
+    {
       "path": "pages/task/new",
       "style": {
         "navigationBarTitleText": "新建小事"
       }
     },
     {
+      "path": "pages/tasks/history",
+      "style": {
+        "navigationBarTitleText": "完成历史"
+      }
+    },
+    {
       "path": "pages/journal/edit",
       "style": {
         "navigationBarTitleText": "手记"
+      }
+    },
+    {
+      "path": "pages/statistics/index",
+      "style": {
+        "navigationBarTitleText": "统计"
+      }
+    },
+    {
+      "path": "pages/cards/index",
+      "style": {
+        "navigationBarTitleText": "卡片册"
       }
     },
     {

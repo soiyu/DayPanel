@@ -49,6 +49,7 @@
           v-for="habit in store.planned"
           :key="habit.id"
           class="habit"
+          @tap="openHabit(habit)"
           @longpress="openHabitActions(habit)"
         >
           <view class="habit-main">
@@ -61,10 +62,18 @@
             class="action"
             :class="{ done: store.isDone(habit) }"
             :disabled="store.busy"
-            @tap="onHabit(habit)"
+            @tap.stop="onHabit(habit)"
           >
             {{ store.isDone(habit) ? t('done') : t('record') }}
           </button>
+        </view>
+      </view>
+
+      <view v-if="store.card" class="earned-card" @tap="openCards">
+        <view class="earned-art" :class="`earned-art-${store.card.artwork}`" />
+        <view class="earned-body">
+          <text class="earned-title">{{ t('todayCard') }}</text>
+          <text class="earned-note">{{ store.card.day }} · {{ t('cards') }} ›</text>
         </view>
       </view>
     </template>
@@ -99,6 +108,14 @@ onPullDownRefresh(async () => {
 
 function openNewHabit(): void {
   uni.navigateTo({ url: '/pages/habit/new' });
+}
+
+function openHabit(habit: Habit): void {
+  uni.navigateTo({ url: `/pages/habit/detail?id=${encodeURIComponent(habit.id)}` });
+}
+
+function openCards(): void {
+  uni.navigateTo({ url: '/pages/cards/index' });
 }
 
 function showModal(options: Record<string, unknown>): Promise<any> {
@@ -383,5 +400,40 @@ function errorText(code: string | null): string {
 .action.done {
   background: #ecfdf5;
   color: #047857;
+}
+.earned-card {
+  display: flex;
+  gap: 18rpx;
+  align-items: center;
+  background: #fff;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 24rpx;
+  padding: 16rpx;
+  margin-top: 18rpx;
+}
+.earned-art {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 18rpx;
+}
+.earned-art-0 { background: linear-gradient(135deg, #e0f2fe, #c7d2fe); }
+.earned-art-1 { background: linear-gradient(135deg, #fef3c7, #fecdd3); }
+.earned-art-2 { background: linear-gradient(135deg, #ecfdf5, #a7f3d0); }
+.earned-art-3 { background: linear-gradient(135deg, #f5f3ff, #c4b5fd); }
+.earned-art-4 { background: linear-gradient(135deg, #fff1f2, #fbcfe8); }
+.earned-art-5 { background: linear-gradient(135deg, #f8fafc, #cbd5e1); }
+.earned-body {
+  flex: 1;
+}
+.earned-title {
+  display: block;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+.earned-note {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #64748b;
 }
 </style>

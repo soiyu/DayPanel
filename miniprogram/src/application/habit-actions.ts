@@ -1,5 +1,7 @@
 import {
+  addDays,
   compareDay,
+  daysSince,
   isDayKey,
   parseDay,
   todayKey,
@@ -13,7 +15,6 @@ import {
   isRestOn,
   isScheduled,
   scheduledOn,
-  weekdayMask,
   type Habit,
   type HabitContext,
   type HabitKind,
@@ -52,6 +53,22 @@ export interface CreateHabitInput {
   context?: HabitContext;
   startDay?: DayKey;
 }
+
+export interface UpdateHabitInput {
+  title?: string;
+  target?: number;
+  unit?: string;
+  schedule?: ScheduleKind;
+  weekdays?: number;
+  intervalDays?: number;
+  weeklyGoal?: number;
+  icon?: number;
+  color?: string;
+  frame?: string;
+  context?: HabitContext;
+}
+
+export type BreakKind = 'pause' | 'vacation' | 'skip';
 
 export interface ActionContext {
   today: DayKey;
@@ -321,6 +338,192 @@ export function updateReminderPrefs(
     throw new ValidationError('invalid_digest_minute');
   }
   next.profile.reminders = { ...prefs, ...patch };
+  return next;
+}
+
+function sameRules(a: HabitPlan, b: HabitPlan): boolean {
+  return (
+    a.target === b.target &&
+    a.unit === b.unit &&
+    a.schedule === b.schedule &&
+    a.weekdays === b.weekdays &&
+    a.intervalDays === b.intervalDays &&
+    a.weeklyGoal === b.weeklyGoal
+  );
+}
+
+export function updateHabit(
+  state: UserState,
+  habitId: string,
+  input: UpdateHabitInput,
+  context: ActionContext,
+): UserState {
+  const today = requireToday(context);
+  const next = cloneState(state);
+  const habit = findHabit(next, habitId);
+  if (!habit) throw new ValidationError('habit_missing');
+
+  const hasPlanInput =
+    input.target !== undefined ||
+    input.unit !== undefined ||
+    input.schedule !== undefined ||
+    input.weekdays !== undefined ||
+    input.intervalDays !== undefined ||
+    input.weeklyGoal !== undefined;
+  const current = currentPlan(habit, today);
+  const target = input.target ?? current.target;
+  const unit = (input.unit ?? current.unit).trim();
+  const schedule = input.schedule ?? current.schedule;
+  const weekdays = input.weekdays ?? current.weekdays;
+  const intervalDays = input.intervalDays ?? current.intervalDays;
+  const weeklyGoal = input.weeklyGoal ?? current.weeklyGoal;
+  validatePlan(
+    habit.kind,
+    target,
+    schedule,
+    weekdays,
+    intervalDays,
+    weeklyGoal,
+    unit,
+  );
+
+  if (input.title !== undefined) {
+    const title = input.title.trim();
+    if (!title || title.length > 100) throw new ValidationError('invalid_title');
+    habit.title = title;
+  }
+  if (input.icon !== undefined) {
+    if (!Number.isInteger(input.icon) || input.icon < 0 || input.icon >= 28) {
+      throw new ValidationError('invalid_icon');
+    }
+    habit.icon = input.icon;
+  }
+  if (input.color !== undefined) {
+    if (!HABIT_COLORS.includes(input.color)) throw new ValidationError('invalid_color');
+    habit.color = input.color;
+  }
+  if (input.frame !== undefined) {
+    if (!HABIT_FRAMES.includes(input.frame)) throw new ValidationError('invalid_frame');
+    habit.frame = input.frame;
+  }
+  if (input.context !== undefined) {
+    if (!HABIT_CONTEXTS.includes(input.context)) {
+      throw new ValidationError('invalid_context');
+    }
+    habit.context = input.context;
+  }
+
+  if (!hasPlanInput) return next;
+
+  const candidate: HabitPlan = {
+    effectiveDay: current.effectiveDay,
+    target,
+    unit,
+    schedule,
+    weekdays,
+    intervalDays,
+    weeklyGoal,
+  };
+  const effectiveDay = addDays(today, 1);
+  const existingFutureIndex = habit.plans.findIndex(
+    (plan) => plan.effectiveDay === effectiveDay,
+  );
+  if (sameRules(candidate, current)) {
+    // Reverting the pending values removes a redundant future version.
+    if (existingFutureIndex >= 0) habit.plans.splice(existingFutureIndex, 1);
+    return next;
+  }
+  const nextPlan: HabitPlan = { ...candidate, effectiveDay };
+  if (existingFutureIndex >= 0) habit.plans[existingFutureIndex] = nextPlan;
+  else habit.plans.push(nextPlan);
+  habit.plans.sort((a, b) => compareDay(a.effectiveDay, b.effectiveDay));
+  return next;
+}
+
+function overlaps(a: { startDay: DayKey; endDay: DayKey | null }, b: { startDay: DayKey; endDay: DayKey | null }): boolean {
+  const aEnd = a.endDay ?? '2200-12-31';
+  const bEnd = b.endDay ?? '2200-12-31';
+  return compareDay(a.startDay, bEnd) <= 0 && compareDay(b.startDay, aEnd) <= 0;
+}
+
+export function startBreak(
+  state: UserState,
+  habitId: string,
+  kind: BreakKind,
+  startDay: DayKey,
+  endDay: DayKey | null,
+  context: ActionContext,
+): UserState {
+  const today = requireToday(context);
+  const habit = findHabit(state, habitId);
+  if (!habit) throw new ValidationError('habit_missing');
+  const start = parseDay(startDay);
+  if (compareDay(start, today) > 0) throw new ValidationError('future_day');
+  if (kind === 'pause' && start !== today) {
+    throw new ValidationError('pause_must_start_today');
+  }
+  if (kind === 'skip') {
+    if (endDay !== null && parseDay(endDay) !== start) {
+      throw new ValidationError('skip_single_day');
+    }
+    if (state.days[start]?.entries[habitId] !== undefined) {
+      throw new ValidationError('skip_has_record');
+    }
+  }
+  let end: DayKey | null = null;
+  if (kind === 'vacation') {
+    if (!endDay) throw new ValidationError('vacation_needs_end');
+    end = parseDay(endDay);
+    if (compareDay(end, start) < 0) throw new ValidationError('invalid_break_range');
+    if (daysSince(end, start) > 365) throw new ValidationError('vacation_too_long');
+  }
+  if (kind === 'pause' && endDay) throw new ValidationError('invalid_break_range');
+  if (kind === 'skip') end = start;
+  const overlap = state.breaks.some(
+    (item) =>
+      item.habitId === habitId &&
+      overlaps(
+        { startDay: start, endDay: kind === 'skip' ? start : end },
+        { startDay: item.startDay, endDay: item.endDay },
+      ),
+  );
+  if (overlap) throw new ValidationError('break_overlap');
+  const id = (context.idFactory ?? defaultId)();
+  const breakItem = {
+    id,
+    habitId,
+    startDay: start,
+    endDay: kind === 'skip' ? start : end,
+    kind,
+  };
+  const next = cloneState(state);
+  next.breaks.push(breakItem);
+  return next;
+}
+
+export function endBreak(
+  state: UserState,
+  breakId: string,
+  endDay: DayKey,
+  context: ActionContext,
+): UserState {
+  const today = requireToday(context);
+  const end = parseDay(endDay);
+  if (compareDay(end, today) > 0) throw new ValidationError('future_day');
+  const next = cloneState(state);
+  const item = next.breaks.find((entry) => entry.id === breakId);
+  if (!item) throw new ValidationError('break_missing');
+  if (item.kind !== 'pause') throw new ValidationError('not_pause');
+  if (compareDay(end, item.startDay) < 0) throw new ValidationError('invalid_break_range');
+  item.endDay = end;
+  return next;
+}
+
+export function deleteBreak(state: UserState, breakId: string): UserState {
+  const next = cloneState(state);
+  const item = next.breaks.find((entry) => entry.id === breakId);
+  if (!item) throw new ValidationError('break_missing');
+  next.breaks = next.breaks.filter((entry) => entry.id !== breakId);
   return next;
 }
 

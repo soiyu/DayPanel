@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 import { todayKey, type DayKey } from '../domain/day.ts';
-import type { Note } from '../domain/models.ts';
+import type { Habit, Note } from '../domain/models.ts';
 import {
   GatewayError,
   WechatCloudGateway,
@@ -25,6 +25,7 @@ export const useJournalStore = defineStore('journal', () => {
   const busy = ref(false);
   const error = ref<string | null>(null);
   const cache = new Map<string, Note>();
+  const habits = ref<Habit[]>([]);
 
   const locale = computed<Locale>(() => resolveLocale('system'));
   const tr = (key: Parameters<typeof translate>[1]) =>
@@ -76,6 +77,21 @@ export const useJournalStore = defineStore('journal', () => {
     );
   }
 
+  async function loadHabits(): Promise<void> {
+    if (habits.value.length) return;
+    try {
+      const view = await gateway.today(todayKey());
+      habits.value = view.profile.habits;
+    } catch {
+      habits.value = [];
+    }
+  }
+
+  function habitName(id: string | null): string {
+    if (!id) return '';
+    return habits.value.find((habit) => habit.id === id)?.title ?? '';
+  }
+
   async function loadNote(id: string): Promise<Note | null> {
     const cached = cache.get(id);
     if (cached) return cached;
@@ -93,12 +109,16 @@ export const useJournalStore = defineStore('journal', () => {
   async function create(input: {
     body: string;
     day: DayKey;
+    habitId?: string | null;
   }): Promise<boolean> {
     if (busy.value) return false;
     busy.value = true;
     error.value = null;
     try {
-      await gateway.createNote({ ...input, habitId: null }, revision.value);
+      await gateway.createNote(
+        { ...input, habitId: input.habitId ?? null },
+        revision.value,
+      );
       await load();
       return true;
     } catch (caught) {
@@ -111,7 +131,7 @@ export const useJournalStore = defineStore('journal', () => {
 
   async function update(
     id: string,
-    patch: { body?: string; day?: DayKey },
+    patch: { body?: string; day?: DayKey; habitId?: string | null },
   ): Promise<boolean> {
     if (busy.value) return false;
     busy.value = true;
@@ -151,6 +171,7 @@ export const useJournalStore = defineStore('journal', () => {
     month,
     text,
     notes,
+    habits,
     revision,
     loading,
     busy,
@@ -161,7 +182,9 @@ export const useJournalStore = defineStore('journal', () => {
     setText,
     previousMonth,
     nextMonth,
+    loadHabits,
     loadNote,
+    habitName,
     create,
     update,
     remove,

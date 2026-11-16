@@ -5,7 +5,10 @@
         <text class="eyebrow">{{ store.today }}</text>
         <text class="title">{{ t('tasks') }}</text>
       </view>
-      <button class="ghost" @tap="openNewTask">{{ t('newTask') }}</button>
+      <view class="hero-actions">
+        <button class="ghost secondary-ghost" @tap="openHistory">{{ t('taskHistory') }}</button>
+        <button class="ghost" @tap="openNewTask">{{ t('newTask') }}</button>
+      </view>
     </view>
 
     <view v-if="store.loading && !store.view" class="state">
@@ -83,6 +86,10 @@ function openNewTask(): void {
   uni.navigateTo({ url: '/pages/task/new' });
 }
 
+function openHistory(): void {
+  uni.navigateTo({ url: '/pages/tasks/history' });
+}
+
 function errorText(code: string | null): string {
   if (!code) return t('loadFailed');
   if (code === 'conflict') return '数据已更新，请刷新后重试';
@@ -132,6 +139,15 @@ function openActions(task: SmallTask): void {
   align-items: flex-end;
   justify-content: space-between;
   margin-bottom: 28rpx;
+}
+.hero-actions {
+  display: flex;
+  gap: 10rpx;
+}
+.secondary-ghost {
+  background: #fff;
+  color: #475569;
+  border: 1rpx solid #e2e8f0;
 }
 .eyebrow {
   display: block;

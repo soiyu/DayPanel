@@ -3,12 +3,15 @@ import { defineStore } from 'pinia';
 import { todayKey, type DayKey } from '../domain/day.ts';
 import {
   currentPlan,
+  isRestOn,
   scheduledOn,
   type Habit,
 } from '../domain/models.ts';
 import type {
+  BreakKind,
   CreateHabitInput,
   ReminderPrefsPatch,
+  UpdateHabitInput,
 } from '../application/habit-actions.ts';
 import {
   GatewayError,
@@ -49,6 +52,22 @@ export const useTodayStore = defineStore('today', () => {
   const completedCount = computed(
     () => planned.value.filter((habit) => isDone(habit)).length,
   );
+  const card = computed(() => view.value?.card ?? null);
+
+  function habitById(habitId: string): Habit | null {
+    return view.value?.profile.habits.find((habit) => habit.id === habitId) ?? null;
+  }
+
+  function restFor(habitId: string): boolean {
+    return (
+      view.value?.breaks.some(
+        (item) =>
+          item.habitId === habitId &&
+          item.startDay <= today.value &&
+          (item.endDay === null || item.endDay >= today.value),
+      ) === true
+    );
+  }
 
   function valueOf(habitId: string): number | null {
     const entry = view.value?.day?.entries[habitId];
@@ -143,6 +162,40 @@ export const useTodayStore = defineStore('today', () => {
     );
   }
 
+  async function updateHabit(
+    habitId: string,
+    patch: UpdateHabitInput,
+  ): Promise<boolean> {
+    const snapshot = view.value;
+    if (!snapshot) return false;
+    return mutate((revision) => gateway.updateHabit(habitId, patch, revision));
+  }
+
+  async function startBreak(
+    habitId: string,
+    kind: BreakKind,
+    startDay: DayKey,
+    endDay: DayKey | null = null,
+  ): Promise<boolean> {
+    const snapshot = view.value;
+    if (!snapshot) return false;
+    return mutate((revision) =>
+      gateway.startBreak(habitId, kind, startDay, endDay, revision),
+    );
+  }
+
+  async function endBreak(breakId: string, endDay: DayKey): Promise<boolean> {
+    const snapshot = view.value;
+    if (!snapshot) return false;
+    return mutate((revision) => gateway.endBreak(breakId, endDay, revision));
+  }
+
+  async function deleteBreak(breakId: string): Promise<boolean> {
+    const snapshot = view.value;
+    if (!snapshot) return false;
+    return mutate((revision) => gateway.deleteBreak(breakId, revision));
+  }
+
   async function deleteAccount(): Promise<boolean> {
     const snapshot = view.value;
     if (!snapshot || busy.value) return false;
@@ -170,11 +223,18 @@ export const useTodayStore = defineStore('today', () => {
     tr,
     planned,
     completedCount,
+    card,
+    habitById,
+    restFor,
     valueOf,
     isDone,
     load,
     refresh,
     createHabit,
+    updateHabit,
+    startBreak,
+    endBreak,
+    deleteBreak,
     record,
     clear,
     archive,

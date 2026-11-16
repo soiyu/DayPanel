@@ -15,6 +15,14 @@
         <text class="row-title">{{ t('reminderCenter') }}</text>
         <text class="row-meta">{{ t('reminderDefaults') }}</text>
       </view>
+      <view class="row" @tap="openStats">
+        <text class="row-title">{{ t('statistics') }}</text>
+        <text class="row-meta">7 / 30 / 365</text>
+      </view>
+      <view class="row" @tap="openCards">
+        <text class="row-title">{{ t('cards') }}</text>
+        <text class="row-meta">›</text>
+      </view>
       <view class="row">
         <text class="row-title">云端状态</text>
         <text class="row-meta">{{ store.view ? '已连接' : store.error ? '未连接' : '加载中' }}</text>
@@ -58,6 +66,14 @@ function openPrivacy(): void {
 
 function openReminders(): void {
   uni.navigateTo({ url: '/pages/settings/reminders' });
+}
+
+function openStats(): void {
+  uni.navigateTo({ url: '/pages/statistics/index' });
+}
+
+function openCards(): void {
+  uni.navigateTo({ url: '/pages/cards/index' });
 }
 
 async function confirmDelete(): Promise<void> {

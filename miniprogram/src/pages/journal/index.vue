@@ -46,7 +46,9 @@
       >
         <view class="note-head">
           <text class="note-date">{{ note.day }}</text>
-          <text v-if="note.habitId" class="note-habit">关联习惯</text>
+          <text v-if="note.habitId" class="note-habit">
+            {{ store.habitName(note.habitId) || '关联习惯' }}
+          </text>
         </view>
         <text class="note-body">{{ note.body }}</text>
       </view>
@@ -66,6 +68,7 @@ const search = ref(store.text);
 
 onShow(() => {
   void store.load();
+  void store.loadHabits();
 });
 
 function openNewNote(): void {
