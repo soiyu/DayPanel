@@ -289,10 +289,28 @@ async function persist(openid, expected, previous, next) {
 }
 
 async function removeAll(collection, openid) {
-  try {
-    await db.collection(collection).where({ _openid: openid }).remove();
-  } catch {
-    // an empty/missing collection is acceptable
+  // Delete in batches of 100 so a large account deletion cannot silently stop
+  // after the first page. Re-running is safe when a previous attempt failed.
+  for (;;) {
+    let batch;
+    try {
+      batch = await db
+        .collection(collection)
+        .where({ _openid: openid })
+        .limit(100)
+        .get();
+    } catch {
+      return;
+    }
+    if (!batch?.data?.length) return;
+    for (const row of batch.data) {
+      try {
+        await db.collection(collection).doc(row._id).remove();
+      } catch {
+        // retry the next invocation; tombstone keeps the account in deleting state
+      }
+    }
+    if (batch.data.length < 100) return;
   }
 }
 

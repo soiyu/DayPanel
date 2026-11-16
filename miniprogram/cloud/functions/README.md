@@ -14,15 +14,23 @@ Cloud functions are copied to `dist/build/mp-weixin/cloudfunctions/` and
 
 ## api
 
-P1 actions: `today`, `createHabit`, `recordHabit`, `clearHabit`,
-`archiveHabit`, `deleteHabit`, `updateReminderPrefs`, `deleteAccount`.
+P1 actions: `today`, `tasks`, `notes`, `createHabit`, `recordHabit`,
+`clearHabit`, `archiveHabit`, `deleteHabit`, `updateReminderPrefs`,
+`createTask`, `completeTask`, `archiveTask`, `deleteTask`, `createNote`,
+`updateNote`, `deleteNote`, `reminderStatus`, `createReminderJob`,
+`deleteAccount`.
 
 - Uses `cloud.getWXContext().OPENID`; never trusts a client openid.
-- Collections: `dp_meta`, `dp_profile`, `dp_days`, plus empty placeholders for
-  P2 collections.
-- Writes profile/day rows and increments `dp_meta.revision` in a transaction.
+- Collections: `dp_meta`, `dp_profile`, `dp_days`, `dp_tasks`, `dp_task_days`,
+  `dp_notes`, `dp_jobs`.
+- Writes profile/day/task/task-day/note rows and increments
+  `dp_meta.revision` in a transaction.
+- P1 currently loads the whole profile/day/task/note state inside one action;
+  this is intentionally small-scale and must be split into page-level reads
+  before larger datasets.
 - Account deletion keeps a tombstone in `dp_meta` (`deleted: true`) and removes
-  business collections; retries are allowed when the tombstone exists.
+  business collections in batches; retries are allowed when the tombstone
+  exists.
 
 The function requires the `wx-server-sdk` dependency from its own
 `package.json`; the bundle externalizes it.

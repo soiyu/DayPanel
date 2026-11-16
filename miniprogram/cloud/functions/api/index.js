@@ -751,9 +751,21 @@ async function persist(openid, expected, previous, next) {
   }
 }
 async function removeAll(collection, openid) {
-  try {
-    await db.collection(collection).where({ _openid: openid }).remove();
-  } catch {
+  for (; ; ) {
+    let batch;
+    try {
+      batch = await db.collection(collection).where({ _openid: openid }).limit(100).get();
+    } catch {
+      return;
+    }
+    if (!batch?.data?.length) return;
+    for (const row of batch.data) {
+      try {
+        await db.collection(collection).doc(row._id).remove();
+      } catch {
+      }
+    }
+    if (batch.data.length < 100) return;
   }
 }
 async function deleteAccount(openid, expected) {
