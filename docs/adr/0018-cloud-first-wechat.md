@@ -4,7 +4,7 @@
 
 本 ADR 修订 [ADR0017](0017-wechat-mini-program.md) 的本地优先方案；ADR0017 保留为初始提议记录。
 
-状态：提议，待确认 Plus 是否收费、提醒降级方式和云成本后实施。
+状态：云优先/提醒限制/无桌面/无迁移仍有效；Plus/虚拟支付部分被 [ADR0019](0019-free-ads-reminders-no-export.md) 取代（v1 全免费、后续广告）。
 
 ## 决策
 
