@@ -463,6 +463,23 @@ function deleteTask(state, taskId) {
   }
   return next;
 }
+function updateTask(state, taskId, input) {
+  const next = cloneState(state);
+  const task = next.tasks.find((item) => item.id === taskId);
+  if (!task) throw new ValidationError("task_missing");
+  if (input.title !== void 0) {
+    const title = input.title.trim();
+    if (!title || title.length > 100) throw new ValidationError("invalid_title");
+    task.title = title;
+  }
+  if (input.dueDay !== void 0) {
+    if (task.resident && input.dueDay !== null) {
+      throw new ValidationError("resident_has_due");
+    }
+    task.dueDay = input.dueDay === null ? null : parseDay(input.dueDay);
+  }
+  return next;
+}
 
 // src/application/journal-actions.ts
 function normalizeBody(body) {
@@ -529,6 +546,7 @@ function filterNotes(state, query) {
     if (month && !note.day.startsWith(`${month}-`)) return false;
     if (day && note.day !== day) return false;
     if (habitId && note.habitId !== habitId) return false;
+    if (query.independent === true && note.habitId !== null) return false;
     if (text && !note.body.toLowerCase().includes(text)) return false;
     return true;
   }).sort((a, b) => {
@@ -638,6 +656,31 @@ function ensureCard(state, day) {
     evidence: JSON.stringify(evidence)
   };
   return { ...state, cards: [...state.cards, card] };
+}
+function cardForDay(state, day) {
+  return state.cards.find((card) => card.day === day) ?? null;
+}
+function setCardFavorite(state, day, favorite) {
+  const card = cardForDay(state, day);
+  if (!card) throw new RangeError("Card missing");
+  return {
+    ...state,
+    cards: state.cards.map(
+      (item) => item.day === day ? { ...item, favorite } : item
+    )
+  };
+}
+function saveCardReflection(state, day, reflection) {
+  const card = cardForDay(state, day);
+  if (!card) throw new RangeError("Card missing");
+  const text = reflection.trim();
+  if (text.length > 1e4) throw new RangeError("Reflection too long");
+  return {
+    ...state,
+    cards: state.cards.map(
+      (item) => item.day === day ? { ...item, reflection: text } : item
+    )
+  };
 }
 
 // cloud/functions/api/index.ts
@@ -1054,6 +1097,20 @@ async function mutate(openid, event) {
       case "updateReminderPrefs":
         next = updateReminderPrefs(loaded.state, event.patch ?? {});
         break;
+      case "favoriteCard":
+        next = setCardFavorite(
+          loaded.state,
+          String(event.day ?? ""),
+          event.favorite === true
+        );
+        break;
+      case "saveReflection":
+        next = saveCardReflection(
+          loaded.state,
+          String(event.day ?? ""),
+          String(event.reflection ?? "")
+        );
+        break;
       case "createTask":
         next = createTask(loaded.state, event.input, ctx);
         break;
@@ -1075,6 +1132,13 @@ async function mutate(openid, event) {
         break;
       case "deleteTask":
         next = deleteTask(loaded.state, String(event.taskId ?? ""));
+        break;
+      case "updateTask":
+        next = updateTask(
+          loaded.state,
+          String(event.taskId ?? ""),
+          event.patch ?? {}
+        );
         break;
       case "createNote":
         next = createNote(loaded.state, event.input, ctx);

@@ -12,6 +12,11 @@ export interface CreateTaskInput {
   dueDay?: DayKey | null;
 }
 
+export interface UpdateTaskInput {
+  title?: string;
+  dueDay?: DayKey | null;
+}
+
 function uniqueId(state: UserState, id: string): boolean {
   return (
     !state.tasks.some((task) => task.id === id) &&
@@ -114,4 +119,26 @@ export function taskDoneOn(
 ): boolean {
   if (task.resident) return (taskDays[day] ?? []).includes(task.id);
   return task.completedDay === day;
+}
+
+export function updateTask(
+  state: UserState,
+  taskId: string,
+  input: UpdateTaskInput,
+): UserState {
+  const next = cloneState(state);
+  const task = next.tasks.find((item) => item.id === taskId);
+  if (!task) throw new ValidationError('task_missing');
+  if (input.title !== undefined) {
+    const title = input.title.trim();
+    if (!title || title.length > 100) throw new ValidationError('invalid_title');
+    task.title = title;
+  }
+  if (input.dueDay !== undefined) {
+    if (task.resident && input.dueDay !== null) {
+      throw new ValidationError('resident_has_due');
+    }
+    task.dueDay = input.dueDay === null ? null : parseDay(input.dueDay);
+  }
+  return next;
 }

@@ -102,3 +102,15 @@ test('journal: month helpers and delete', () => {
   assert.equal(deleted.notes.length, 1);
   assert.throws(() => deleteNote(deleted, 'n1'), /note_missing/);
 });
+test('journal: independent filter excludes habit-linked notes', () => {
+  const ctx = context();
+  let state = createHabit(
+    emptyState(),
+    { title: 'Read', kind: 'check', target: 1000 },
+    { ...ctx, idFactory: () => 'h1' },
+  );
+  state = createNote(state, { body: 'Linked', habitId: 'h1' }, ctx);
+  state = createNote(state, { body: 'Standalone' }, ctx);
+  assert.equal(filterNotes(state, { independent: true }).length, 1);
+  assert.equal(filterNotes(state, { independent: true })[0].body, 'Standalone');
+});

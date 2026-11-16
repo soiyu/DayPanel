@@ -11,6 +11,8 @@ import {
   cardForDay,
   ensureCard,
   evidenceOf,
+  saveCardReflection,
+  setCardFavorite,
 } from '../src/domain/achievement.ts';
 import { emptyState } from '../src/domain/models.ts';
 
@@ -94,4 +96,21 @@ test('card: ensureCard is idempotent and artwork is stable', () => {
   assert.equal(twice.cards.length, 1);
   assert.equal(twice.cards[0].artwork, once.cards[0].artwork);
   assert.ok(once.cards[0].artwork >= 0 && once.cards[0].artwork < 6);
+});
+
+test('card: favorite and reflection are explicit, persisted updates', () => {
+  const ctx = context();
+  let state = createHabit(
+    emptyState(),
+    { title: 'Read', kind: 'check', target: 1000 },
+    ctx,
+  );
+  state = recordHabit(state, 'h1', TODAY, 1000, ctx);
+  state = ensureCard(state, TODAY);
+  const favorite = setCardFavorite(state, TODAY, true);
+  assert.equal(cardForDay(favorite, TODAY)!.favorite, true);
+  const reflection = saveCardReflection(favorite, TODAY, '  A small step  ');
+  assert.equal(cardForDay(reflection, TODAY)!.reflection, 'A small step');
+  assert.throws(() => setCardFavorite(state, '2026-11-01', true), /Card missing/);
+  assert.throws(() => saveCardReflection(state, TODAY, 'x'.repeat(10_001)), /too long/);
 });

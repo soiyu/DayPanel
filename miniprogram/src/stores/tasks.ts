@@ -105,6 +105,14 @@ export const useTasksStore = defineStore('tasks', () => {
     return mutate((revision) => gateway.archiveTask(task.id, true, revision));
   }
 
+  async function update(
+    task: SmallTask,
+    patch: { title?: string; dueDay?: DayKey | null },
+  ): Promise<boolean> {
+    if (!view.value) return false;
+    return mutate((revision) => gateway.updateTask(task.id, patch, revision));
+  }
+
   async function remove(task: SmallTask): Promise<boolean> {
     if (!view.value) return false;
     return mutate((revision) => gateway.deleteTask(task.id, revision));
@@ -124,6 +132,7 @@ export const useTasksStore = defineStore('tasks', () => {
     load,
     create,
     toggle,
+    update,
     archive,
     remove,
   };

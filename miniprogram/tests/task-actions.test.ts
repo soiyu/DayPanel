@@ -6,6 +6,7 @@ import {
   createTask,
   deleteTask,
   taskDoneOn,
+  updateTask,
   type CreateTaskInput,
 } from '../src/application/task-actions.ts';
 import type { ActionContext } from '../src/application/habit-actions.ts';
@@ -108,4 +109,30 @@ test('task: create input type is explicit and id is injectable', () => {
   const state = createTask(emptyState(), input, ctx);
   assert.equal(state.tasks[0].id, 't1');
   assert.equal(state.tasks[0].dueDay, null);
+});
+test('task: edit title and planned date without changing completion facts', () => {
+  const ctx = context();
+  const created = createTask(
+    emptyState(),
+    { title: 'Old', dueDay: TODAY },
+    ctx,
+  );
+  const done = completeTask(created, 't1', true, TODAY, ctx);
+  const edited = updateTask(done, 't1', {
+    title: 'New',
+    dueDay: '2026-11-20',
+  });
+  assert.equal(edited.tasks[0].title, 'New');
+  assert.equal(edited.tasks[0].dueDay, '2026-11-20');
+  assert.equal(edited.tasks[0].completedDay, TODAY);
+
+  const resident = createTask(
+    emptyState(),
+    { title: 'Resident', resident: true },
+    { ...ctx, idFactory: () => 't2' },
+  );
+  assert.throws(
+    () => updateTask(resident, 't2', { dueDay: TODAY }),
+    /resident_has_due/,
+  );
 });

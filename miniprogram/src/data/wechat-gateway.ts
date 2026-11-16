@@ -46,6 +46,11 @@ export interface NotesView {
   notes: Note[];
 }
 
+export interface CardsView {
+  revision: number;
+  cards: AchievementCard[];
+}
+
 export interface ReminderJobView {
   id: string;
   kind: 'once' | 'digest';
@@ -82,7 +87,17 @@ export interface CloudGateway {
   notes(query: NoteQuery): Promise<NotesView>;
   reminderStatus(day: DayKey): Promise<ReminderJobView[]>;
   stats(rangeDays: number): Promise<HabitStat[]>;
-  cards(): Promise<AchievementCard[]>;
+  cards(): Promise<CardsView>;
+  favoriteCard(
+    day: DayKey,
+    favorite: boolean,
+    expectedRevision: number,
+  ): Promise<MutateResult>;
+  saveReflection(
+    day: DayKey,
+    reflection: string,
+    expectedRevision: number,
+  ): Promise<MutateResult>;
   createReminderJob(input: CreateReminderJobInput): Promise<{ jobId: string }>;
   createHabit(input: CreateHabitInput, expectedRevision: number): Promise<MutateResult>;
   recordHabit(
@@ -122,6 +137,11 @@ export interface CloudGateway {
     expectedRevision: number,
   ): Promise<MutateResult>;
   deleteTask(taskId: string, expectedRevision: number): Promise<MutateResult>;
+  updateTask(
+    taskId: string,
+    patch: { title?: string; dueDay?: DayKey | null },
+    expectedRevision: number,
+  ): Promise<MutateResult>;
   createNote(input: CreateNoteInput, expectedRevision: number): Promise<MutateResult>;
   updateNote(
     noteId: string,
@@ -230,13 +250,48 @@ export class WechatCloudGateway implements CloudGateway {
     });
   }
 
+  async updateTask(
+    taskId: string,
+    patch: { title?: string; dueDay?: DayKey | null },
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('updateTask', { taskId, patch, expectedRevision });
+  }
+
   async deleteTask(taskId: string, expectedRevision: number): Promise<MutateResult> {
     return call<MutateResult>('deleteTask', { taskId, expectedRevision });
   }
 
-  async cards(): Promise<AchievementCard[]> {
-    const result = await call<{ cards: AchievementCard[] }>('cards', {});
-    return result.cards;
+  async favoriteCard(
+    day: DayKey,
+    favorite: boolean,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('favoriteCard', {
+      day,
+      favorite,
+      expectedRevision,
+    });
+  }
+
+  async saveReflection(
+    day: DayKey,
+    reflection: string,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('saveReflection', {
+      day,
+      reflection,
+      expectedRevision,
+    });
+  }
+
+  async cards(): Promise<CardsView> {
+    const result = await call<{ revision: number; cards: AchievementCard[] }>(
+      'cards',
+      {},
+    );
+    return { revision: result.revision, cards: result.cards };
   }
 
   async stats(rangeDays: number): Promise<HabitStat[]> {

@@ -95,3 +95,35 @@ export function evidenceOf(card: AchievementCard): CardEvidenceItem[] {
     return [];
   }
 }
+
+export function setCardFavorite(
+  state: UserState,
+  day: DayKey,
+  favorite: boolean,
+): UserState {
+  const card = cardForDay(state, day);
+  if (!card) throw new RangeError('Card missing');
+  return {
+    ...state,
+    cards: state.cards.map((item) =>
+      item.day === day ? { ...item, favorite } : item,
+    ),
+  };
+}
+
+export function saveCardReflection(
+  state: UserState,
+  day: DayKey,
+  reflection: string,
+): UserState {
+  const card = cardForDay(state, day);
+  if (!card) throw new RangeError('Card missing');
+  const text = reflection.trim();
+  if (text.length > 10_000) throw new RangeError('Reflection too long');
+  return {
+    ...state,
+    cards: state.cards.map((item) =>
+      item.day === day ? { ...item, reflection: text } : item,
+    ),
+  };
+}

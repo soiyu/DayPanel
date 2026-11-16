@@ -22,6 +22,7 @@ export interface NoteQuery {
   month?: string | null;
   day?: DayKey | null;
   habitId?: string | null;
+  independent?: boolean;
   text?: string;
 }
 
@@ -116,6 +117,7 @@ export function filterNotes(state: UserState, query: NoteQuery): Note[] {
       if (month && !note.day.startsWith(`${month}-`)) return false;
       if (day && note.day !== day) return false;
       if (habitId && note.habitId !== habitId) return false;
+      if (query.independent === true && note.habitId !== null) return false;
       if (text && !note.body.toLowerCase().includes(text)) return false;
       return true;
     })

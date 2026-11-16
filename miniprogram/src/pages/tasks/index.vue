@@ -35,6 +35,7 @@
             :key="task.id"
             class="task"
             :class="{ done: store.isDone(task) }"
+            @tap="openTask(task)"
             @longpress="openActions(task)"
           >
             <view class="task-main">
@@ -54,6 +55,7 @@
             :key="task.id"
             class="task"
             :class="{ done: store.isDone(task) }"
+            @tap="openTask(task)"
             @longpress="openActions(task)"
           >
             <view class="task-main">
@@ -88,6 +90,10 @@ function openNewTask(): void {
 
 function openHistory(): void {
   uni.navigateTo({ url: '/pages/tasks/history' });
+}
+
+function openTask(task: SmallTask): void {
+  uni.navigateTo({ url: `/pages/task/detail?id=${encodeURIComponent(task.id)}` });
 }
 
 function errorText(code: string | null): string {

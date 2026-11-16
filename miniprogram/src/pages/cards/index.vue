@@ -27,6 +27,14 @@
           <text class="card-label">{{ t('cardEvidence') }}</text>
           <text class="card-titles">{{ evidenceTitles(card) }}</text>
           <text v-if="card.reflection" class="reflection">{{ card.reflection }}</text>
+          <view class="card-actions">
+            <button class="mini" :disabled="store.busy" @tap="toggleFavorite(card)">
+              {{ card.favorite ? t('favoriteOn') : t('favorite') }}
+            </button>
+            <button class="mini" :disabled="store.busy" @tap="editReflection(card)">
+              {{ t('reflection') }}
+            </button>
+          </view>
         </view>
       </view>
     </view>
@@ -52,6 +60,35 @@ function evidenceTitles(card: AchievementCard): string {
   return evidenceOf(card)
     .map((item) => item.title)
     .join(' · ');
+}
+
+function showModal(options: Record<string, unknown>): Promise<any> {
+  return new Promise((resolve, reject) => {
+    uni.showModal({
+      ...options,
+      success: resolve,
+      fail: reject,
+    } as any);
+  });
+}
+
+async function toggleFavorite(card: AchievementCard): Promise<void> {
+  const ok = await store.favorite(card);
+  if (!ok) uni.showToast({ title: t('loadFailed'), icon: 'none' });
+}
+
+async function editReflection(card: AchievementCard): Promise<void> {
+  const result = await showModal({
+    title: t('reflection'),
+    content: card.reflection,
+    editable: true,
+    placeholderText: '写一点当时的想法…',
+    confirmText: t('save'),
+    cancelText: t('cancel'),
+  });
+  if (!result.confirm) return;
+  const ok = await store.reflect(card, String(result.content ?? ''));
+  if (!ok) uni.showToast({ title: t('loadFailed'), icon: 'none' });
 }
 </script>
 
@@ -165,5 +202,20 @@ function evidenceTitles(card: AchievementCard): string {
   font-size: 24rpx;
   color: #64748b;
   line-height: 1.6;
+}
+.card-actions {
+  display: flex;
+  gap: 10rpx;
+  margin-top: 14rpx;
+}
+.mini {
+  flex: 1;
+  background: #f8fafc;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  line-height: 1;
+  padding: 14rpx 0;
+  color: #475569;
 }
 </style>

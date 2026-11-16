@@ -21,6 +21,12 @@
       />
     </view>
 
+    <view class="filter-row">
+      <picker :range="filterOptions" :value="filterIndex" @change="onFilterChange">
+        <view class="filter-pill">{{ filterOptions[filterIndex] }}</view>
+      </picker>
+    </view>
+
     <view v-if="store.loading && store.notes.length === 0" class="state">
       <text>{{ t('loading') }}</text>
     </view>
@@ -57,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { useJournalStore } from '../../stores/journal.ts';
 import type { Note } from '../../domain/models.ts';
@@ -66,10 +72,29 @@ const store = useJournalStore();
 const t = (key: Parameters<typeof store.tr>[0]) => store.tr(key);
 const search = ref(store.text);
 
+const filterOptions = computed(() => [
+  '全部关联',
+  '不关联习惯',
+  ...store.habits.map((habit) => habit.title),
+]);
+const filterIds = computed<(string | null)[]>(() => [
+  null,
+  '__none__',
+  ...store.habits.map((habit) => habit.id),
+]);
+const filterIndex = computed(() =>
+  Math.max(0, filterIds.value.indexOf(store.habitFilter)),
+);
+
 onShow(() => {
   void store.load();
   void store.loadHabits();
 });
+
+function onFilterChange(event: any): void {
+  const index = Number(event.detail.value);
+  store.setHabitFilter(filterIds.value[index] ?? null);
+}
 
 function openNewNote(): void {
   uni.navigateTo({ url: '/pages/journal/edit' });
@@ -167,6 +192,18 @@ async function confirmDelete(note: Note): Promise<void> {
   font-weight: 700;
   min-width: 150rpx;
   text-align: center;
+}
+.filter-row {
+  display: flex;
+  margin-bottom: 20rpx;
+}
+.filter-pill {
+  background: #fff;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 999rpx;
+  padding: 10rpx 20rpx;
+  font-size: 23rpx;
+  color: #475569;
 }
 .search {
   flex: 1;

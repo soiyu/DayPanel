@@ -19,6 +19,7 @@ export const useJournalStore = defineStore('journal', () => {
   const today = ref<DayKey>(todayKey());
   const month = ref(currentMonth(today.value));
   const text = ref('');
+  const habitFilter = ref<string | null>(null);
   const notes = ref<Note[]>([]);
   const revision = ref(0);
   const loading = ref(false);
@@ -40,6 +41,8 @@ export const useJournalStore = defineStore('journal', () => {
       const view: NotesView = await gateway.notes({
         month: month.value || null,
         text: text.value.trim() || undefined,
+        habitId: habitFilter.value === '__none__' ? null : habitFilter.value,
+        independent: habitFilter.value === '__none__',
       });
       notes.value = view.notes;
       revision.value = view.revision;
@@ -58,6 +61,11 @@ export const useJournalStore = defineStore('journal', () => {
 
   function setText(value: string): void {
     text.value = value;
+    void load();
+  }
+
+  function setHabitFilter(value: string | null): void {
+    habitFilter.value = value;
     void load();
   }
 
@@ -170,6 +178,7 @@ export const useJournalStore = defineStore('journal', () => {
     today,
     month,
     text,
+    habitFilter,
     notes,
     habits,
     revision,
@@ -180,6 +189,7 @@ export const useJournalStore = defineStore('journal', () => {
     load,
     setMonth,
     setText,
+    setHabitFilter,
     previousMonth,
     nextMonth,
     loadHabits,

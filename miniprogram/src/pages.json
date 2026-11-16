@@ -56,6 +56,12 @@
       }
     },
     {
+      "path": "pages/task/detail",
+      "style": {
+        "navigationBarTitleText": "小事详情"
+      }
+    },
+    {
       "path": "pages/journal/edit",
       "style": {
         "navigationBarTitleText": "手记"

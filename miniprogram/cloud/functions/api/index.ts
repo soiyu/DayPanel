@@ -30,6 +30,7 @@ import {
   completeTask,
   createTask,
   deleteTask,
+  updateTask,
 } from '../../../src/application/task-actions.ts';
 import {
   createNote,
@@ -38,7 +39,11 @@ import {
   updateNote,
 } from '../../../src/application/journal-actions.ts';
 import { habitStats } from '../../../src/domain/stats.ts';
-import { ensureCard } from '../../../src/domain/achievement.ts';
+import {
+  ensureCard,
+  saveCardReflection,
+  setCardFavorite,
+} from '../../../src/domain/achievement.ts';
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -515,6 +520,20 @@ async function mutate(openid, event) {
       case 'updateReminderPrefs':
         next = updateReminderPrefs(loaded.state, event.patch ?? {});
         break;
+      case 'favoriteCard':
+        next = setCardFavorite(
+          loaded.state,
+          String(event.day ?? ''),
+          event.favorite === true,
+        );
+        break;
+      case 'saveReflection':
+        next = saveCardReflection(
+          loaded.state,
+          String(event.day ?? ''),
+          String(event.reflection ?? ''),
+        );
+        break;
       case 'createTask':
         next = createTask(loaded.state, event.input, ctx);
         break;
@@ -536,6 +555,13 @@ async function mutate(openid, event) {
         break;
       case 'deleteTask':
         next = deleteTask(loaded.state, String(event.taskId ?? ''));
+        break;
+      case 'updateTask':
+        next = updateTask(
+          loaded.state,
+          String(event.taskId ?? ''),
+          event.patch ?? {},
+        );
         break;
       case 'createNote':
         next = createNote(loaded.state, event.input, ctx);
