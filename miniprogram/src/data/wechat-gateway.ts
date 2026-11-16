@@ -22,6 +22,7 @@ import type {
   UpdateNoteInput,
 } from '../application/journal-actions.ts';
 import type { HabitStat } from '../domain/stats.ts';
+import type { Insights, InsightRange } from '../domain/insights.ts';
 
 export interface TodayView {
   revision: number;
@@ -88,6 +89,7 @@ export interface CloudGateway {
   reminderStatus(day: DayKey): Promise<ReminderJobView[]>;
   stats(rangeDays: number): Promise<HabitStat[]>;
   cards(): Promise<CardsView>;
+  insights(range: InsightRange): Promise<Insights>;
   favoriteCard(
     day: DayKey,
     favorite: boolean,
@@ -284,6 +286,11 @@ export class WechatCloudGateway implements CloudGateway {
       reflection,
       expectedRevision,
     });
+  }
+
+  async insights(range: InsightRange): Promise<Insights> {
+    const result = await call<{ insights: Insights }>('insights', { range });
+    return result.insights;
   }
 
   async cards(): Promise<CardsView> {

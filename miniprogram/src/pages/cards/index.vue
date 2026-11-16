@@ -34,10 +34,17 @@
             <button class="mini" :disabled="store.busy" @tap="editReflection(card)">
               {{ t('reflection') }}
             </button>
+            <button class="mini" @tap="share(card)">{{ t('sharePoster') }}</button>
           </view>
         </view>
       </view>
     </view>
+
+    <canvas
+      canvas-id="posterCanvas"
+      class="poster-canvas"
+      style="width: 600px; height: 800px;"
+    />
   </view>
 </template>
 
@@ -47,6 +54,7 @@ import { useCardsStore } from '../../stores/cards.ts';
 import { evidenceOf } from '../../domain/achievement.ts';
 import type { AchievementCard } from '../../domain/models.ts';
 import { useTodayStore } from '../../stores/today.ts';
+import { shareCardPoster } from '../../platform/wechat/share-poster.ts';
 
 const store = useCardsStore();
 const today = useTodayStore();
@@ -75,6 +83,14 @@ function showModal(options: Record<string, unknown>): Promise<any> {
 async function toggleFavorite(card: AchievementCard): Promise<void> {
   const ok = await store.favorite(card);
   if (!ok) uni.showToast({ title: t('loadFailed'), icon: 'none' });
+}
+
+async function share(card: AchievementCard): Promise<void> {
+  try {
+    await shareCardPoster(card);
+  } catch (error) {
+    uni.showToast({ title: '分享图生成失败', icon: 'none' });
+  }
 }
 
 async function editReflection(card: AchievementCard): Promise<void> {
@@ -207,6 +223,14 @@ async function editReflection(card: AchievementCard): Promise<void> {
   display: flex;
   gap: 10rpx;
   margin-top: 14rpx;
+}
+.poster-canvas {
+  position: fixed;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 .mini {
   flex: 1;

@@ -23,6 +23,10 @@
         <text class="row-title">{{ t('cards') }}</text>
         <text class="row-meta">›</text>
       </view>
+      <view class="row" @tap="openInsights">
+        <text class="row-title">{{ t('insightsTitle') }}</text>
+        <text class="row-meta">30 / 90 / 365</text>
+      </view>
       <view class="row">
         <text class="row-title">云端状态</text>
         <text class="row-meta">{{ store.view ? '已连接' : store.error ? '未连接' : '加载中' }}</text>
@@ -74,6 +78,10 @@ function openStats(): void {
 
 function openCards(): void {
   uni.navigateTo({ url: '/pages/cards/index' });
+}
+
+function openInsights(): void {
+  uni.navigateTo({ url: '/pages/insights/index' });
 }
 
 async function confirmDelete(): Promise<void> {

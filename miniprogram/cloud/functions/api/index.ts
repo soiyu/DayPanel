@@ -39,6 +39,7 @@ import {
   updateNote,
 } from '../../../src/application/journal-actions.ts';
 import { habitStats } from '../../../src/domain/stats.ts';
+import { insights } from '../../../src/domain/insights.ts';
 import {
   ensureCard,
   saveCardReflection,
@@ -636,6 +637,16 @@ export async function main(event) {
         cards: [...loaded.state.cards].sort((a, b) =>
           String(b.day).localeCompare(String(a.day)),
         ),
+      };
+    }
+    if (event?.action === 'insights') {
+      const today = event?.today ? parseDay(event.today) : todayKey();
+      const range = Number(event?.range ?? 30);
+      const loaded = await loadUser(OPENID, today);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        insights: insights(loaded.state, range, today),
       };
     }
     if (event?.action === 'stats') {

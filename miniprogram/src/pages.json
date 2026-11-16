@@ -74,6 +74,12 @@
       }
     },
     {
+      "path": "pages/insights/index",
+      "style": {
+        "navigationBarTitleText": "深度洞察"
+      }
+    },
+    {
       "path": "pages/cards/index",
       "style": {
         "navigationBarTitleText": "卡片册"
