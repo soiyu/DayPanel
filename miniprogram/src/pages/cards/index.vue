@@ -19,9 +19,12 @@
 
     <view v-else class="list">
       <view v-for="card in store.cards" :key="card.day" class="card">
-        <view class="art" :class="`art-${card.artwork}`">
-          <text class="art-day">{{ card.day }}</text>
-          <text class="art-mark">DayPanel</text>
+        <view class="art">
+          <CardArt :artwork="card.artwork" />
+          <view class="art-overlay">
+            <text class="art-day">{{ card.day }}</text>
+            <text class="art-mark">DayPanel</text>
+          </view>
         </view>
         <view class="card-body">
           <text class="card-label">{{ t('cardEvidence') }}</text>
@@ -56,6 +59,7 @@ import { evidenceOf } from '../../domain/achievement.ts';
 import type { AchievementCard } from '../../domain/models.ts';
 import { useTodayStore } from '../../stores/today.ts';
 import { shareCardPoster } from '../../platform/wechat/share-poster.ts';
+import CardArt from '../../components/CardArt.vue';
 
 const store = useCardsStore();
 const today = useTodayStore();
@@ -174,19 +178,22 @@ const themeClass = useThemeClass();
   box-shadow: 0 10rpx 30rpx var(--dp-shadow);
 }
 .art {
-  min-height: 220rpx;
+  position: relative;
+  height: 260rpx;
+  overflow: hidden;
+}
+.art-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   padding: 22rpx;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
 }
-.art-0 { background: linear-gradient(135deg, #e0f2fe, #bfdbfe 55%, #c7d2fe); }
-.art-1 { background: linear-gradient(135deg, #fef3c7, #fed7aa 55%, #fecdd3); }
-.art-2 { background: linear-gradient(135deg, #ecfdf5, #bbf7d0 55%, #a7f3d0); }
-.art-3 { background: linear-gradient(135deg, #f5f3ff, #ddd6fe 55%, #c4b5fd); }
-.art-4 { background: linear-gradient(135deg, #fff1f2, #fecdd3 55%, #fbcfe8); }
-.art-5 { background: linear-gradient(135deg, #f8fafc, #e2e8f0 55%, #cbd5e1); }
 .art-day {
   font-size: 22rpx;
   color: var(--dp-ink-3);

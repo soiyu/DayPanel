@@ -52,6 +52,9 @@
           @tap="openHabit(habit)"
           @longpress="openHabitActions(habit)"
         >
+          <view class="habit-icon-wrap">
+            <image class="habit-icon" :src="habitIconSrc(habit.icon)" mode="aspectFit" />
+          </view>
           <view class="habit-main">
             <text class="habit-title">{{ habit.title }}</text>
             <text class="habit-meta">
@@ -70,7 +73,9 @@
       </view>
 
       <view v-if="store.card" class="earned-card" @tap="openCards">
-        <view class="earned-art" :class="`earned-art-${store.card.artwork}`" />
+        <view class="earned-art">
+          <CardArt :artwork="store.card.artwork" compact />
+        </view>
         <view class="earned-body">
           <text class="earned-title">{{ t('todayCard') }}</text>
           <text class="earned-note">{{ store.card.day }} · {{ t('cards') }} ›</text>
@@ -87,6 +92,8 @@ import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
 import { currentPlan, type Habit } from '../../domain/models.ts';
 import { countText, parseCount, parseQuantity, quantityText } from '../../domain/quantity.ts';
+import CardArt from '../../components/CardArt.vue';
+import { habitIconSrc } from '../../domain/icons.ts';
 
 const store = useTodayStore();
 
@@ -374,6 +381,19 @@ const themeClass = useThemeClass();
   gap: 20rpx;
   box-shadow: 0 8rpx 24rpx var(--dp-shadow-soft);
 }
+.habit-icon-wrap {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: var(--dp-icon-radius);
+  border: var(--dp-icon-border);
+  overflow: hidden;
+  flex: 0 0 76rpx;
+  box-sizing: border-box;
+}
+.habit-icon {
+  width: 100%;
+  height: 100%;
+}
 .habit-main {
   flex: 1;
   min-width: 0;
@@ -417,13 +437,8 @@ const themeClass = useThemeClass();
   width: 92rpx;
   height: 92rpx;
   border-radius: 18rpx;
+  overflow: hidden;
 }
-.earned-art-0 { background: linear-gradient(135deg, #e0f2fe, #c7d2fe); }
-.earned-art-1 { background: linear-gradient(135deg, #fef3c7, #fecdd3); }
-.earned-art-2 { background: linear-gradient(135deg, #ecfdf5, #a7f3d0); }
-.earned-art-3 { background: linear-gradient(135deg, #f5f3ff, #c4b5fd); }
-.earned-art-4 { background: linear-gradient(135deg, #fff1f2, #fbcfe8); }
-.earned-art-5 { background: linear-gradient(135deg, #f8fafc, #cbd5e1); }
 .earned-body {
   flex: 1;
 }

@@ -11,9 +11,14 @@
 
     <template v-else>
       <view class="hero">
-        <view>
-          <text class="eyebrow">{{ kindLabel(habit.kind) }}</text>
-          <text class="title">{{ habit.title }}</text>
+        <view class="hero-left">
+          <view class="hero-icon">
+            <image class="hero-image" :src="habitIconSrc(habit.icon)" mode="aspectFit" />
+          </view>
+          <view>
+            <text class="eyebrow">{{ kindLabel(habit.kind) }}</text>
+            <text class="title">{{ habit.title }}</text>
+          </view>
         </view>
         <button class="ghost" @tap="openEdit">{{ t('editHabit') }}</button>
       </view>
@@ -57,6 +62,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
 import { currentPlan, type Habit } from '../../domain/models.ts';
 import { countText, quantityText } from '../../domain/quantity.ts';
+import { habitIconSrc } from '../../domain/icons.ts';
 
 const store = useTodayStore();
 const t = (key: Parameters<typeof store.tr>[0]) => store.tr(key);
@@ -196,6 +202,26 @@ const themeClass = useThemeClass();
   justify-content: space-between;
   gap: 16rpx;
   margin-bottom: 24rpx;
+}
+.hero-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex: 1;
+  min-width: 0;
+}
+.hero-icon {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: var(--dp-icon-radius);
+  border: var(--dp-icon-border);
+  overflow: hidden;
+  flex: 0 0 92rpx;
+  box-sizing: border-box;
+}
+.hero-image {
+  width: 100%;
+  height: 100%;
 }
 .eyebrow {
   display: block;

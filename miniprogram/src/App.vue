@@ -42,6 +42,20 @@ page {
   --dp-bg-translucent: rgba(248, 250, 252, 0.96);
   --dp-shadow: rgba(15, 23, 42, 0.05);
   --dp-shadow-soft: rgba(15, 23, 42, 0.04);
+  --dp-icon-radius: 20rpx;
+  --dp-icon-border: 0;
+}
+.page.frame-soft {
+  --dp-icon-radius: 20rpx;
+  --dp-icon-border: 0;
+}
+.page.frame-ring {
+  --dp-icon-radius: 50%;
+  --dp-icon-border: 3rpx solid var(--dp-accent);
+}
+.page.frame-plain {
+  --dp-icon-radius: 0;
+  --dp-icon-border: 0;
 }
 .page.palette-teal {
   --dp-accent: #0d7e73;

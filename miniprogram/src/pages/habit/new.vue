@@ -11,6 +11,11 @@
     </view>
 
     <view class="field">
+      <text class="label">图标</text>
+      <HabitIconPicker v-model="icon" />
+    </view>
+
+    <view class="field">
       <text class="label">{{ t('kind') }}</text>
       <picker
         :range="kindLabels"
@@ -60,11 +65,13 @@ import { computed, ref } from 'vue';
 import { useTodayStore } from '../../stores/today.ts';
 import { parseCount, parseQuantity } from '../../domain/quantity.ts';
 import type { HabitKind } from '../../domain/models.ts';
+import HabitIconPicker from '../../components/HabitIconPicker.vue';
 
 const store = useTodayStore();
 const t = (key: Parameters<typeof store.tr>[0]) => store.tr(key);
 
 const title = ref('');
+const icon = ref(0);
 const kind = ref<HabitKind>('check');
 const target = ref('1');
 const unit = ref('');
@@ -114,6 +121,7 @@ async function save(): Promise<void> {
   const ok = await store.createHabit({
     title: name,
     kind: kind.value,
+    icon: icon.value,
     target: targetValue,
     unit: unit.value.trim(),
     weekdays: 127,

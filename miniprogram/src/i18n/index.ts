@@ -80,7 +80,7 @@ const zh: Messages = {
   appearanceNote: '设置立即保存到云端；主题变量已接入主要页面。深色下的卡片插画仍保留原色。',
   appearanceSaved: '外观已保存',
   appearanceFailed: '外观保存失败',
-  appearancePartial: '图标边框/字体设置已持久化；当前列表尚未渲染习惯图标，深色下卡片插画保留原色。',
+  appearancePartial: '图标边框已应用到今日/详情图标；深色下卡片插画保留原色。',
   privacyBody: '数据存储在微信云开发（腾讯云），开发者可通过云控制台访问，不是端到端加密。不提供整库导出/副本。',
   noTasksYet: '还没有小事',
   noTasksHelp: '添加一件今天要做的临时事项，或一件每天可复用的常驻小事。',

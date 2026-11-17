@@ -14,6 +14,11 @@
         <input v-model="title" class="input" maxlength="100" />
       </view>
 
+      <view class="field">
+        <text class="label">图标</text>
+        <HabitIconPicker v-model="icon" />
+      </view>
+
       <view v-if="habit.kind !== 'check'" class="field">
         <text class="label">{{ t('target') }}（{{ habit.kind === 'count' ? '次' : '数量' }}）</text>
         <input v-model="target" class="input" type="digit" />
@@ -75,12 +80,14 @@ import { onLoad } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
 import { currentPlan, weekdayMask, type Habit, type ScheduleKind } from '../../domain/models.ts';
 import { parseCount, parseQuantity } from '../../domain/quantity.ts';
+import HabitIconPicker from '../../components/HabitIconPicker.vue';
 
 const store = useTodayStore();
 const t = (key: Parameters<typeof store.tr>[0]) => store.tr(key);
 const habitId = ref('');
 
 const title = ref('');
+const icon = ref(0);
 const target = ref('');
 const unit = ref('');
 const schedule = ref<ScheduleKind>('weekdays');
@@ -123,6 +130,7 @@ onLoad(async (options: Record<string, string | undefined>) => {
   if (!item) return;
   const plan = currentPlan(item, store.today);
   title.value = item.title;
+  icon.value = item.icon;
   target.value =
     item.kind === 'count'
       ? String(plan.target / 1000)
@@ -177,6 +185,7 @@ async function save(): Promise<void> {
   }
   const ok = await store.updateHabit(habit.value.id, {
     title: name,
+    icon: icon.value,
     target: targetValue,
     unit: unit.value.trim(),
     schedule: schedule.value,
