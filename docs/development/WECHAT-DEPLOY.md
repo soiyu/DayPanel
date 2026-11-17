@@ -32,6 +32,9 @@ dp_activity
 dp_breaks
 dp_events
 dp_jobs
+dp_backfills
+dp_challenges
+dp_step_days
 ```
 
 建议索引：
@@ -43,6 +46,9 @@ dp_task_days:   _openid, day
 dp_notes:       _openid, day
 dp_cards:       _openid, day
 dp_jobs:        _openid, day, status, sendAt
+dp_backfills:   _openid, habitId, day
+dp_challenges:  _openid, status
+dp_step_days:  _openid, day
 dp_meta:        _openid
 dp_profile:     _openid
 ```
@@ -86,7 +92,9 @@ npm run prepare:wechat
 5. 我的 → 注销账号 → 输入“注销” → 云函数删除业务集合；重进为空；部分失败可重试。
 6. 提醒中心：三通道默认全开；日历授权/拒绝；摘要模板未配置时只显示状态，不伪造发送。
 7. 断网：显示云端错误；不能写入；不得出现本地假数据。
-8. `npm run verify`：typecheck、测试、构建、云函数打包、包体审计全部通过。
+8. 微信运动：授权/拒绝；`cloudID` 换取步数；步数习惯只填入今天；不得伪造步数。
+9. 挑战：21/100 天；休息日不计失败；放弃保留记录；无押金/排行榜。
+10. `npm run verify`：typecheck、测试、构建、云函数打包、包体审计全部通过。
 
 ## 当前未完成（不要宣称已验收）
 
