@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="hero">
       <view>
         <text class="eyebrow">DayPanel</text>
@@ -63,6 +63,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed, ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { useJournalStore } from '../../stores/journal.ts';
@@ -128,6 +129,7 @@ async function confirmDelete(note: Note): Promise<void> {
   const ok = await store.remove(note.id);
   if (!ok) uni.showToast({ title: errorText(store.error), icon: 'none' });
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -145,7 +147,7 @@ async function confirmDelete(note: Note): Promise<void> {
 .eyebrow {
   display: block;
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   letter-spacing: 2rpx;
   margin-bottom: 6rpx;
 }
@@ -163,13 +165,13 @@ async function confirmDelete(note: Note): Promise<void> {
   border: none;
 }
 .ghost {
-  background: #f5f3ff;
-  color: #6d28d9;
+  background: var(--dp-violet-soft);
+  color: var(--dp-violet);
   font-weight: 700;
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 .toolbar {
@@ -179,13 +181,13 @@ async function confirmDelete(note: Note): Promise<void> {
   margin-bottom: 24rpx;
 }
 .month-button {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 999rpx;
   font-size: 30rpx;
   line-height: 1;
   padding: 12rpx 18rpx;
-  color: #475569;
+  color: var(--dp-ink-4);
 }
 .month {
   font-size: 26rpx;
@@ -198,17 +200,17 @@ async function confirmDelete(note: Note): Promise<void> {
   margin-bottom: 20rpx;
 }
 .filter-pill {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 999rpx;
   padding: 10rpx 20rpx;
   font-size: 23rpx;
-  color: #475569;
+  color: var(--dp-ink-4);
 }
 .search {
   flex: 1;
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 999rpx;
   padding: 14rpx 22rpx;
   font-size: 24rpx;
@@ -216,8 +218,8 @@ async function confirmDelete(note: Note): Promise<void> {
 }
 .state,
 .empty {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 28rpx;
   padding: 48rpx 32rpx;
   display: flex;
@@ -226,28 +228,28 @@ async function confirmDelete(note: Note): Promise<void> {
   gap: 18rpx;
 }
 .state {
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title,
 .empty-title {
   font-size: 34rpx;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .state-body,
 .empty-body {
-  color: #64748b;
+  color: var(--dp-muted);
   font-size: 26rpx;
   text-align: center;
   line-height: 1.6;
 }
 .note {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 24rpx;
   margin-bottom: 14rpx;
-  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8rpx 24rpx var(--dp-shadow-soft);
 }
 .note-head {
   display: flex;
@@ -257,19 +259,19 @@ async function confirmDelete(note: Note): Promise<void> {
 }
 .note-date {
   font-size: 23rpx;
-  color: #6d28d9;
-  background: #f5f3ff;
+  color: var(--dp-violet);
+  background: var(--dp-violet-soft);
   border-radius: 999rpx;
   padding: 5rpx 12rpx;
 }
 .note-habit {
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .note-body {
   font-size: 28rpx;
   line-height: 1.7;
-  color: #1e293b;
+  color: var(--dp-ink-2);
   white-space: pre-wrap;
 }
 </style>

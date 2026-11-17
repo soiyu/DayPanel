@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="hero">
       <button class="year-button" @tap="changeYear(-1)">‹</button>
       <text class="title">{{ store.year }}</text>
@@ -41,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { useYearStore } from '../../stores/year.ts';
@@ -109,6 +110,7 @@ function changeYear(delta: number): void {
 function openDay(day: string): void {
   uni.navigateTo({ url: `/pages/statistics/day?day=${encodeURIComponent(day)}` });
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -116,7 +118,7 @@ function openDay(day: string): void {
   min-height: 100vh;
   padding: 28rpx 24rpx 80rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .hero {
   display: flex;
@@ -132,40 +134,40 @@ function openDay(day: string): void {
   text-align: center;
 }
 .year-button {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 999rpx;
   font-size: 32rpx;
   line-height: 1;
   padding: 12rpx 22rpx;
-  color: #475569;
+  color: var(--dp-ink-4);
 }
 .hint {
   display: block;
   text-align: center;
   font-size: 22rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
   margin-bottom: 20rpx;
 }
 .state {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 26rpx;
   padding: 48rpx 30rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   border-radius: 999rpx;
   font-size: 25rpx;
   padding: 18rpx 26rpx;
@@ -177,8 +179,8 @@ function openDay(day: string): void {
   gap: 14rpx;
 }
 .month {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 22rpx;
   padding: 16rpx;
   box-shadow: 0 6rpx 18rpx rgba(15, 23, 42, 0.03);
@@ -186,7 +188,7 @@ function openDay(day: string): void {
 .month-label {
   display: block;
   font-size: 24rpx;
-  color: #475569;
+  color: var(--dp-ink-4);
   font-weight: 700;
   margin-bottom: 8rpx;
 }
@@ -199,7 +201,7 @@ function openDay(day: string): void {
   width: 14.2857%;
   text-align: center;
   font-size: 19rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
   line-height: 30rpx;
 }
 .day {
@@ -212,7 +214,7 @@ function openDay(day: string): void {
 }
 .day-number {
   font-size: 20rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .day.level-1 { background: #e0f2fe; border-radius: 10rpx; }
 .day.level-1 .day-number { color: #0369a1; }
@@ -221,7 +223,7 @@ function openDay(day: string): void {
 .day.level-3 { background: #7dd3fc; border-radius: 10rpx; }
 .day.level-3 .day-number { color: #0c4a6e; font-weight: 700; }
 .day.level-4 { background: #38bdf8; border-radius: 10rpx; }
-.day.level-4 .day-number { color: #fff; font-weight: 700; }
+.day.level-4 .day-number { color: var(--dp-on-accent); font-weight: 700; }
 .day.card::after {
   content: '';
   position: absolute;

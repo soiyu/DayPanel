@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="hero">
       <text class="eyebrow">DayPanel</text>
       <text class="title">{{ t('mine') }}</text>
@@ -10,6 +10,10 @@
       <view class="row">
         <text class="row-title">{{ t('privacy') }}</text>
         <text class="row-arrow" @tap="openPrivacy">›</text>
+      </view>
+      <view class="row" @tap="openAppearance">
+        <text class="row-title">{{ t('appearance') }}</text>
+        <text class="row-meta">›</text>
       </view>
       <view class="row" @tap="openReminders">
         <text class="row-title">{{ t('reminderCenter') }}</text>
@@ -52,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { onShow } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
 
@@ -74,6 +79,10 @@ onShow(() => {
 
 function openPrivacy(): void {
   uni.navigateTo({ url: '/pages/settings/privacy' });
+}
+
+function openAppearance(): void {
+  uni.navigateTo({ url: '/pages/settings/appearance' });
 }
 
 function openReminders(): void {
@@ -135,6 +144,7 @@ async function confirmDelete(): Promise<void> {
     uni.reLaunch({ url: '/pages/today/index' });
   }, 400);
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -149,7 +159,7 @@ async function confirmDelete(): Promise<void> {
 .eyebrow {
   display: block;
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   letter-spacing: 2rpx;
   margin-bottom: 6rpx;
 }
@@ -161,16 +171,16 @@ async function confirmDelete(): Promise<void> {
 .body {
   display: block;
   margin-top: 8rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   font-size: 24rpx;
 }
 .card,
 .danger-card {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 28rpx;
   padding: 8rpx 24rpx;
-  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.05);
+  box-shadow: 0 10rpx 30rpx var(--dp-shadow);
   margin-bottom: 24rpx;
 }
 .row {
@@ -178,19 +188,19 @@ async function confirmDelete(): Promise<void> {
   align-items: center;
   justify-content: space-between;
   min-height: 96rpx;
-  border-bottom: 1rpx solid #f1f5f9;
+  border-bottom: 1rpx solid var(--dp-soft);
 }
 .row:last-child {
   border-bottom: none;
 }
 .row-title {
   font-size: 28rpx;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .row-meta,
 .row-arrow {
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .row-arrow {
   font-size: 42rpx;
@@ -204,18 +214,18 @@ async function confirmDelete(): Promise<void> {
   display: block;
   font-size: 28rpx;
   font-weight: 700;
-  color: #be123c;
+  color: var(--dp-rose);
 }
 .danger-body {
   display: block;
   margin: 10rpx 0 20rpx;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   line-height: 1.6;
 }
 .danger {
-  background: #be123c;
-  color: #fff;
+  background: var(--dp-rose);
+  color: var(--dp-on-accent);
   border-radius: 999rpx;
   font-size: 26rpx;
   line-height: 1;

@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view v-if="!store.view && store.loading" class="state">
       <text>{{ t('loading') }}</text>
     </view>
@@ -50,6 +50,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed, ref } from 'vue';
 import { onLoad, onShow } from '@dcloudio/uni-app';
 import { useTasksStore } from '../../stores/tasks.ts';
@@ -138,6 +139,7 @@ async function remove(): Promise<void> {
   if (!ok) uni.showToast({ title: t('loadFailed'), icon: 'none' });
   else uni.navigateBack();
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -145,7 +147,7 @@ async function remove(): Promise<void> {
   min-height: 100vh;
   padding: 32rpx 28rpx 140rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .state {
   min-height: 60vh;
@@ -154,24 +156,24 @@ async function remove(): Promise<void> {
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   border-radius: 999rpx;
   font-size: 25rpx;
   padding: 18rpx 26rpx;
   border: none;
 }
 .field {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 22rpx 24rpx;
   margin-bottom: 16rpx;
@@ -185,18 +187,18 @@ async function remove(): Promise<void> {
 .label {
   display: block;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin-bottom: 10rpx;
 }
 .hint {
   display: block;
   font-size: 22rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 .input {
   min-height: 64rpx;
   font-size: 30rpx;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .date-actions {
   display: flex;
@@ -204,8 +206,8 @@ async function remove(): Promise<void> {
   gap: 10rpx;
 }
 .date-pill {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent-ink);
   border-radius: 999rpx;
   padding: 12rpx 18rpx;
   font-size: 23rpx;
@@ -220,8 +222,8 @@ async function remove(): Promise<void> {
   border: none;
 }
 .action {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent-ink);
   font-weight: 700;
 }
 .actions {
@@ -233,13 +235,13 @@ async function remove(): Promise<void> {
   flex: 1;
 }
 .secondary {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
-  color: #475569;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
+  color: var(--dp-ink-4);
 }
 .danger {
-  background: #fff1f2;
-  color: #be123c;
+  background: var(--dp-paper)1f2;
+  color: var(--dp-rose);
   font-weight: 700;
 }
 .footer {
@@ -250,8 +252,8 @@ async function remove(): Promise<void> {
   display: flex;
   gap: 16rpx;
   padding: 20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: rgba(248, 250, 252, 0.96);
-  border-top: 1rpx solid #e2e8f0;
+  background: var(--dp-bg-translucent);
+  border-top: 1rpx solid var(--dp-line);
 }
 .cancel,
 .save {
@@ -263,13 +265,13 @@ async function remove(): Promise<void> {
   border: none;
 }
 .cancel {
-  background: #fff;
-  color: #475569;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  color: var(--dp-ink-4);
+  border: 1rpx solid var(--dp-line);
 }
 .save {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 </style>

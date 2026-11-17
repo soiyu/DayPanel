@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="hero">
       <text class="title">{{ t('cards') }}</text>
       <text class="hint">{{ t('noCardsHelp') }}</text>
@@ -49,6 +49,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { onShow } from '@dcloudio/uni-app';
 import { useCardsStore } from '../../stores/cards.ts';
 import { evidenceOf } from '../../domain/achievement.ts';
@@ -106,6 +107,7 @@ async function editReflection(card: AchievementCard): Promise<void> {
   const ok = await store.reflect(card, String(result.content ?? ''));
   if (!ok) uni.showToast({ title: t('loadFailed'), icon: 'none' });
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -113,7 +115,7 @@ async function editReflection(card: AchievementCard): Promise<void> {
   min-height: 100vh;
   padding: 32rpx 28rpx 80rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .hero {
   margin-bottom: 22rpx;
@@ -127,24 +129,24 @@ async function editReflection(card: AchievementCard): Promise<void> {
   display: block;
   margin-top: 8rpx;
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   line-height: 1.5;
 }
 .state {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 26rpx;
   padding: 48rpx 30rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .state-body {
   font-size: 24rpx;
@@ -152,8 +154,8 @@ async function editReflection(card: AchievementCard): Promise<void> {
   line-height: 1.6;
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   border-radius: 999rpx;
   font-size: 25rpx;
   padding: 18rpx 26rpx;
@@ -165,11 +167,11 @@ async function editReflection(card: AchievementCard): Promise<void> {
   gap: 18rpx;
 }
 .card {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 26rpx;
   overflow: hidden;
-  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.05);
+  box-shadow: 0 10rpx 30rpx var(--dp-shadow);
 }
 .art {
   min-height: 220rpx;
@@ -187,13 +189,13 @@ async function editReflection(card: AchievementCard): Promise<void> {
 .art-5 { background: linear-gradient(135deg, #f8fafc, #e2e8f0 55%, #cbd5e1); }
 .art-day {
   font-size: 22rpx;
-  color: #334155;
+  color: var(--dp-ink-3);
   font-weight: 700;
   letter-spacing: 1rpx;
 }
 .art-mark {
   font-size: 30rpx;
-  color: #0f172a;
+  color: var(--dp-ink);
   font-weight: 800;
   opacity: 0.55;
 }
@@ -203,20 +205,20 @@ async function editReflection(card: AchievementCard): Promise<void> {
 .card-label {
   display: block;
   font-size: 21rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
   margin-bottom: 6rpx;
 }
 .card-titles {
   display: block;
   font-size: 24rpx;
-  color: #334155;
+  color: var(--dp-ink-3);
   line-height: 1.5;
 }
 .reflection {
   display: block;
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   line-height: 1.6;
 }
 .card-actions {
@@ -234,12 +236,12 @@ async function editReflection(card: AchievementCard): Promise<void> {
 }
 .mini {
   flex: 1;
-  background: #f8fafc;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-bg);
+  border: 1rpx solid var(--dp-line);
   border-radius: 999rpx;
   font-size: 22rpx;
   line-height: 1;
   padding: 14rpx 0;
-  color: #475569;
+  color: var(--dp-ink-4);
 }
 </style>

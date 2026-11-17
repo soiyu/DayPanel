@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="hero">
       <text class="title">{{ t('reminderCenter') }}</text>
       <text class="hint">{{ t('reminderDefaults') }}</text>
@@ -76,6 +76,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed, ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
@@ -136,6 +137,7 @@ async function authorizeCalendar(): Promise<void> {
     icon: 'none',
   });
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -143,7 +145,7 @@ async function authorizeCalendar(): Promise<void> {
   min-height: 100vh;
   padding: 32rpx 28rpx 80rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .hero {
   margin-bottom: 24rpx;
@@ -157,7 +159,7 @@ async function authorizeCalendar(): Promise<void> {
   display: block;
   margin-top: 8rpx;
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state {
   min-height: 50vh;
@@ -166,12 +168,12 @@ async function authorizeCalendar(): Promise<void> {
   align-items: center;
   justify-content: center;
   gap: 18rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .primary,
 .secondary {
@@ -182,13 +184,13 @@ async function authorizeCalendar(): Promise<void> {
   border: none;
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 .secondary {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent-ink);
   margin-top: 16rpx;
   width: 100%;
 }
@@ -197,12 +199,12 @@ async function authorizeCalendar(): Promise<void> {
 }
 .card,
 .job-card {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
-  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8rpx 24rpx var(--dp-shadow-soft);
 }
 .row {
   display: flex;
@@ -223,7 +225,7 @@ async function authorizeCalendar(): Promise<void> {
   display: block;
   margin-top: 6rpx;
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .hint-block {
   display: block;
@@ -235,19 +237,19 @@ async function authorizeCalendar(): Promise<void> {
 .section-title {
   display: block;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin-bottom: 12rpx;
 }
 .job-empty {
   font-size: 24rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 .job {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12rpx 0;
-  border-bottom: 1rpx solid #f1f5f9;
+  border-bottom: 1rpx solid var(--dp-soft);
 }
 .job:last-child {
   border-bottom: none;
@@ -257,12 +259,12 @@ async function authorizeCalendar(): Promise<void> {
 }
 .job-status {
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .footnote {
   display: block;
   font-size: 22rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
   line-height: 1.6;
   padding: 8rpx 4rpx;
 }

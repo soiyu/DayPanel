@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <text class="title">{{ t('taskHistory') }}</text>
 
     <view v-if="store.loading && !store.view" class="state">
@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { useTasksStore } from '../../stores/tasks.ts';
@@ -72,6 +73,7 @@ const groups = computed<HistoryGroup[]>(() => {
 onShow(() => {
   void store.load();
 });
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -79,7 +81,7 @@ onShow(() => {
   min-height: 100vh;
   padding: 32rpx 28rpx 80rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .title {
   display: block;
@@ -89,25 +91,25 @@ onShow(() => {
 }
 .state,
 .empty {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 26rpx;
   padding: 48rpx 30rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title,
 .empty-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   border-radius: 999rpx;
   font-size: 25rpx;
   padding: 18rpx 26rpx;
@@ -119,16 +121,16 @@ onShow(() => {
   gap: 18rpx;
 }
 .group {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 20rpx 24rpx;
-  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8rpx 24rpx var(--dp-shadow-soft);
 }
 .date {
   display: block;
   font-size: 23rpx;
-  color: #6d28d9;
+  color: var(--dp-violet);
   margin-bottom: 10rpx;
 }
 .item {
@@ -137,7 +139,7 @@ onShow(() => {
   align-items: center;
   gap: 16rpx;
   min-height: 64rpx;
-  border-bottom: 1rpx solid #f1f5f9;
+  border-bottom: 1rpx solid var(--dp-soft);
 }
 .item:last-child {
   border-bottom: none;
@@ -147,6 +149,6 @@ onShow(() => {
 }
 .item-type {
   font-size: 22rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 </style>

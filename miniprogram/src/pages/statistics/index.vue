@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="hero">
       <text class="title">{{ t('statistics') }}</text>
       <text class="hint">{{ t('statsNote') }}</text>
@@ -61,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { onShow } from '@dcloudio/uni-app';
 import { useStatsStore } from '../../stores/stats.ts';
 import type { HabitStat } from '../../domain/stats.ts';
@@ -95,6 +96,7 @@ function totalText(stat: HabitStat): string {
   if (stat.kind === 'count') return countText(stat.totalValue);
   return quantityText(stat.totalValue);
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -102,7 +104,7 @@ function totalText(stat: HabitStat): string {
   min-height: 100vh;
   padding: 32rpx 28rpx 80rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .hero {
   margin-bottom: 20rpx;
@@ -115,7 +117,7 @@ function totalText(stat: HabitStat): string {
 .hint {
   display: block;
   margin-top: 8rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   font-size: 23rpx;
   line-height: 1.5;
 }
@@ -127,17 +129,17 @@ function totalText(stat: HabitStat): string {
 .range {
   flex: 1;
   text-align: center;
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 999rpx;
   padding: 14rpx 0;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .range.active {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  border-color: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 .state {
@@ -147,16 +149,16 @@ function totalText(stat: HabitStat): string {
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   border-radius: 999rpx;
   font-size: 25rpx;
   padding: 18rpx 26rpx;
@@ -168,11 +170,11 @@ function totalText(stat: HabitStat): string {
   gap: 14rpx;
 }
 .card {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 22rpx;
-  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8rpx 24rpx var(--dp-shadow-soft);
 }
 .card-head {
   display: flex;
@@ -196,16 +198,16 @@ function totalText(stat: HabitStat): string {
   display: block;
   margin-top: 5rpx;
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .rate {
   font-size: 30rpx;
   font-weight: 800;
-  color: #1d4ed8;
+  color: var(--dp-accent-ink);
 }
 .bar {
   height: 8rpx;
-  background: #f1f5f9;
+  background: var(--dp-soft);
   border-radius: 999rpx;
   margin: 16rpx 0;
   overflow: hidden;
@@ -229,6 +231,6 @@ function totalText(stat: HabitStat): string {
 }
 .metric-label {
   font-size: 21rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 </style>

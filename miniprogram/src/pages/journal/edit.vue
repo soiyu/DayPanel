@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="field">
       <text class="label">{{ t('noteBody') }}</text>
       <textarea
@@ -37,6 +37,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed, ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { todayKey } from '../../domain/day.ts';
@@ -114,6 +115,7 @@ async function save(): Promise<void> {
   uni.showToast({ title: t('saved'), icon: 'success' });
   setTimeout(() => uni.navigateBack(), 300);
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -121,11 +123,11 @@ async function save(): Promise<void> {
   min-height: 100vh;
   padding: 32rpx 28rpx 140rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .field {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 22rpx 24rpx;
   margin-bottom: 18rpx;
@@ -139,7 +141,7 @@ async function save(): Promise<void> {
 .label {
   display: block;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin-bottom: 10rpx;
 }
 .textarea {
@@ -147,16 +149,16 @@ async function save(): Promise<void> {
   min-height: 320rpx;
   font-size: 28rpx;
   line-height: 1.7;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .hint {
   display: block;
   font-size: 23rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 .date-pill {
-  background: #f5f3ff;
-  color: #6d28d9;
+  background: var(--dp-violet-soft);
+  color: var(--dp-violet);
   border-radius: 999rpx;
   padding: 14rpx 20rpx;
   font-size: 24rpx;
@@ -169,8 +171,8 @@ async function save(): Promise<void> {
   display: flex;
   gap: 16rpx;
   padding: 20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: rgba(248, 250, 252, 0.96);
-  border-top: 1rpx solid #e2e8f0;
+  background: var(--dp-bg-translucent);
+  border-top: 1rpx solid var(--dp-line);
 }
 .cancel,
 .save {
@@ -182,13 +184,13 @@ async function save(): Promise<void> {
   border: none;
 }
 .cancel {
-  background: #fff;
-  color: #475569;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  color: var(--dp-ink-4);
+  border: 1rpx solid var(--dp-line);
 }
 .save {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 </style>

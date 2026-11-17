@@ -22,6 +22,7 @@ import type {
   UpdateNoteInput,
 } from '../application/journal-actions.ts';
 import type { HabitStat } from '../domain/stats.ts';
+import type { SettingsPatch } from '../application/settings-actions.ts';
 import type { Insights, InsightRange } from '../domain/insights.ts';
 
 export interface TodayView {
@@ -107,6 +108,11 @@ export interface CloudGateway {
   stats(rangeDays: number): Promise<HabitStat[]>;
   cards(): Promise<CardsView>;
   insights(range: InsightRange): Promise<Insights>;
+  settings(): Promise<{ revision: number; settings: Profile['settings'] }>;
+  updateSettings(
+    patch: SettingsPatch,
+    expectedRevision: number,
+  ): Promise<MutateResult>;
   year(year: number): Promise<YearView>;
   timeline(month: string): Promise<TimelineEvent[]>;
   favoriteCard(
@@ -305,6 +311,21 @@ export class WechatCloudGateway implements CloudGateway {
       reflection,
       expectedRevision,
     });
+  }
+
+  async settings(): Promise<{ revision: number; settings: Profile['settings'] }> {
+    const result = await call<{
+      revision: number;
+      settings: Profile['settings'];
+    }>('settings', {});
+    return { revision: result.revision, settings: result.settings };
+  }
+
+  async updateSettings(
+    patch: SettingsPatch,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('updateSettings', { patch, expectedRevision });
   }
 
   async year(year: number): Promise<YearView> {

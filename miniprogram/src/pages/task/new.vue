@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="field">
       <text class="label">{{ t('title') }}</text>
       <input
@@ -48,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { ref } from 'vue';
 import { todayKey } from '../../domain/day.ts';
 import { useTasksStore } from '../../stores/tasks.ts';
@@ -101,6 +102,7 @@ async function save(): Promise<void> {
   uni.showToast({ title: t('saved'), icon: 'success' });
   setTimeout(() => uni.navigateBack(), 300);
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -108,11 +110,11 @@ async function save(): Promise<void> {
   min-height: 100vh;
   padding: 32rpx 28rpx 140rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .field {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 22rpx 24rpx;
   margin-bottom: 18rpx;
@@ -126,19 +128,19 @@ async function save(): Promise<void> {
 .label {
   display: block;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin-bottom: 10rpx;
 }
 .hint {
   display: block;
   font-size: 22rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
   margin-top: 6rpx;
 }
 .input {
   min-height: 64rpx;
   font-size: 30rpx;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .date-actions {
   display: flex;
@@ -146,8 +148,8 @@ async function save(): Promise<void> {
   gap: 12rpx;
 }
 .date-pill {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent-ink);
   border-radius: 999rpx;
   padding: 12rpx 18rpx;
   font-size: 24rpx;
@@ -160,8 +162,8 @@ async function save(): Promise<void> {
   display: flex;
   gap: 16rpx;
   padding: 20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: rgba(248, 250, 252, 0.96);
-  border-top: 1rpx solid #e2e8f0;
+  background: var(--dp-bg-translucent);
+  border-top: 1rpx solid var(--dp-line);
 }
 .cancel,
 .save {
@@ -173,13 +175,13 @@ async function save(): Promise<void> {
   border: none;
 }
 .cancel {
-  background: #fff;
-  color: #475569;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  color: var(--dp-ink-4);
+  border: 1rpx solid var(--dp-line);
 }
 .save {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 </style>

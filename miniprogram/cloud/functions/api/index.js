@@ -555,6 +555,43 @@ function filterNotes(state, query) {
   });
 }
 
+// src/application/settings-actions.ts
+var THEMES = ["system", "light", "dark"];
+var LOCALES = ["system", "zh", "en"];
+var PALETTES = ["blue", "teal", "violet", "apricot", "coast"];
+var FONTS = ["system", "serif"];
+var FRAMES = ["soft", "ring", "plain"];
+function updateSettings(state, patch) {
+  const next = cloneState(state);
+  const settings = { ...next.profile.settings };
+  for (const [key, value] of Object.entries(patch)) {
+    if (key === "theme") {
+      if (!THEMES.includes(String(value))) throw new ValidationError("invalid_theme");
+      settings.theme = String(value);
+    } else if (key === "locale") {
+      if (!LOCALES.includes(String(value))) throw new ValidationError("invalid_locale");
+      settings.locale = String(value);
+    } else if (key === "palette") {
+      if (!PALETTES.includes(String(value))) throw new ValidationError("invalid_palette");
+      settings.palette = String(value);
+    } else if (key === "font") {
+      if (!FONTS.includes(String(value))) throw new ValidationError("invalid_font");
+      settings.font = String(value);
+    } else if (key === "iconFrame") {
+      if (!FRAMES.includes(String(value))) throw new ValidationError("invalid_frame");
+      settings.iconFrame = String(value);
+    } else if (key === "completionSound") {
+      if (typeof value !== "boolean") throw new ValidationError("invalid_sound");
+      settings.completionSound = value;
+    } else if (key === "completionHaptics") {
+      if (typeof value !== "boolean") throw new ValidationError("invalid_haptics");
+      settings.completionHaptics = value;
+    }
+  }
+  next.profile.settings = settings;
+  return next;
+}
+
 // src/domain/stats.ts
 function habitStats(state, rangeDays, today) {
   if (!Number.isInteger(rangeDays) || rangeDays < 1 || rangeDays > 365) {
@@ -1242,6 +1279,9 @@ async function mutate(openid, event) {
       case "updateReminderPrefs":
         next = updateReminderPrefs(loaded.state, event.patch ?? {});
         break;
+      case "updateSettings":
+        next = updateSettings(loaded.state, event.patch ?? {});
+        break;
       case "favoriteCard":
         next = setCardFavorite(
           loaded.state,
@@ -1353,6 +1393,14 @@ async function main(event) {
         cards: [...loaded.state.cards].sort(
           (a, b) => String(b.day).localeCompare(String(a.day))
         )
+      };
+    }
+    if (event?.action === "settings") {
+      const loaded = await loadUser(OPENID, event?.day);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        settings: loaded.profile.settings
       };
     }
     if (event?.action === "year") {

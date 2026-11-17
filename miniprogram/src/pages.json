@@ -104,6 +104,12 @@
       }
     },
     {
+      "path": "pages/settings/appearance",
+      "style": {
+        "navigationBarTitleText": "外观"
+      }
+    },
+    {
       "path": "pages/settings/reminders",
       "style": {
         "navigationBarTitleText": "提醒中心"

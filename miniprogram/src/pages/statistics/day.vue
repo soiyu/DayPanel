@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view v-if="loading" class="state">
       <text>{{ t('loading') }}</text>
     </view>
@@ -52,6 +52,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed, ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { todayKey, type DayKey } from '../../domain/day.ts';
@@ -147,6 +148,7 @@ onLoad(async (options: Record<string, string | undefined>) => {
   if (value) day.value = value;
   await load();
 });
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -154,7 +156,7 @@ onLoad(async (options: Record<string, string | undefined>) => {
   min-height: 100vh;
   padding: 28rpx 24rpx 80rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .hero {
   margin-bottom: 18rpx;
@@ -168,7 +170,7 @@ onLoad(async (options: Record<string, string | undefined>) => {
   display: block;
   margin-top: 4rpx;
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state {
   min-height: 60vh;
@@ -177,24 +179,24 @@ onLoad(async (options: Record<string, string | undefined>) => {
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   border-radius: 999rpx;
   font-size: 25rpx;
   padding: 18rpx 26rpx;
   border: none;
 }
 .card {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 22rpx;
   padding: 18rpx 20rpx;
   margin-bottom: 14rpx;
@@ -202,7 +204,7 @@ onLoad(async (options: Record<string, string | undefined>) => {
 .section {
   display: block;
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin-bottom: 10rpx;
 }
 .row {
@@ -211,7 +213,7 @@ onLoad(async (options: Record<string, string | undefined>) => {
   align-items: center;
   min-height: 58rpx;
   gap: 16rpx;
-  border-bottom: 1rpx solid #f1f5f9;
+  border-bottom: 1rpx solid var(--dp-soft);
 }
 .row:last-child {
   border-bottom: none;
@@ -227,20 +229,20 @@ onLoad(async (options: Record<string, string | undefined>) => {
 .row-meta {
   display: block;
   font-size: 20rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 .row-value {
   font-size: 23rpx;
-  color: #1d4ed8;
+  color: var(--dp-accent-ink);
 }
 .empty {
   font-size: 23rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
   padding: 10rpx 0;
 }
 .note {
   padding: 8rpx 0;
-  border-bottom: 1rpx solid #f1f5f9;
+  border-bottom: 1rpx solid var(--dp-soft);
 }
 .note:last-child {
   border-bottom: none;
@@ -248,10 +250,10 @@ onLoad(async (options: Record<string, string | undefined>) => {
 .note-body {
   font-size: 25rpx;
   line-height: 1.6;
-  color: #334155;
+  color: var(--dp-ink-3);
 }
 .card-line {
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 </style>

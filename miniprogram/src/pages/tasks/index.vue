@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="hero">
       <view>
         <text class="eyebrow">{{ store.today }}</text>
@@ -73,6 +73,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { onShow } from '@dcloudio/uni-app';
 import { useTasksStore } from '../../stores/tasks.ts';
 import type { SmallTask } from '../../domain/models.ts';
@@ -132,6 +133,7 @@ function openActions(task: SmallTask): void {
     },
   });
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -151,14 +153,14 @@ function openActions(task: SmallTask): void {
   gap: 10rpx;
 }
 .secondary-ghost {
-  background: #fff;
-  color: #475569;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  color: var(--dp-ink-4);
+  border: 1rpx solid var(--dp-line);
 }
 .eyebrow {
   display: block;
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin-bottom: 6rpx;
 }
 .title {
@@ -176,13 +178,13 @@ function openActions(task: SmallTask): void {
   border: none;
 }
 .ghost {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent-ink);
   font-weight: 700;
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 .state {
@@ -192,12 +194,12 @@ function openActions(task: SmallTask): void {
   align-items: center;
   justify-content: center;
   gap: 18rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .state-body {
   max-width: 560rpx;
@@ -206,8 +208,8 @@ function openActions(task: SmallTask): void {
   font-size: 26rpx;
 }
 .empty {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 28rpx;
   padding: 48rpx 32rpx;
   display: flex;
@@ -221,7 +223,7 @@ function openActions(task: SmallTask): void {
 }
 .empty-body {
   font-size: 26rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   text-align: center;
   line-height: 1.6;
 }
@@ -231,19 +233,19 @@ function openActions(task: SmallTask): void {
 .section-title {
   display: block;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin: 0 0 12rpx 4rpx;
 }
 .task {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 24rpx;
   display: flex;
   align-items: center;
   gap: 18rpx;
   margin-bottom: 14rpx;
-  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8rpx 24rpx var(--dp-shadow-soft);
 }
 .task.done {
   opacity: 0.62;
@@ -264,11 +266,11 @@ function openActions(task: SmallTask): void {
   display: block;
   margin-top: 6rpx;
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .action {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent-ink);
   font-weight: 700;
   min-width: 120rpx;
 }

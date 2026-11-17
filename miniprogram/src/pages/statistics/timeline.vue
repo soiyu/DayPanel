@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="hero">
       <text class="title">{{ t('timeline') }}</text>
       <text class="hint">{{ storeMonth }}</text>
@@ -40,6 +40,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { todayKey } from '../../domain/day.ts';
@@ -103,6 +104,7 @@ function valueText(event: TimelineEvent): string {
 function openDay(day: string): void {
   uni.navigateTo({ url: `/pages/statistics/day?day=${encodeURIComponent(day)}` });
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -110,7 +112,7 @@ function openDay(day: string): void {
   min-height: 100vh;
   padding: 28rpx 24rpx 80rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .hero {
   margin-bottom: 16rpx;
@@ -123,7 +125,7 @@ function openDay(day: string): void {
 .hint {
   display: block;
   margin-top: 4rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   font-size: 23rpx;
 }
 .month-nav {
@@ -133,22 +135,22 @@ function openDay(day: string): void {
   margin-bottom: 18rpx;
 }
 .nav {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 999rpx;
   font-size: 30rpx;
   padding: 10rpx 20rpx;
-  color: #475569;
+  color: var(--dp-ink-4);
 }
 .month-pill {
   flex: 1;
   text-align: center;
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 999rpx;
   padding: 12rpx 0;
   font-size: 24rpx;
-  color: #475569;
+  color: var(--dp-ink-4);
 }
 .state {
   min-height: 50vh;
@@ -157,16 +159,16 @@ function openDay(day: string): void {
   align-items: center;
   justify-content: center;
   gap: 14rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   border-radius: 999rpx;
   font-size: 25rpx;
   padding: 18rpx 26rpx;
@@ -178,8 +180,8 @@ function openDay(day: string): void {
   gap: 12rpx;
 }
 .event {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 20rpx;
   padding: 16rpx 18rpx;
 }
@@ -191,25 +193,25 @@ function openDay(day: string): void {
 }
 .event-type {
   font-size: 21rpx;
-  color: #6d28d9;
-  background: #f5f3ff;
+  color: var(--dp-violet);
+  background: var(--dp-violet-soft);
   border-radius: 999rpx;
   padding: 3rpx 10rpx;
 }
 .event-day {
   font-size: 21rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .event-title {
   display: block;
   font-size: 26rpx;
-  color: #1e293b;
+  color: var(--dp-ink-2);
   line-height: 1.5;
 }
 .event-value {
   display: block;
   margin-top: 4rpx;
   font-size: 23rpx;
-  color: #1d4ed8;
+  color: var(--dp-accent-ink);
 }
 </style>

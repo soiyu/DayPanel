@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view v-if="!store.view && store.loading" class="state">
       <text>{{ t('loading') }}</text>
     </view>
@@ -81,6 +81,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed } from 'vue';
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
@@ -213,6 +214,7 @@ function errorText(code: string | null): string {
   if (code === 'network' || code === 'cloud_unavailable') return t('cloudRequired');
   return `${t('loadFailed')} (${code})`;
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -228,12 +230,12 @@ function errorText(code: string | null): string {
   align-items: center;
   justify-content: center;
   gap: 20rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .state-body {
   max-width: 560rpx;
@@ -250,7 +252,7 @@ function errorText(code: string | null): string {
 .eyebrow {
   display: block;
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   letter-spacing: 1rpx;
   margin-bottom: 6rpx;
 }
@@ -259,7 +261,7 @@ function errorText(code: string | null): string {
   font-size: 56rpx;
   font-weight: 800;
   letter-spacing: -1rpx;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .ghost,
 .primary,
@@ -272,21 +274,21 @@ function errorText(code: string | null): string {
   border: none;
 }
 .ghost {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent-ink);
   font-weight: 700;
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 .progress-card {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 28rpx;
   padding: 24rpx;
-  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.05);
+  box-shadow: 0 10rpx 30rpx var(--dp-shadow);
   margin-bottom: 24rpx;
 }
 .progress-row {
@@ -296,17 +298,17 @@ function errorText(code: string | null): string {
 }
 .progress-label {
   font-size: 26rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .progress-count {
   font-size: 30rpx;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .bar {
   height: 10rpx;
   border-radius: 999rpx;
-  background: #f1f5f9;
+  background: var(--dp-soft);
   margin: 18rpx 0 14rpx;
   overflow: hidden;
 }
@@ -317,14 +319,14 @@ function errorText(code: string | null): string {
 }
 .hint {
   font-size: 22rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 .inline-error {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16rpx;
-  background: #fff7ed;
+  background: var(--dp-paper)7ed;
   color: #9a431d;
   border-radius: 20rpx;
   padding: 18rpx 22rpx;
@@ -337,15 +339,15 @@ function errorText(code: string | null): string {
   padding: 0;
 }
 .empty {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 28rpx;
   padding: 48rpx 32rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 18rpx;
-  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.05);
+  box-shadow: 0 10rpx 30rpx var(--dp-shadow);
 }
 .empty-title {
   font-size: 34rpx;
@@ -353,7 +355,7 @@ function errorText(code: string | null): string {
 }
 .empty-body {
   font-size: 26rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   text-align: center;
   line-height: 1.6;
 }
@@ -363,14 +365,14 @@ function errorText(code: string | null): string {
   gap: 16rpx;
 }
 .habit {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 24rpx;
   display: flex;
   align-items: center;
   gap: 20rpx;
-  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8rpx 24rpx var(--dp-shadow-soft);
 }
 .habit-main {
   flex: 1;
@@ -380,7 +382,7 @@ function errorText(code: string | null): string {
   display: block;
   font-size: 30rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -389,24 +391,24 @@ function errorText(code: string | null): string {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .action {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent-ink);
   font-weight: 700;
   min-width: 120rpx;
 }
 .action.done {
-  background: #ecfdf5;
-  color: #047857;
+  background: var(--dp-teal-soft);
+  color: var(--dp-teal);
 }
 .earned-card {
   display: flex;
   gap: 18rpx;
   align-items: center;
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 16rpx;
   margin-top: 18rpx;
@@ -434,6 +436,6 @@ function errorText(code: string | null): string {
   display: block;
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 </style>

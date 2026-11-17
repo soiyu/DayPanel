@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view v-if="!store.view && store.loading" class="state">
       <text>{{ t('loading') }}</text>
     </view>
@@ -69,6 +69,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed, ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
@@ -193,6 +194,7 @@ async function save(): Promise<void> {
   uni.showToast({ title: t('saved'), icon: 'success' });
   setTimeout(() => uni.navigateBack(), 300);
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -200,7 +202,7 @@ async function save(): Promise<void> {
   min-height: 100vh;
   padding: 32rpx 28rpx 140rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .state {
   min-height: 60vh;
@@ -209,16 +211,16 @@ async function save(): Promise<void> {
   align-items: center;
   justify-content: center;
   gap: 18rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .field {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 24rpx;
   padding: 22rpx 24rpx;
   margin-bottom: 18rpx;
@@ -226,7 +228,7 @@ async function save(): Promise<void> {
 .label {
   display: block;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin-bottom: 10rpx;
 }
 .input,
@@ -234,7 +236,7 @@ async function save(): Promise<void> {
   min-height: 64rpx;
   font-size: 30rpx;
   line-height: 64rpx;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .weekdays {
   display: flex;
@@ -243,21 +245,21 @@ async function save(): Promise<void> {
 .weekday {
   flex: 1;
   text-align: center;
-  border: 1rpx solid #e2e8f0;
+  border: 1rpx solid var(--dp-line);
   border-radius: 16rpx;
   padding: 14rpx 0;
   font-size: 25rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .weekday.on {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  border-color: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 .note {
   font-size: 23rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
   line-height: 1.6;
   padding: 8rpx 4rpx;
 }
@@ -269,8 +271,8 @@ async function save(): Promise<void> {
   display: flex;
   gap: 16rpx;
   padding: 20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: rgba(248, 250, 252, 0.96);
-  border-top: 1rpx solid #e2e8f0;
+  background: var(--dp-bg-translucent);
+  border-top: 1rpx solid var(--dp-line);
 }
 .cancel,
 .save {
@@ -282,13 +284,13 @@ async function save(): Promise<void> {
   border: none;
 }
 .cancel {
-  background: #fff;
-  color: #475569;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  color: var(--dp-ink-4);
+  border: 1rpx solid var(--dp-line);
 }
 .save {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 </style>

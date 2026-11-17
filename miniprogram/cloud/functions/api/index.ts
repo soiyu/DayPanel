@@ -38,6 +38,7 @@ import {
   filterNotes,
   updateNote,
 } from '../../../src/application/journal-actions.ts';
+import { updateSettings } from '../../../src/application/settings-actions.ts';
 import { habitStats } from '../../../src/domain/stats.ts';
 import { insights } from '../../../src/domain/insights.ts';
 import {
@@ -521,6 +522,9 @@ async function mutate(openid, event) {
       case 'updateReminderPrefs':
         next = updateReminderPrefs(loaded.state, event.patch ?? {});
         break;
+      case 'updateSettings':
+        next = updateSettings(loaded.state, event.patch ?? {});
+        break;
       case 'favoriteCard':
         next = setCardFavorite(
           loaded.state,
@@ -637,6 +641,14 @@ export async function main(event) {
         cards: [...loaded.state.cards].sort((a, b) =>
           String(b.day).localeCompare(String(a.day)),
         ),
+      };
+    }
+    if (event?.action === 'settings') {
+      const loaded = await loadUser(OPENID, event?.day);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        settings: loaded.profile.settings,
       };
     }
     if (event?.action === 'year') {

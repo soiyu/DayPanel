@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view v-if="!store.view && store.loading" class="state">
       <text>{{ t('loading') }}</text>
     </view>
@@ -51,6 +51,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed, ref } from 'vue';
 import { onLoad, onShow } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
@@ -162,6 +163,7 @@ async function deleteHabit(): Promise<void> {
   }
   uni.navigateBack();
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -169,7 +171,7 @@ async function deleteHabit(): Promise<void> {
   min-height: 100vh;
   padding: 32rpx 28rpx 80rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .state {
   min-height: 60vh;
@@ -178,12 +180,12 @@ async function deleteHabit(): Promise<void> {
   align-items: center;
   justify-content: center;
   gap: 18rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .state-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .state-body {
   font-size: 26rpx;
@@ -198,7 +200,7 @@ async function deleteHabit(): Promise<void> {
 .eyebrow {
   display: block;
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin-bottom: 6rpx;
 }
 .title {
@@ -218,45 +220,45 @@ async function deleteHabit(): Promise<void> {
 }
 .ghost,
 .secondary {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent-ink);
   font-weight: 700;
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 .card {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 26rpx;
   padding: 10rpx 24rpx 20rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.05);
+  box-shadow: 0 10rpx 30rpx var(--dp-shadow);
 }
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 82rpx;
-  border-bottom: 1rpx solid #f1f5f9;
+  border-bottom: 1rpx solid var(--dp-soft);
   gap: 20rpx;
 }
 .row-title {
   font-size: 27rpx;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .row-value {
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   text-align: right;
 }
 .hint {
   display: block;
   margin-top: 16rpx;
   font-size: 22rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
   line-height: 1.6;
 }
 .actions {
@@ -269,20 +271,20 @@ async function deleteHabit(): Promise<void> {
   box-sizing: border-box;
 }
 .secondary {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
-  color: #334155;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
+  color: var(--dp-ink-3);
 }
 .danger {
-  background: #fff1f2;
-  color: #be123c;
+  background: var(--dp-paper)1f2;
+  color: var(--dp-rose);
   font-weight: 700;
 }
 .footnote {
   display: block;
   margin-top: 20rpx;
   font-size: 22rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
   line-height: 1.6;
 }
 </style>

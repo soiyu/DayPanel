@@ -1,3 +1,4 @@
+declare const uni: any;
 declare const wx: any;
 
 declare module '*.vue' {

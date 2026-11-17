@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :class="themeClass">
     <view class="hero">
       <text class="title">{{ t('insightsTitle') }}</text>
       <text class="hint">{{ t('insightsNote') }}</text>
@@ -120,6 +120,7 @@
 </template>
 
 <script setup lang="ts">
+import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { useInsightsStore } from '../../stores/insights.ts';
@@ -151,6 +152,7 @@ function select(value: InsightRange): void {
 function weekdayName(day: number): string {
   return ['一', '二', '三', '四', '五', '六', '日'][day - 1] ?? '';
 }
+const themeClass = useThemeClass();
 </script>
 
 <style scoped>
@@ -158,7 +160,7 @@ function weekdayName(day: number): string {
   min-height: 100vh;
   padding: 32rpx 28rpx 80rpx;
   box-sizing: border-box;
-  background: #f8fafc;
+  background: var(--dp-bg);
 }
 .hero {
   margin-bottom: 20rpx;
@@ -172,7 +174,7 @@ function weekdayName(day: number): string {
   display: block;
   margin-top: 8rpx;
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   line-height: 1.5;
 }
 .ranges {
@@ -183,27 +185,27 @@ function weekdayName(day: number): string {
 .range {
   flex: 1;
   text-align: center;
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 999rpx;
   padding: 14rpx 0;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .range.active {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  border-color: var(--dp-accent);
+  color: var(--dp-on-accent);
   font-weight: 700;
 }
 .state,
 .empty {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 26rpx;
   padding: 42rpx 30rpx;
   text-align: center;
-  color: #64748b;
+  color: var(--dp-muted);
   font-size: 25rpx;
 }
 .state {
@@ -217,11 +219,11 @@ function weekdayName(day: number): string {
 .state-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .primary {
-  background: #2563eb;
-  color: #fff;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
   border-radius: 999rpx;
   font-size: 25rpx;
   padding: 18rpx 26rpx;
@@ -229,16 +231,16 @@ function weekdayName(day: number): string {
 }
 .hero-card,
 .card {
-  background: #fff;
-  border: 1rpx solid #e2e8f0;
+  background: var(--dp-paper);
+  border: 1rpx solid var(--dp-line);
   border-radius: 26rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
-  box-shadow: 0 10rpx 30rpx rgba(15, 23, 42, 0.05);
+  box-shadow: 0 10rpx 30rpx var(--dp-shadow);
 }
 .hero-label {
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .hero-rate-row {
   display: flex;
@@ -249,26 +251,26 @@ function weekdayName(day: number): string {
 .hero-rate {
   font-size: 58rpx;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--dp-ink);
 }
 .hero-delta {
   font-size: 24rpx;
-  color: #047857;
+  color: var(--dp-teal);
   font-weight: 700;
 }
 .hero-delta.down,
 .habit-trend.down {
-  color: #be123c;
+  color: var(--dp-rose);
 }
 .hero-note {
   display: block;
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 .hero-bar {
   height: 10rpx;
-  background: #f1f5f9;
+  background: var(--dp-soft);
   border-radius: 999rpx;
   margin: 18rpx 0 8rpx;
   overflow: hidden;
@@ -279,12 +281,12 @@ function weekdayName(day: number): string {
 }
 .hero-foot {
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .section {
   display: block;
   font-size: 24rpx;
-  color: #64748b;
+  color: var(--dp-muted);
   margin-bottom: 14rpx;
 }
 .weekday {
@@ -296,12 +298,12 @@ function weekdayName(day: number): string {
 .weekday-name {
   width: 30rpx;
   font-size: 23rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .weekday-bar {
   flex: 1;
   height: 10rpx;
-  background: #f1f5f9;
+  background: var(--dp-soft);
   border-radius: 999rpx;
   overflow: hidden;
 }
@@ -313,14 +315,14 @@ function weekdayName(day: number): string {
   width: 66rpx;
   text-align: right;
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .habit {
   display: flex;
   align-items: center;
   gap: 12rpx;
   min-height: 64rpx;
-  border-bottom: 1rpx solid #f1f5f9;
+  border-bottom: 1rpx solid var(--dp-soft);
 }
 .habit:last-child {
   border-bottom: none;
@@ -341,18 +343,18 @@ function weekdayName(day: number): string {
   display: block;
   margin-top: 3rpx;
   font-size: 21rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 .habit-rate {
   font-size: 24rpx;
   font-weight: 700;
-  color: #1d4ed8;
+  color: var(--dp-accent-ink);
 }
 .habit-trend {
   width: 62rpx;
   text-align: right;
   font-size: 21rpx;
-  color: #047857;
+  color: var(--dp-teal);
 }
 .months {
   display: flex;
@@ -383,18 +385,18 @@ function weekdayName(day: number): string {
 }
 .month-label {
   font-size: 20rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .month-value {
   font-size: 20rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 .pair {
   display: flex;
   justify-content: space-between;
   min-height: 54rpx;
   align-items: center;
-  border-bottom: 1rpx solid #f1f5f9;
+  border-bottom: 1rpx solid var(--dp-soft);
 }
 .pair:last-child {
   border-bottom: none;
@@ -404,7 +406,7 @@ function weekdayName(day: number): string {
 }
 .pair-days {
   font-size: 22rpx;
-  color: #64748b;
+  color: var(--dp-muted);
 }
 .overview {
   display: flex;
@@ -412,7 +414,7 @@ function weekdayName(day: number): string {
 }
 .overview-item {
   flex: 1;
-  background: #f8fafc;
+  background: var(--dp-bg);
   border-radius: 18rpx;
   padding: 18rpx;
   text-align: center;
@@ -426,6 +428,6 @@ function weekdayName(day: number): string {
   display: block;
   margin-top: 4rpx;
   font-size: 21rpx;
-  color: #94a3b8;
+  color: var(--dp-faint);
 }
 </style>
