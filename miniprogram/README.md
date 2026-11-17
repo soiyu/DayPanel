@@ -23,6 +23,10 @@
 - 广告：v1 只预留 `AdSlot`，不加载任何广告 SDK。
 - 整库导出/客服副本：按决定不做；只保留个人设置注销与单条记录删除。
 
+## 国内化方向
+
+国内行情功能设计见 [`docs/product/DOMESTIC-FEATURES.md`](../docs/product/DOMESTIC-FEATURES.md)，决策见 [`ADR0020`](../docs/adr/0020-domestic-product-direction.md)。P0 包括中国节假日/调休、补记、长辈模式、中文分享；社交/微信运动默认关闭，待确认。当前代码尚未实现这些国内化能力。
+
 ## 部署
 
 见 [`docs/development/WECHAT-DEPLOY.md`](../docs/development/WECHAT-DEPLOY.md)。需要真实 AppID、CloudBase 环境 ID、微信开发者工具和订阅消息模板；当前不能用本地数据冒充云端。
