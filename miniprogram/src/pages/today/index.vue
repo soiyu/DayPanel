@@ -13,7 +13,7 @@
     <template v-else-if="store.view">
       <view class="hero">
         <view>
-          <text class="eyebrow">{{ store.today }}</text>
+          <text class="eyebrow">{{ store.today }} · {{ dayLabel }}</text>
           <text class="title">{{ t('today') }}</text>
         </view>
         <button class="ghost" @tap="openNewHabit">{{ t('addHabit') }}</button>
@@ -88,16 +88,23 @@
 <script setup lang="ts">
 import { useThemeClass } from '../../composables/useTheme.ts';
 import { computed } from 'vue';
-import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
+import { onPullDownRefresh, onShareAppMessage, onShow } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
 import { currentPlan, type Habit } from '../../domain/models.ts';
 import { countText, parseCount, parseQuantity, quantityText } from '../../domain/quantity.ts';
 import CardArt from '../../components/CardArt.vue';
+import { chinaDayInfo } from '../../domain/china-calendar.ts';
 import { habitIconSrc } from '../../domain/icons.ts';
 
 const store = useTodayStore();
 
 const t = (key: Parameters<typeof store.tr>[0]) => store.tr(key);
+
+const dayLabel = computed(() => {
+  const info = chinaDayInfo(store.today);
+  if (info.name) return info.name;
+  return info.kind === 'weekend' ? t('restDay') : t('workday');
+});
 
 const progressWidth = computed(() => {
   const total = store.planned.length;
@@ -113,6 +120,11 @@ onPullDownRefresh(async () => {
   await store.refresh();
   uni.stopPullDownRefresh();
 });
+
+onShareAppMessage(() => ({
+  title: 'DayPanel · 今天的一点点',
+  path: '/pages/today/index',
+}));
 
 function openNewHabit(): void {
   uni.navigateTo({ url: '/pages/habit/new' });

@@ -28,7 +28,7 @@ export const useThemeStore = defineStore('theme', () => {
   );
   const themeClass = computed(
     () =>
-      `${dark.value ? 'theme-dark' : 'theme-light'} palette-${effective.value.palette} font-${effective.value.font} frame-${effective.value.iconFrame}`,
+      `${dark.value ? 'theme-dark' : 'theme-light'} palette-${effective.value.palette} font-${effective.value.font} frame-${effective.value.iconFrame}${effective.value.elderMode ? ' elder-mode' : ''}`,
   );
 
   function readSystem(): void {

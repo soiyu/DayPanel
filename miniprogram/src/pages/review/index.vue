@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { onShow } from '@dcloudio/uni-app';
+import { onShareAppMessage, onShow } from '@dcloudio/uni-app';
 import { useInsightsStore } from '../../stores/insights.ts';
 import { useThemeClass } from '../../composables/useTheme.ts';
 import { translate } from '../../i18n/index.ts';
@@ -68,6 +68,11 @@ const ranges: Array<{ value: InsightRange; label: string }> = [
 onShow(() => {
   void store.load(7);
 });
+
+onShareAppMessage(() => ({
+  title: 'DayPanel · 最近的真实记录',
+  path: '/pages/review/index',
+}));
 
 function select(value: InsightRange): void {
   void store.load(value);

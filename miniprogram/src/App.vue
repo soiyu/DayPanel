@@ -184,6 +184,29 @@ page {
 .page.font-serif {
   font-family: 'Noto Serif SC', 'Songti SC', serif;
 }
+.page.elder-mode .title {
+  font-size: 64rpx !important;
+}
+.page.elder-mode .habit-title,
+.page.elder-mode .task-title,
+.page.elder-mode .row-title,
+.page.elder-mode .name {
+  font-size: 34rpx !important;
+}
+.page.elder-mode .habit-meta,
+.page.elder-mode .row-meta,
+.page.elder-mode .task-meta,
+.page.elder-mode .hint {
+  font-size: 26rpx !important;
+}
+.page.elder-mode button {
+  min-height: 96rpx;
+}
+.page.elder-mode .action,
+.page.elder-mode .primary,
+.page.elder-mode .ghost {
+  font-size: 30rpx !important;
+}
 .page.theme-dark,
 .page.theme-dark .page {
   background: var(--dp-bg);

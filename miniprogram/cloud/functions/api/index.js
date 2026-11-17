@@ -106,6 +106,38 @@ function isValidRecordValue(kind, value) {
   return true;
 }
 
+// src/domain/china-calendar.ts
+var HOLIDAYS_2026 = [
+  { name: "\u5143\u65E6", start: "2026-01-01", end: "2026-01-03" },
+  { name: "\u6625\u8282", start: "2026-02-15", end: "2026-02-23" },
+  { name: "\u6E05\u660E\u8282", start: "2026-04-04", end: "2026-04-06" },
+  { name: "\u52B3\u52A8\u8282", start: "2026-05-01", end: "2026-05-05" },
+  { name: "\u7AEF\u5348\u8282", start: "2026-06-19", end: "2026-06-21" },
+  { name: "\u4E2D\u79CB\u8282", start: "2026-09-25", end: "2026-09-27" },
+  { name: "\u56FD\u5E86\u8282", start: "2026-10-01", end: "2026-10-07" }
+];
+var MAKEUP_WORKDAYS_2026 = /* @__PURE__ */ new Set([
+  "2026-01-04",
+  "2026-02-14",
+  "2026-02-28",
+  "2026-05-09",
+  "2026-09-20",
+  "2026-10-10"
+]);
+function inRange(day, range) {
+  return compareDay(day, range.start) >= 0 && compareDay(day, range.end) <= 0;
+}
+function chinaDayInfo(day) {
+  if (MAKEUP_WORKDAYS_2026.has(day)) {
+    return { kind: "makeup_workday", name: "\u8C03\u4F11\u4E0A\u73ED" };
+  }
+  const holiday = HOLIDAYS_2026.find((range) => inRange(day, range));
+  if (holiday) return { kind: "holiday", name: holiday.name };
+  const iso = weekday(day);
+  if (iso >= 6) return { kind: "weekend", name: null };
+  return { kind: "workday", name: null };
+}
+
 // src/domain/models.ts
 var DEFAULT_SETTINGS = {
   locale: "system",
@@ -114,7 +146,8 @@ var DEFAULT_SETTINGS = {
   font: "system",
   iconFrame: "soft",
   completionSound: false,
-  completionHaptics: false
+  completionHaptics: false,
+  elderMode: false
 };
 function defaultReminderPrefs() {
   return {
@@ -143,6 +176,7 @@ function emptyState() {
     activity: [],
     breaks: [],
     events: [],
+    backfills: [],
     jobs: []
   };
 }
@@ -166,14 +200,28 @@ function currentPlan(habit, day) {
 }
 function scheduledOn(plan, day) {
   if (compareDay(day, plan.effectiveDay) < 0) return false;
-  switch (plan.schedule) {
-    case "weekdays":
-      return (plan.weekdays & weekdayBit(day)) !== 0;
-    case "interval":
-      return daysSince(day, plan.effectiveDay) % plan.intervalDays === 0;
-    case "weekly":
-    case "weeklyTotal":
+  const base = (() => {
+    switch (plan.schedule) {
+      case "weekdays":
+        return (plan.weekdays & weekdayBit(day)) !== 0;
+      case "interval":
+        return daysSince(day, plan.effectiveDay) % plan.intervalDays === 0;
+      case "weekly":
+      case "weeklyTotal":
+        return true;
+    }
+  })();
+  if (!base) return false;
+  const kind = chinaDayInfo(day).kind;
+  switch (plan.calendarRule ?? "any") {
+    case "any":
       return true;
+    case "skip_holidays":
+      return kind !== "holiday";
+    case "workdays":
+      return kind === "workday" || kind === "makeup_workday";
+    case "restdays":
+      return kind === "weekend" || kind === "holiday";
   }
 }
 function isRestOn(breaks, habitId, day) {
@@ -214,7 +262,7 @@ function assertUniqueId(state, id) {
     throw new ValidationError("id_conflict");
   }
 }
-function validatePlan(kind, target, schedule, weekdays, intervalDays, weeklyGoal, unit) {
+function validatePlan(kind, target, schedule, weekdays, intervalDays, weeklyGoal, unit, calendarRule) {
   if (!Number.isSafeInteger(target) || target <= 0) {
     throw new ValidationError("invalid_target");
   }
@@ -240,6 +288,9 @@ function validatePlan(kind, target, schedule, weekdays, intervalDays, weeklyGoal
     throw new ValidationError("invalid_weekly_goal");
   }
   if (unit.length > 12) throw new ValidationError("unit_too_long");
+  if (!["any", "workdays", "restdays", "skip_holidays"].includes(calendarRule)) {
+    throw new ValidationError("invalid_calendar_rule");
+  }
 }
 function createHabit(state, input, context) {
   const today = requireToday(context);
@@ -261,6 +312,7 @@ function createHabit(state, input, context) {
   const weekdays = input.weekdays ?? 127;
   const intervalDays = input.intervalDays ?? 1;
   const weeklyGoal = input.weeklyGoal ?? 3;
+  const calendarRule = input.calendarRule ?? "any";
   validatePlan(
     input.kind,
     input.target,
@@ -268,7 +320,8 @@ function createHabit(state, input, context) {
     weekdays,
     intervalDays,
     weeklyGoal,
-    unit
+    unit,
+    calendarRule
   );
   const icon = input.icon ?? 0;
   if (!Number.isInteger(icon) || icon < 0 || icon >= 28) {
@@ -291,7 +344,8 @@ function createHabit(state, input, context) {
     schedule,
     weekdays,
     intervalDays,
-    weeklyGoal
+    weeklyGoal,
+    calendarRule
   };
   const habit = {
     id,
@@ -310,11 +364,19 @@ function createHabit(state, input, context) {
   next.profile.habits.push(habit);
   return next;
 }
+var MAX_BACKFILL_DAYS = 7;
+function recordedNow() {
+  return (/* @__PURE__ */ new Date()).toISOString();
+}
 function recordHabit(state, habitId, day, value, context) {
   const today = requireToday(context);
   const targetDay = parseDay(day);
   if (compareDay(targetDay, today) > 0) {
     throw new ValidationError("future_day");
+  }
+  const age = daysSince(today, targetDay);
+  if (age > MAX_BACKFILL_DAYS) {
+    throw new ValidationError("backfill_too_old");
   }
   const habit = findHabit(state, habitId);
   if (!habit) throw new ValidationError("habit_missing");
@@ -335,6 +397,22 @@ function recordHabit(state, habitId, day, value, context) {
   const record = next.days[targetDay] ?? { day: targetDay, entries: {} };
   record.entries[habitId] = value;
   next.days[targetDay] = record;
+  if (age > 0) {
+    const existing = next.backfills.find(
+      (item) => item.habitId === habitId && item.day === targetDay
+    );
+    if (!existing) {
+      next.backfills.push({
+        habitId,
+        day: targetDay,
+        recordedAt: recordedNow()
+      });
+    }
+  } else {
+    next.backfills = next.backfills.filter(
+      (item) => !(item.habitId === habitId && item.day === targetDay)
+    );
+  }
   return next;
 }
 function clearHabit(state, habitId, day) {
@@ -345,6 +423,9 @@ function clearHabit(state, habitId, day) {
   const record = next.days[targetDay];
   if (!record) return next;
   delete record.entries[habitId];
+  next.backfills = next.backfills.filter(
+    (item) => !(item.habitId === habitId && item.day === targetDay)
+  );
   if (Object.keys(record.entries).length === 0) {
     delete next.days[targetDay];
   } else {
@@ -370,6 +451,7 @@ function deleteHabit(state, habitId) {
   }
   next.breaks = next.breaks.filter((item) => item.habitId !== habitId);
   next.activity = next.activity.filter((item) => item.habitId !== habitId);
+  next.backfills = next.backfills.filter((item) => item.habitId !== habitId);
   next.notes = next.notes.map(
     (note) => note.habitId === habitId ? { ...note, habitId: null } : note
   );
@@ -586,6 +668,9 @@ function updateSettings(state, patch) {
     } else if (key === "completionHaptics") {
       if (typeof value !== "boolean") throw new ValidationError("invalid_haptics");
       settings.completionHaptics = value;
+    } else if (key === "elderMode") {
+      if (typeof value !== "boolean") throw new ValidationError("invalid_elder");
+      settings.elderMode = value;
     }
   }
   next.profile.settings = settings;
@@ -878,7 +963,8 @@ var COLLECTIONS = [
   "dp_activity",
   "dp_breaks",
   "dp_events",
-  "dp_jobs"
+  "dp_jobs",
+  "dp_backfills"
 ];
 function fail(code) {
   return { ok: false, error: code };
@@ -928,6 +1014,9 @@ async function loadUser(openid, day) {
     }
     for (const row of await listAll("dp_cards", openid)) {
       if (row.card) state.cards.push(row.card);
+    }
+    for (const row of await listAll("dp_backfills", openid)) {
+      if (row.backfill) state.backfills.push(row.backfill);
     }
   }
   let card = null;
@@ -984,6 +1073,22 @@ function changedTaskDays(previous, next) {
     }
   }
   return changed;
+}
+function changedBackfills(previous, next) {
+  const before = new Map(
+    previous.backfills.map((item) => [`${item.habitId}|${item.day}`, item])
+  );
+  const after = new Map(
+    next.backfills.map((item) => [`${item.habitId}|${item.day}`, item])
+  );
+  const changed = [];
+  for (const [key, item] of after) {
+    if (JSON.stringify(before.get(key) ?? null) !== JSON.stringify(item)) {
+      changed.push(item);
+    }
+  }
+  const removed = [...before.keys()].filter((key) => !after.has(key));
+  return { changed, removed };
 }
 function changedCards(previous, next) {
   const before = new Map(previous.cards.map((card) => [card.day, card]));
@@ -1093,6 +1198,18 @@ async function persist(openid, expected, previous, next) {
     for (const id of noteDiff.removed) {
       try {
         await tx.collection("dp_notes").doc(`${openid}_${id}`).remove();
+      } catch {
+      }
+    }
+    const backfillDiff = changedBackfills(previous, next);
+    for (const item of backfillDiff.changed) {
+      await tx.collection("dp_backfills").doc(`${openid}_${item.habitId}_${item.day}`).set({
+        data: { _openid: openid, backfill: item, updatedAt: db.serverDate() }
+      });
+    }
+    for (const key of backfillDiff.removed) {
+      try {
+        await tx.collection("dp_backfills").doc(`${openid}_${key.replace("|", "_")}`).remove();
       } catch {
       }
     }
@@ -1373,7 +1490,8 @@ async function main(event) {
         profile: loaded.profile,
         day: loaded.todayRecord,
         card: loaded.card,
-        breaks: loaded.state.breaks
+        breaks: loaded.state.breaks,
+        backfills: loaded.state.backfills
       };
     }
     if (event?.action === "tasks") {
@@ -1440,7 +1558,10 @@ async function main(event) {
             id: habitId,
             title: habit.title,
             value,
-            kind: habit.kind
+            kind: habit.kind,
+            backfilled: loaded.state.backfills.some(
+              (item) => item.habitId === habitId && item.day === day
+            )
           });
         }
       }

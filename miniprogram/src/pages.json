@@ -44,6 +44,12 @@
       }
     },
     {
+      "path": "pages/habit/backfill",
+      "style": {
+        "navigationBarTitleText": "补记"
+      }
+    },
+    {
       "path": "pages/task/new",
       "style": {
         "navigationBarTitleText": "新建小事"

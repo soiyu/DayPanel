@@ -410,3 +410,27 @@ test('rest: vacation range and skip validation', () => {
   const skipped = startBreak(created, 'h1', 'skip', '2026-11-15', '2026-11-15', ctx);
   assert.equal(isRestOn(skipped.breaks, 'h1', '2026-11-15'), true);
 });
+test('backfill: records within 7 days get an audit row, older days are rejected', () => {
+  const ctx = context();
+  const created = createHabit(
+    emptyState(),
+    { title: 'Read', kind: 'check', target: 1000, startDay: '2026-11-01' },
+    ctx,
+  );
+  const backfilled = recordHabit(created, 'h1', '2026-11-15', 1000, ctx);
+  assert.equal(backfilled.days['2026-11-15'].entries.h1, 1000);
+  assert.equal(backfilled.backfills.length, 1);
+  assert.equal(backfilled.backfills[0].habitId, 'h1');
+  assert.equal(backfilled.backfills[0].day, '2026-11-15');
+  assert.ok(backfilled.backfills[0].recordedAt);
+
+  const same = recordHabit(created, 'h1', '2026-11-16', 1000, ctx);
+  assert.equal(same.backfills.length, 0);
+  assert.throws(
+    () => recordHabit(created, 'h1', '2026-11-08', 1000, ctx),
+    /backfill_too_old/,
+  );
+  const cleared = clearHabit(backfilled, 'h1', '2026-11-15');
+  assert.equal(cleared.backfills.length, 0);
+  assert.equal(cleared.days['2026-11-15'], undefined);
+});

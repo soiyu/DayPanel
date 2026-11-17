@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { useThemeClass } from '../../composables/useTheme.ts';
-import { onShow } from '@dcloudio/uni-app';
+import { onShareAppMessage, onShow } from '@dcloudio/uni-app';
 import { useCardsStore } from '../../stores/cards.ts';
 import { evidenceOf } from '../../domain/achievement.ts';
 import type { AchievementCard } from '../../domain/models.ts';
@@ -68,6 +68,11 @@ const t = (key: Parameters<typeof today.tr>[0]) => today.tr(key);
 onShow(() => {
   void store.load();
 });
+
+onShareAppMessage(() => ({
+  title: 'DayPanel · 我的成就卡',
+  path: '/pages/cards/index',
+}));
 
 function evidenceTitles(card: AchievementCard): string {
   return evidenceOf(card)

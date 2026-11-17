@@ -4,6 +4,7 @@ import type {
   AchievementCard,
   DayRecord,
   Profile,
+  Backfill,
   HabitBreak,
   Note,
   ReminderPrefs,
@@ -31,6 +32,7 @@ export interface TodayView {
   day: DayRecord | null;
   card: AchievementCard | null;
   breaks: HabitBreak[];
+  backfills: Backfill[];
 }
 
 export interface MutateResult {
@@ -68,6 +70,7 @@ export interface TimelineEvent {
   value?: number;
   kind?: string;
   resident?: boolean;
+  backfilled?: boolean;
 }
 
 export interface ReminderJobView {
@@ -221,6 +224,7 @@ export class WechatCloudGateway implements CloudGateway {
       day: DayRecord | null;
       card: AchievementCard | null;
       breaks: HabitBreak[];
+      backfills: Backfill[];
     }>('today', { day });
     return {
       revision: result.revision,
@@ -228,6 +232,7 @@ export class WechatCloudGateway implements CloudGateway {
       day: result.day,
       card: result.card,
       breaks: result.breaks ?? [],
+      backfills: result.backfills ?? [],
     };
   }
 

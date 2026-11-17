@@ -52,6 +52,18 @@
     </view>
 
     <view class="section">
+      <text class="section-title">{{ t('elderMode') }}</text>
+      <view class="row-switch">
+        <text class="row-note">{{ t('elderModeNote') }}</text>
+        <switch
+          :checked="theme.effective.elderMode"
+          color="var(--dp-accent)"
+          @change="onElder"
+        />
+      </view>
+    </view>
+
+    <view class="section">
       <text class="section-title">{{ t('iconFrame') }}</text>
       <view class="options">
         <view
@@ -123,6 +135,10 @@ function setFont(value: Settings['font']): void {
 }
 function setFrame(value: Settings['iconFrame']): void {
   preview({ iconFrame: value });
+}
+
+function onElder(event: any): void {
+  preview({ elderMode: event.detail.value === true });
 }
 
 async function save(): Promise<void> {
@@ -225,6 +241,18 @@ onUnload(() => {
   font-size: 19rpx;
   color: var(--dp-muted);
   text-align: center;
+}
+.row-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.row-note {
+  flex: 1;
+  font-size: 23rpx;
+  color: var(--dp-muted);
+  line-height: 1.5;
 }
 .footnote {
   display: block;

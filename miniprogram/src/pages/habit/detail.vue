@@ -49,6 +49,7 @@
         <button class="secondary" :disabled="!!activeBreak" @tap="vacationWeek">
           {{ t('vacationWeek') }}
         </button>
+        <button class="secondary" @tap="openBackfill">{{ t('backfill') }}</button>
         <button class="secondary" @tap="archiveHabit">{{ t('archive') }}</button>
         <button class="danger" @tap="deleteHabit">{{ t('deleteHabit') }}</button>
       </view>
@@ -130,6 +131,10 @@ function kindLabel(kind: Habit['kind']): string {
 
 function openEdit(): void {
   uni.navigateTo({ url: `/pages/habit/edit?id=${encodeURIComponent(habitId.value)}` });
+}
+
+function openBackfill(): void {
+  uni.navigateTo({ url: `/pages/habit/backfill?id=${encodeURIComponent(habitId.value)}` });
 }
 
 async function togglePause(): Promise<void> {

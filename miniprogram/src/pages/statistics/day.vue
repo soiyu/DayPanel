@@ -22,7 +22,9 @@
             <text class="row-title">{{ item.habit.title }}</text>
             <text class="row-meta">{{ item.scheduled ? '计划内' : '计划外' }}</text>
           </view>
-          <text class="row-value">{{ valueText(item) }}</text>
+          <text class="row-value">
+            {{ valueText(item) }}{{ isBackfilled(item.habit.id) ? ' · 补记' : '' }}
+          </text>
         </view>
       </view>
 
@@ -118,6 +120,12 @@ const evidenceTitles = computed(() => {
     .map((item) => item.title)
     .join(' · ');
 });
+
+function isBackfilled(habitId: string): boolean {
+  return view.value?.backfills.some(
+    (item) => item.habitId === habitId && item.day === day.value,
+  ) === true;
+}
 
 function valueText(item: { habit: Habit; scheduled: boolean }): string {
   const value = view.value?.day?.entries[item.habit.id];

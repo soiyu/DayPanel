@@ -6,9 +6,11 @@ import {
   type DayKey,
 } from './day.ts';
 import { countText, quantityText } from './quantity.ts';
+import { chinaDayInfo } from './china-calendar.ts';
 
 export type HabitKind = 'check' | 'quantity' | 'count';
 export type ScheduleKind = 'weekdays' | 'interval' | 'weekly' | 'weeklyTotal';
+export type ScheduleRule = 'any' | 'workdays' | 'restdays' | 'skip_holidays';
 export type HabitContext = 'anytime' | 'morning' | 'daytime' | 'evening';
 export type ReminderChannel = 'once' | 'digest' | 'calendar';
 
@@ -26,6 +28,7 @@ export interface HabitPlan {
   weekdays: number;
   intervalDays: number;
   weeklyGoal: number;
+  calendarRule?: ScheduleRule;
 }
 
 export interface Habit {
@@ -87,6 +90,12 @@ export interface HabitBreak {
   kind: 'pause' | 'vacation' | 'skip';
 }
 
+export interface Backfill {
+  habitId: string;
+  day: DayKey;
+  recordedAt: string;
+}
+
 export interface RecordEvent {
   id: string;
   habitId: string;
@@ -127,6 +136,7 @@ export interface Settings {
   iconFrame: 'soft' | 'ring' | 'plain';
   completionSound: boolean;
   completionHaptics: boolean;
+  elderMode: boolean;
 }
 
 export interface Profile {
@@ -146,6 +156,7 @@ export interface UserState {
   activity: HabitActivity[];
   breaks: HabitBreak[];
   events: RecordEvent[];
+  backfills: Backfill[];
   jobs: ReminderJob[];
 }
 
@@ -157,6 +168,7 @@ const DEFAULT_SETTINGS: Settings = {
   iconFrame: 'soft',
   completionSound: false,
   completionHaptics: false,
+  elderMode: false,
 };
 
 /**
@@ -192,6 +204,7 @@ export function emptyState(): UserState {
     activity: [],
     breaks: [],
     events: [],
+    backfills: [],
     jobs: [],
   };
 }
@@ -221,14 +234,28 @@ export function currentPlan(habit: Habit, day: DayKey): HabitPlan {
 
 export function scheduledOn(plan: HabitPlan, day: DayKey): boolean {
   if (compareDay(day, plan.effectiveDay) < 0) return false;
-  switch (plan.schedule) {
-    case 'weekdays':
-      return (plan.weekdays & weekdayBit(day)) !== 0;
-    case 'interval':
-      return daysSince(day, plan.effectiveDay) % plan.intervalDays === 0;
-    case 'weekly':
-    case 'weeklyTotal':
+  const base = (() => {
+    switch (plan.schedule) {
+      case 'weekdays':
+        return (plan.weekdays & weekdayBit(day)) !== 0;
+      case 'interval':
+        return daysSince(day, plan.effectiveDay) % plan.intervalDays === 0;
+      case 'weekly':
+      case 'weeklyTotal':
+        return true;
+    }
+  })();
+  if (!base) return false;
+  const kind = chinaDayInfo(day).kind;
+  switch (plan.calendarRule ?? 'any') {
+    case 'any':
       return true;
+    case 'skip_holidays':
+      return kind !== 'holiday';
+    case 'workdays':
+      return kind === 'workday' || kind === 'makeup_workday';
+    case 'restdays':
+      return kind === 'weekend' || kind === 'holiday';
   }
 }
 

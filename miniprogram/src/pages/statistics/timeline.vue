@@ -30,7 +30,7 @@
           <text class="event-type">{{ typeLabel(event.type) }}</text>
           <text class="event-day" @tap="openDay(event.day)">{{ event.day }}</text>
         </view>
-        <text class="event-title">{{ event.title }}</text>
+        <text class="event-title">{{ event.title }}{{ event.backfilled ? ' · 补记' : '' }}</text>
         <text v-if="event.type === 'habit' && event.value !== undefined" class="event-value">
           {{ valueText(event) }}
         </text>

@@ -132,6 +132,24 @@ export const useTodayStore = defineStore('today', () => {
     );
   }
 
+  async function recordOn(
+    habitId: string,
+    day: string,
+    value: number,
+  ): Promise<boolean> {
+    const snapshot = view.value;
+    if (!snapshot) return false;
+    return mutate((revision) => gateway.recordHabit(habitId, day, value, revision));
+  }
+
+  function isBackfilled(habitId: string, day: string): boolean {
+    return (
+      view.value?.backfills.some(
+        (item) => item.habitId === habitId && item.day === day,
+      ) === true
+    );
+  }
+
   async function clear(habitId: string): Promise<boolean> {
     const snapshot = view.value;
     if (!snapshot) return false;
@@ -236,6 +254,8 @@ export const useTodayStore = defineStore('today', () => {
     endBreak,
     deleteBreak,
     record,
+    recordOn,
+    isBackfilled,
     clear,
     archive,
     removeHabit,

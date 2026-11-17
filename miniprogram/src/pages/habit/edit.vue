@@ -30,6 +30,13 @@
       </view>
 
       <view class="field">
+        <text class="label">{{ t('calendarRule') }}</text>
+        <picker :range="ruleLabels" :value="ruleIndex" @change="onRuleChange">
+          <view class="picker">{{ ruleLabels[ruleIndex] }}</view>
+        </picker>
+      </view>
+
+      <view class="field">
         <text class="label">{{ t('schedule') }}</text>
         <picker :range="scheduleLabels" :value="scheduleIndex" @change="onScheduleChange">
           <view class="picker">{{ scheduleLabels[scheduleIndex] }}</view>
@@ -94,6 +101,7 @@ const schedule = ref<ScheduleKind>('weekdays');
 const selectedWeekdays = ref<number[]>([1, 2, 3, 4, 5, 6, 7]);
 const intervalDays = ref('1');
 const weeklyGoal = ref('3');
+const calendarRule = ref<ScheduleRule>('any');
 
 const weekdays = [
   { value: 1, label: '一' },
@@ -118,6 +126,14 @@ const scheduleLabels = computed(() => [
   t('scheduleWeeklyTotal'),
 ]);
 const scheduleIndex = computed(() => scheduleKinds.indexOf(schedule.value));
+const ruleKinds: ScheduleRule[] = ['any', 'workdays', 'restdays', 'skip_holidays'];
+const ruleLabels = computed(() => [
+  t('ruleAny'),
+  t('ruleWorkdays'),
+  t('ruleRestdays'),
+  t('ruleSkipHolidays'),
+]);
+const ruleIndex = computed(() => ruleKinds.indexOf(calendarRule.value));
 
 const habit = computed<Habit | null>(() =>
   habitId.value ? store.habitById(habitId.value) : null,
@@ -144,10 +160,15 @@ onLoad(async (options: Record<string, string | undefined>) => {
     .filter((value) => plan.weekdays & (1 << (value - 1)));
   intervalDays.value = String(plan.intervalDays);
   weeklyGoal.value = String(plan.weeklyGoal);
+  calendarRule.value = plan.calendarRule ?? 'any';
 });
 
 function onScheduleChange(event: any): void {
   schedule.value = scheduleKinds[Number(event.detail.value)] ?? 'weekdays';
+}
+
+function onRuleChange(event: any): void {
+  calendarRule.value = ruleKinds[Number(event.detail.value)] ?? 'any';
 }
 
 function toggleWeekday(value: number): void {
@@ -195,6 +216,7 @@ async function save(): Promise<void> {
         : 127,
     intervalDays: Number(intervalDays.value),
     weeklyGoal: Number(weeklyGoal.value),
+    calendarRule: calendarRule.value,
   });
   if (!ok) {
     uni.showToast({ title: t('loadFailed'), icon: 'none' });

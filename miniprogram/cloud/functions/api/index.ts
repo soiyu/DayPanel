@@ -61,6 +61,7 @@ const COLLECTIONS = [
   'dp_breaks',
   'dp_events',
   'dp_jobs',
+  'dp_backfills',
 ];
 
 function fail(code) {
@@ -120,6 +121,9 @@ async function loadUser(openid, day) {
     }
     for (const row of await listAll('dp_cards', openid)) {
       if (row.card) state.cards.push(row.card);
+    }
+    for (const row of await listAll('dp_backfills', openid)) {
+      if (row.backfill) state.backfills.push(row.backfill);
     }
   }
 
@@ -185,6 +189,23 @@ function changedTaskDays(previous, next) {
     }
   }
   return changed;
+}
+
+function changedBackfills(previous, next) {
+  const before = new Map(
+    previous.backfills.map((item) => [`${item.habitId}|${item.day}`, item]),
+  );
+  const after = new Map(
+    next.backfills.map((item) => [`${item.habitId}|${item.day}`, item]),
+  );
+  const changed = [];
+  for (const [key, item] of after) {
+    if (JSON.stringify(before.get(key) ?? null) !== JSON.stringify(item)) {
+      changed.push(item);
+    }
+  }
+  const removed = [...before.keys()].filter((key) => !after.has(key));
+  return { changed, removed };
 }
 
 function changedCards(previous, next) {
@@ -305,6 +326,20 @@ async function persist(openid, expected, previous, next) {
     for (const id of noteDiff.removed) {
       try {
         await tx.collection('dp_notes').doc(`${openid}_${id}`).remove();
+      } catch {
+        // already absent
+      }
+    }
+
+    const backfillDiff = changedBackfills(previous, next);
+    for (const item of backfillDiff.changed) {
+      await tx.collection('dp_backfills').doc(`${openid}_${item.habitId}_${item.day}`).set({
+        data: { _openid: openid, backfill: item, updatedAt: db.serverDate() },
+      });
+    }
+    for (const key of backfillDiff.removed) {
+      try {
+        await tx.collection('dp_backfills').doc(`${openid}_${key.replace('|', '_')}`).remove();
       } catch {
         // already absent
       }
@@ -622,6 +657,7 @@ export async function main(event) {
         day: loaded.todayRecord,
         card: loaded.card,
         breaks: loaded.state.breaks,
+        backfills: loaded.state.backfills,
       };
     }
     if (event?.action === 'tasks') {
@@ -691,6 +727,9 @@ export async function main(event) {
             title: habit.title,
             value,
             kind: habit.kind,
+            backfilled: loaded.state.backfills.some(
+              (item) => item.habitId === habitId && item.day === day,
+            ),
           });
         }
       }

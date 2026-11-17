@@ -20,6 +20,7 @@ import {
   type HabitKind,
   type HabitPlan,
   type ScheduleKind,
+  type ScheduleRule,
   type UserState,
 } from '../domain/models.ts';
 import {
@@ -47,6 +48,7 @@ export interface CreateHabitInput {
   weekdays?: number;
   intervalDays?: number;
   weeklyGoal?: number;
+  calendarRule?: ScheduleRule;
   icon?: number;
   color?: string;
   frame?: string;
@@ -62,6 +64,7 @@ export interface UpdateHabitInput {
   weekdays?: number;
   intervalDays?: number;
   weeklyGoal?: number;
+  calendarRule?: ScheduleRule;
   icon?: number;
   color?: string;
   frame?: string;
@@ -122,6 +125,7 @@ function validatePlan(
   intervalDays: number,
   weeklyGoal: number,
   unit: string,
+  calendarRule: ScheduleRule,
 ): void {
   if (!Number.isSafeInteger(target) || target <= 0) {
     throw new ValidationError('invalid_target');
@@ -150,6 +154,9 @@ function validatePlan(
     throw new ValidationError('invalid_weekly_goal');
   }
   if (unit.length > 12) throw new ValidationError('unit_too_long');
+  if (!['any', 'workdays', 'restdays', 'skip_holidays'].includes(calendarRule)) {
+    throw new ValidationError('invalid_calendar_rule');
+  }
 }
 
 export function createHabit(
@@ -177,6 +184,7 @@ export function createHabit(
   const weekdays = input.weekdays ?? 127;
   const intervalDays = input.intervalDays ?? 1;
   const weeklyGoal = input.weeklyGoal ?? 3;
+  const calendarRule = input.calendarRule ?? 'any';
   validatePlan(
     input.kind,
     input.target,
@@ -185,6 +193,7 @@ export function createHabit(
     intervalDays,
     weeklyGoal,
     unit,
+    calendarRule,
   );
 
   const icon = input.icon ?? 0;
@@ -212,6 +221,7 @@ export function createHabit(
     weekdays,
     intervalDays,
     weeklyGoal,
+    calendarRule,
   };
   const habit: Habit = {
     id,
@@ -231,6 +241,12 @@ export function createHabit(
   return next;
 }
 
+export const MAX_BACKFILL_DAYS = 7;
+
+function recordedNow(): string {
+  return new Date().toISOString();
+}
+
 export function recordHabit(
   state: UserState,
   habitId: string,
@@ -242,6 +258,10 @@ export function recordHabit(
   const targetDay = parseDay(day);
   if (compareDay(targetDay, today) > 0) {
     throw new ValidationError('future_day');
+  }
+  const age = daysSince(today, targetDay);
+  if (age > MAX_BACKFILL_DAYS) {
+    throw new ValidationError('backfill_too_old');
   }
   const habit = findHabit(state, habitId);
   if (!habit) throw new ValidationError('habit_missing');
@@ -263,6 +283,22 @@ export function recordHabit(
   const record = next.days[targetDay] ?? { day: targetDay, entries: {} };
   record.entries[habitId] = value;
   next.days[targetDay] = record;
+  if (age > 0) {
+    const existing = next.backfills.find(
+      (item) => item.habitId === habitId && item.day === targetDay,
+    );
+    if (!existing) {
+      next.backfills.push({
+        habitId,
+        day: targetDay,
+        recordedAt: recordedNow(),
+      });
+    }
+  } else {
+    next.backfills = next.backfills.filter(
+      (item) => !(item.habitId === habitId && item.day === targetDay),
+    );
+  }
   return next;
 }
 
@@ -278,6 +314,9 @@ export function clearHabit(
   const record = next.days[targetDay];
   if (!record) return next;
   delete record.entries[habitId];
+  next.backfills = next.backfills.filter(
+    (item) => !(item.habitId === habitId && item.day === targetDay),
+  );
   if (Object.keys(record.entries).length === 0) {
     delete next.days[targetDay];
   } else {
@@ -309,6 +348,7 @@ export function deleteHabit(state: UserState, habitId: string): UserState {
   }
   next.breaks = next.breaks.filter((item) => item.habitId !== habitId);
   next.activity = next.activity.filter((item) => item.habitId !== habitId);
+  next.backfills = next.backfills.filter((item) => item.habitId !== habitId);
   next.notes = next.notes.map((note) =>
     note.habitId === habitId ? { ...note, habitId: null } : note,
   );
@@ -348,7 +388,8 @@ function sameRules(a: HabitPlan, b: HabitPlan): boolean {
     a.schedule === b.schedule &&
     a.weekdays === b.weekdays &&
     a.intervalDays === b.intervalDays &&
-    a.weeklyGoal === b.weeklyGoal
+    a.weeklyGoal === b.weeklyGoal &&
+    (a.calendarRule ?? 'any') === (b.calendarRule ?? 'any')
   );
 }
 
@@ -369,7 +410,8 @@ export function updateHabit(
     input.schedule !== undefined ||
     input.weekdays !== undefined ||
     input.intervalDays !== undefined ||
-    input.weeklyGoal !== undefined;
+    input.weeklyGoal !== undefined ||
+    input.calendarRule !== undefined;
   const current = currentPlan(habit, today);
   const target = input.target ?? current.target;
   const unit = (input.unit ?? current.unit).trim();
@@ -377,6 +419,7 @@ export function updateHabit(
   const weekdays = input.weekdays ?? current.weekdays;
   const intervalDays = input.intervalDays ?? current.intervalDays;
   const weeklyGoal = input.weeklyGoal ?? current.weeklyGoal;
+  const calendarRule = input.calendarRule ?? current.calendarRule ?? 'any';
   validatePlan(
     habit.kind,
     target,
@@ -385,6 +428,7 @@ export function updateHabit(
     intervalDays,
     weeklyGoal,
     unit,
+    calendarRule,
   );
 
   if (input.title !== undefined) {
@@ -423,6 +467,7 @@ export function updateHabit(
     weekdays,
     intervalDays,
     weeklyGoal,
+    calendarRule,
   };
   const effectiveDay = addDays(today, 1);
   const existingFutureIndex = habit.plans.findIndex(

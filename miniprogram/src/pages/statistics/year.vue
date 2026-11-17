@@ -6,6 +6,7 @@
       <button class="year-button" @tap="changeYear(1)">›</button>
     </view>
     <text class="hint">{{ t('yearNote') }}</text>
+    <text class="legend">{{ t('yearLegend') }}</text>
 
     <view v-if="store.loading && !store.data" class="state">
       <text>{{ t('loading') }}</text>
@@ -29,7 +30,10 @@
             v-for="(cell, index) in month.cells"
             :key="index"
             class="day"
-            :class="[cell.day ? `level-${cell.level}` : 'blank', { card: cell.card }]"
+            :class="[
+              cell.day ? `level-${cell.level}` : 'blank',
+              { card: cell.card, holiday: cell.kind === 'holiday', makeup: cell.kind === 'makeup_workday' },
+            ]"
             @tap="cell.day && openDay(cell.day)"
           >
             <text v-if="cell.day" class="day-number">{{ Number(cell.day.slice(8)) }}</text>
@@ -46,6 +50,7 @@ import { computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { useYearStore } from '../../stores/year.ts';
 import { translate } from '../../i18n/index.ts';
+import { chinaDayInfo } from '../../domain/china-calendar.ts';
 
 const store = useYearStore();
 const t = (key: Parameters<typeof translate>[1]) => translate('zh', key);
@@ -83,9 +88,14 @@ const months = computed(() =>
     const first = new Date(Date.UTC(store.year, index, 1));
     const blanks = (first.getUTCDay() + 6) % 7;
     const daysInMonth = new Date(Date.UTC(store.year, monthIndex, 0)).getUTCDate();
-    const cells: Array<{ day: string | null; level: number; card: boolean }> = [];
+    const cells: Array<{
+      day: string | null;
+      level: number;
+      card: boolean;
+      kind: string;
+    }> = [];
     for (let i = 0; i < blanks; i += 1) {
-      cells.push({ day: null, level: 0, card: false });
+      cells.push({ day: null, level: 0, card: false, kind: '' });
     }
     for (let d = 1; d <= daysInMonth; d += 1) {
       const day = `${store.year}-${String(monthIndex).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -93,6 +103,7 @@ const months = computed(() =>
         day,
         level: levelFor(entryCounts.value.get(day) ?? 0),
         card: cardDays.value.has(day),
+        kind: chinaDayInfo(day).kind,
       });
     }
     return { label, cells };
@@ -224,6 +235,12 @@ const themeClass = useThemeClass();
 .day.level-3 .day-number { color: #0c4a6e; font-weight: 700; }
 .day.level-4 { background: #38bdf8; border-radius: 10rpx; }
 .day.level-4 .day-number { color: var(--dp-on-accent); font-weight: 700; }
+.day.holiday {
+  box-shadow: inset 0 0 0 2rpx #f59e0b;
+}
+.day.makeup {
+  box-shadow: inset 0 0 0 2rpx #fb923c;
+}
 .day.card::after {
   content: '';
   position: absolute;

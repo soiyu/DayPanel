@@ -38,6 +38,9 @@ export function updateSettings(
     } else if (key === 'completionHaptics') {
       if (typeof value !== 'boolean') throw new ValidationError('invalid_haptics');
       settings.completionHaptics = value;
+    } else if (key === 'elderMode') {
+      if (typeof value !== 'boolean') throw new ValidationError('invalid_elder');
+      settings.elderMode = value;
     }
   }
   next.profile.settings = settings;
