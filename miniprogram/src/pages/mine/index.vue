@@ -27,6 +27,14 @@
         <text class="row-title">{{ t('cards') }}</text>
         <text class="row-meta">›</text>
       </view>
+      <view class="row" @tap="openSteps">
+        <text class="row-title">{{ t('weRun') }}</text>
+        <text class="row-meta">›</text>
+      </view>
+      <view class="row" @tap="openChallenges">
+        <text class="row-title">{{ t('challenges') }}</text>
+        <text class="row-meta">21 / 100</text>
+      </view>
       <view class="row" @tap="openReviewPoster">
         <text class="row-title">{{ t('reviewPoster') }}</text>
         <text class="row-meta">7 / 30</text>
@@ -107,6 +115,14 @@ function openInsights(): void {
 
 function openReviewPoster(): void {
   uni.navigateTo({ url: '/pages/review/index' });
+}
+
+function openChallenges(): void {
+  uni.navigateTo({ url: '/pages/challenges/index' });
+}
+
+function openSteps(): void {
+  uni.navigateTo({ url: '/pages/settings/steps' });
 }
 
 function openYear(): void {

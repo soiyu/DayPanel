@@ -25,6 +25,7 @@ import type {
 import type { HabitStat } from '../domain/stats.ts';
 import type { SettingsPatch } from '../application/settings-actions.ts';
 import type { Insights, InsightRange } from '../domain/insights.ts';
+import type { ChallengeProgress, ChallengeLength } from '../application/challenge-actions.ts';
 
 export interface TodayView {
   revision: number;
@@ -111,6 +112,20 @@ export interface CloudGateway {
   stats(rangeDays: number): Promise<HabitStat[]>;
   cards(): Promise<CardsView>;
   insights(range: InsightRange): Promise<Insights>;
+  syncSteps(cloudID: string): Promise<Array<{ day: DayKey; steps: number }>>;
+  challenges(): Promise<{
+    revision: number;
+    challenges: ChallengeProgress[];
+  }>;
+  createChallenge(
+    habitId: string,
+    length: ChallengeLength,
+    expectedRevision: number,
+  ): Promise<MutateResult>;
+  abandonChallenge(
+    challengeId: string,
+    expectedRevision: number,
+  ): Promise<MutateResult>;
   settings(): Promise<{ revision: number; settings: Profile['settings'] }>;
   updateSettings(
     patch: SettingsPatch,
@@ -346,6 +361,46 @@ export class WechatCloudGateway implements CloudGateway {
   async timeline(month: string): Promise<TimelineEvent[]> {
     const result = await call<{ events: TimelineEvent[] }>('timeline', { month });
     return result.events;
+  }
+
+  async syncSteps(cloudID: string): Promise<Array<{ day: DayKey; steps: number }>> {
+    const result = await call<{
+      steps: Array<{ day: DayKey; steps: number }>;
+    }>('syncSteps', { cloudID });
+    return result.steps;
+  }
+
+  async challenges(): Promise<{
+    revision: number;
+    challenges: ChallengeProgress[];
+  }> {
+    const result = await call<{
+      revision: number;
+      challenges: ChallengeProgress[];
+    }>('challenges', {});
+    return { revision: result.revision, challenges: result.challenges };
+  }
+
+  async createChallenge(
+    habitId: string,
+    length: ChallengeLength,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('createChallenge', {
+      habitId,
+      length,
+      expectedRevision,
+    });
+  }
+
+  async abandonChallenge(
+    challengeId: string,
+    expectedRevision: number,
+  ): Promise<MutateResult> {
+    return call<MutateResult>('abandonChallenge', {
+      challengeId,
+      expectedRevision,
+    });
   }
 
   async insights(range: InsightRange): Promise<Insights> {

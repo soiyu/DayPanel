@@ -33,6 +33,11 @@ import {
   updateTask,
 } from '../../../src/application/task-actions.ts';
 import {
+  abandonChallenge,
+  challengeProgress,
+  createChallenge,
+} from '../../../src/application/challenge-actions.ts';
+import {
   createNote,
   deleteNote,
   filterNotes,
@@ -62,6 +67,8 @@ const COLLECTIONS = [
   'dp_events',
   'dp_jobs',
   'dp_backfills',
+  'dp_challenges',
+  'dp_step_days',
 ];
 
 function fail(code) {
@@ -125,6 +132,9 @@ async function loadUser(openid, day) {
     for (const row of await listAll('dp_backfills', openid)) {
       if (row.backfill) state.backfills.push(row.backfill);
     }
+    for (const row of await listAll('dp_challenges', openid)) {
+      if (row.challenge) state.challenges.push(row.challenge);
+    }
   }
 
   let card = null;
@@ -186,6 +196,18 @@ function changedTaskDays(previous, next) {
     const after = next.taskDays[day] ?? [];
     if (JSON.stringify(before) !== JSON.stringify(after)) {
       changed.push({ day, taskIds: after.length ? after : null });
+    }
+  }
+  return changed;
+}
+
+function changedChallenges(previous, next) {
+  const before = new Map(previous.challenges.map((item) => [item.id, item]));
+  const after = new Map(next.challenges.map((item) => [item.id, item]));
+  const changed = [];
+  for (const [id, item] of after) {
+    if (JSON.stringify(before.get(id) ?? null) !== JSON.stringify(item)) {
+      changed.push(item);
     }
   }
   return changed;
@@ -329,6 +351,12 @@ async function persist(openid, expected, previous, next) {
       } catch {
         // already absent
       }
+    }
+
+    for (const challenge of changedChallenges(previous, next)) {
+      await tx.collection('dp_challenges').doc(`${openid}_${challenge.id}`).set({
+        data: { _openid: openid, challenge, updatedAt: db.serverDate() },
+      });
     }
 
     const backfillDiff = changedBackfills(previous, next);
@@ -557,6 +585,17 @@ async function mutate(openid, event) {
       case 'updateReminderPrefs':
         next = updateReminderPrefs(loaded.state, event.patch ?? {});
         break;
+      case 'createChallenge':
+        next = createChallenge(
+          loaded.state,
+          String(event.habitId ?? ''),
+          Number(event.length) as any,
+          ctx,
+        );
+        break;
+      case 'abandonChallenge':
+        next = abandonChallenge(loaded.state, String(event.challengeId ?? ''));
+        break;
       case 'updateSettings':
         next = updateSettings(loaded.state, event.patch ?? {});
         break;
@@ -669,6 +708,17 @@ export async function main(event) {
         taskDays: loaded.state.taskDays,
       };
     }
+    if (event?.action === 'challenges') {
+      const today = event?.today ? parseDay(event.today) : todayKey();
+      const loaded = await loadUser(OPENID, today);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        challenges: loaded.state.challenges.map((challenge) =>
+          challengeProgress(loaded.state, challenge, today),
+        ),
+      };
+    }
     if (event?.action === 'cards') {
       const loaded = await loadUser(OPENID, event?.day);
       return {
@@ -678,6 +728,26 @@ export async function main(event) {
           String(b.day).localeCompare(String(a.day)),
         ),
       };
+    }
+    if (event?.action === 'syncSteps') {
+      const cloudID = String(event?.cloudID ?? '');
+      if (!cloudID) return fail('missing_cloud_id');
+      const opened = await cloud.getOpenData([cloudID]);
+      const data = opened?.list?.[0]?.data;
+      if (!data || !Array.isArray(data.stepInfoList)) return fail('step_data_missing');
+      const rows = [];
+      for (const item of data.stepInfoList) {
+        const timestamp = Number(item.timestamp);
+        const steps = Number(item.step);
+        if (!Number.isFinite(timestamp) || !Number.isFinite(steps)) continue;
+        const local = new Date(timestamp + 8 * 60 * 60 * 1000);
+        const day = `${local.getUTCFullYear()}-${String(local.getUTCMonth() + 1).padStart(2, '0')}-${String(local.getUTCDate()).padStart(2, '0')}`;
+        rows.push({ day, steps: Math.max(0, Math.trunc(steps)) });
+        await db.collection('dp_step_days').doc(`${OPENID}_${day}`).set({
+          data: { _openid: OPENID, day, steps: Math.max(0, Math.trunc(steps)), updatedAt: db.serverDate() },
+        });
+      }
+      return { ok: true, steps: rows.sort((a, b) => a.day.localeCompare(b.day)) };
     }
     if (event?.action === 'settings') {
       const loaded = await loadUser(OPENID, event?.day);

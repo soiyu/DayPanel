@@ -147,7 +147,8 @@ var DEFAULT_SETTINGS = {
   iconFrame: "soft",
   completionSound: false,
   completionHaptics: false,
-  elderMode: false
+  elderMode: false,
+  stepHabitId: null
 };
 function defaultReminderPrefs() {
   return {
@@ -177,6 +178,7 @@ function emptyState() {
     breaks: [],
     events: [],
     backfills: [],
+    challenges: [],
     jobs: []
   };
 }
@@ -563,6 +565,84 @@ function updateTask(state, taskId, input) {
   return next;
 }
 
+// src/application/challenge-actions.ts
+var CHALLENGE_LENGTHS = [21, 100];
+function countPlanned(state, challenge, until) {
+  const habit = state.profile.habits.find((item) => item.id === challenge.habitId);
+  if (!habit) return { planned: 0, completed: 0, todayDone: false };
+  let planned = 0;
+  let completed = 0;
+  let todayDone = false;
+  const end = compareDay(until, challenge.endDay) > 0 ? challenge.endDay : until;
+  for (let day = challenge.startDay; compareDay(day, end) <= 0; day = addDays(day, 1)) {
+    if (compareDay(day, habit.startDay) < 0) continue;
+    if (isRestOn(state.breaks, habit.id, day)) continue;
+    const plan = currentPlan(habit, day);
+    if (!scheduledOn(plan, day)) continue;
+    planned += 1;
+    const value = state.days[day]?.entries[habit.id];
+    const achieved = value !== void 0 && value >= plan.target;
+    if (achieved) completed += 1;
+    if (day === until) todayDone = achieved;
+  }
+  return { planned, completed, todayDone };
+}
+function createChallenge(state, habitId, length, context) {
+  const today = parseDay(context.today);
+  if (!CHALLENGE_LENGTHS.includes(length)) {
+    throw new ValidationError("invalid_challenge_length");
+  }
+  const habit = state.profile.habits.find((item) => item.id === habitId);
+  if (!habit) throw new ValidationError("habit_missing");
+  if (habit.archived) throw new ValidationError("habit_archived");
+  if (state.challenges.some((item) => item.habitId === habitId && item.status === "active")) {
+    throw new ValidationError("challenge_already_active");
+  }
+  const endDay = addDays(today, length - 1);
+  const draft = {
+    id: (context.idFactory ?? defaultId)(),
+    habitId,
+    title: `${habit.title} \xB7 ${length} \u5929\u6311\u6218`,
+    startDay: today,
+    endDay,
+    targetDays: 0,
+    status: "active",
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  const planned = countPlanned(state, draft, endDay).planned;
+  if (planned === 0) throw new ValidationError("challenge_no_planned_days");
+  draft.targetDays = planned;
+  const next = cloneState(state);
+  next.challenges.push(draft);
+  return next;
+}
+function challengeProgress(state, challenge, today) {
+  const current = parseDay(today);
+  const end = compareDay(current, challenge.endDay) > 0 ? challenge.endDay : current;
+  const counts = countPlanned(state, challenge, end);
+  const rate2 = challenge.targetDays === 0 ? 0 : counts.completed / challenge.targetDays;
+  let status = challenge.status;
+  if (status === "active") {
+    if (counts.completed >= challenge.targetDays) status = "completed";
+    else if (compareDay(current, challenge.endDay) > 0) status = "failed";
+  }
+  return {
+    challenge: { ...challenge, status: status === "failed" ? "active" : status },
+    planned: counts.planned,
+    completed: counts.completed,
+    rate: rate2,
+    status,
+    todayDone: counts.todayDone
+  };
+}
+function abandonChallenge(state, challengeId) {
+  const next = cloneState(state);
+  const item = next.challenges.find((challenge) => challenge.id === challengeId);
+  if (!item) throw new ValidationError("challenge_missing");
+  item.status = "abandoned";
+  return next;
+}
+
 // src/application/journal-actions.ts
 function normalizeBody(body) {
   const value = body.trim();
@@ -671,6 +751,11 @@ function updateSettings(state, patch) {
     } else if (key === "elderMode") {
       if (typeof value !== "boolean") throw new ValidationError("invalid_elder");
       settings.elderMode = value;
+    } else if (key === "stepHabitId") {
+      if (value !== null && typeof value !== "string") {
+        throw new ValidationError("invalid_step_habit");
+      }
+      settings.stepHabitId = value;
     }
   }
   next.profile.settings = settings;
@@ -964,7 +1049,9 @@ var COLLECTIONS = [
   "dp_breaks",
   "dp_events",
   "dp_jobs",
-  "dp_backfills"
+  "dp_backfills",
+  "dp_challenges",
+  "dp_step_days"
 ];
 function fail(code) {
   return { ok: false, error: code };
@@ -1018,6 +1105,9 @@ async function loadUser(openid, day) {
     for (const row of await listAll("dp_backfills", openid)) {
       if (row.backfill) state.backfills.push(row.backfill);
     }
+    for (const row of await listAll("dp_challenges", openid)) {
+      if (row.challenge) state.challenges.push(row.challenge);
+    }
   }
   let card = null;
   if (!deleted && day) {
@@ -1070,6 +1160,17 @@ function changedTaskDays(previous, next) {
     const after = next.taskDays[day] ?? [];
     if (JSON.stringify(before) !== JSON.stringify(after)) {
       changed.push({ day, taskIds: after.length ? after : null });
+    }
+  }
+  return changed;
+}
+function changedChallenges(previous, next) {
+  const before = new Map(previous.challenges.map((item) => [item.id, item]));
+  const after = new Map(next.challenges.map((item) => [item.id, item]));
+  const changed = [];
+  for (const [id, item] of after) {
+    if (JSON.stringify(before.get(id) ?? null) !== JSON.stringify(item)) {
+      changed.push(item);
     }
   }
   return changed;
@@ -1200,6 +1301,11 @@ async function persist(openid, expected, previous, next) {
         await tx.collection("dp_notes").doc(`${openid}_${id}`).remove();
       } catch {
       }
+    }
+    for (const challenge of changedChallenges(previous, next)) {
+      await tx.collection("dp_challenges").doc(`${openid}_${challenge.id}`).set({
+        data: { _openid: openid, challenge, updatedAt: db.serverDate() }
+      });
     }
     const backfillDiff = changedBackfills(previous, next);
     for (const item of backfillDiff.changed) {
@@ -1396,6 +1502,17 @@ async function mutate(openid, event) {
       case "updateReminderPrefs":
         next = updateReminderPrefs(loaded.state, event.patch ?? {});
         break;
+      case "createChallenge":
+        next = createChallenge(
+          loaded.state,
+          String(event.habitId ?? ""),
+          Number(event.length),
+          ctx
+        );
+        break;
+      case "abandonChallenge":
+        next = abandonChallenge(loaded.state, String(event.challengeId ?? ""));
+        break;
       case "updateSettings":
         next = updateSettings(loaded.state, event.patch ?? {});
         break;
@@ -1503,6 +1620,17 @@ async function main(event) {
         taskDays: loaded.state.taskDays
       };
     }
+    if (event?.action === "challenges") {
+      const today = event?.today ? parseDay(event.today) : todayKey();
+      const loaded = await loadUser(OPENID, today);
+      return {
+        ok: true,
+        revision: loaded.revision,
+        challenges: loaded.state.challenges.map(
+          (challenge) => challengeProgress(loaded.state, challenge, today)
+        )
+      };
+    }
     if (event?.action === "cards") {
       const loaded = await loadUser(OPENID, event?.day);
       return {
@@ -1512,6 +1640,26 @@ async function main(event) {
           (a, b) => String(b.day).localeCompare(String(a.day))
         )
       };
+    }
+    if (event?.action === "syncSteps") {
+      const cloudID = String(event?.cloudID ?? "");
+      if (!cloudID) return fail("missing_cloud_id");
+      const opened = await import_wx_server_sdk.default.getOpenData([cloudID]);
+      const data = opened?.list?.[0]?.data;
+      if (!data || !Array.isArray(data.stepInfoList)) return fail("step_data_missing");
+      const rows = [];
+      for (const item of data.stepInfoList) {
+        const timestamp = Number(item.timestamp);
+        const steps = Number(item.step);
+        if (!Number.isFinite(timestamp) || !Number.isFinite(steps)) continue;
+        const local = new Date(timestamp + 8 * 60 * 60 * 1e3);
+        const day = `${local.getUTCFullYear()}-${String(local.getUTCMonth() + 1).padStart(2, "0")}-${String(local.getUTCDate()).padStart(2, "0")}`;
+        rows.push({ day, steps: Math.max(0, Math.trunc(steps)) });
+        await db.collection("dp_step_days").doc(`${OPENID}_${day}`).set({
+          data: { _openid: OPENID, day, steps: Math.max(0, Math.trunc(steps)), updatedAt: db.serverDate() }
+        });
+      }
+      return { ok: true, steps: rows.sort((a, b) => a.day.localeCompare(b.day)) };
     }
     if (event?.action === "settings") {
       const loaded = await loadUser(OPENID, event?.day);

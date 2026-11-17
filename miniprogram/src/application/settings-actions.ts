@@ -41,6 +41,11 @@ export function updateSettings(
     } else if (key === 'elderMode') {
       if (typeof value !== 'boolean') throw new ValidationError('invalid_elder');
       settings.elderMode = value;
+    } else if (key === 'stepHabitId') {
+      if (value !== null && typeof value !== 'string') {
+        throw new ValidationError('invalid_step_habit');
+      }
+      settings.stepHabitId = value as string | null;
     }
   }
   next.profile.settings = settings;

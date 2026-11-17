@@ -92,6 +92,18 @@
       }
     },
     {
+      "path": "pages/challenges/index",
+      "style": {
+        "navigationBarTitleText": "挑战"
+      }
+    },
+    {
+      "path": "pages/settings/steps",
+      "style": {
+        "navigationBarTitleText": "微信运动步数"
+      }
+    },
+    {
       "path": "pages/statistics/year",
       "style": {
         "navigationBarTitleText": "年历"

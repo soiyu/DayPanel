@@ -90,6 +90,17 @@ export interface HabitBreak {
   kind: 'pause' | 'vacation' | 'skip';
 }
 
+export interface Challenge {
+  id: string;
+  habitId: string;
+  title: string;
+  startDay: DayKey;
+  endDay: DayKey;
+  targetDays: number;
+  status: 'active' | 'completed' | 'abandoned';
+  createdAt: string;
+}
+
 export interface Backfill {
   habitId: string;
   day: DayKey;
@@ -137,6 +148,7 @@ export interface Settings {
   completionSound: boolean;
   completionHaptics: boolean;
   elderMode: boolean;
+  stepHabitId: string | null;
 }
 
 export interface Profile {
@@ -157,6 +169,7 @@ export interface UserState {
   breaks: HabitBreak[];
   events: RecordEvent[];
   backfills: Backfill[];
+  challenges: Challenge[];
   jobs: ReminderJob[];
 }
 
@@ -169,6 +182,7 @@ const DEFAULT_SETTINGS: Settings = {
   completionSound: false,
   completionHaptics: false,
   elderMode: false,
+  stepHabitId: null,
 };
 
 /**
@@ -205,6 +219,7 @@ export function emptyState(): UserState {
     breaks: [],
     events: [],
     backfills: [],
+    challenges: [],
     jobs: [],
   };
 }
