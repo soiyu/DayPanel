@@ -27,6 +27,14 @@
         <text class="row-title">{{ t('cards') }}</text>
         <text class="row-meta">›</text>
       </view>
+      <view class="row" @tap="openGroups">
+        <text class="row-title">{{ t('groups') }}</text>
+        <text class="row-meta">›</text>
+      </view>
+      <view class="row" @tap="openSolarTerms">
+        <text class="row-title">{{ t('solarTerms') }}</text>
+        <text class="row-meta">›</text>
+      </view>
       <view class="row" @tap="openSteps">
         <text class="row-title">{{ t('weRun') }}</text>
         <text class="row-meta">›</text>
@@ -123,6 +131,14 @@ function openChallenges(): void {
 
 function openSteps(): void {
   uni.navigateTo({ url: '/pages/settings/steps' });
+}
+
+function openSolarTerms(): void {
+  uni.navigateTo({ url: '/pages/solar-terms/index' });
+}
+
+function openGroups(): void {
+  uni.navigateTo({ url: '/pages/group/index' });
 }
 
 function openYear(): void {

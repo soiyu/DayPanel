@@ -94,6 +94,7 @@ import { currentPlan, type Habit } from '../../domain/models.ts';
 import { countText, parseCount, parseQuantity, quantityText } from '../../domain/quantity.ts';
 import CardArt from '../../components/CardArt.vue';
 import { chinaDayInfo } from '../../domain/china-calendar.ts';
+import { solarTermOn } from '../../domain/solar-terms.ts';
 import { habitIconSrc } from '../../domain/icons.ts';
 
 const store = useTodayStore();
@@ -101,9 +102,10 @@ const store = useTodayStore();
 const t = (key: Parameters<typeof store.tr>[0]) => store.tr(key);
 
 const dayLabel = computed(() => {
+  const term = solarTermOn(store.today);
   const info = chinaDayInfo(store.today);
-  if (info.name) return info.name;
-  return info.kind === 'weekend' ? t('restDay') : t('workday');
+  const calendar = info.name ?? (info.kind === 'weekend' ? t('restDay') : t('workday'));
+  return term ? `${calendar} · ${term.name}` : calendar;
 });
 
 const progressWidth = computed(() => {

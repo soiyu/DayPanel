@@ -98,9 +98,21 @@
       }
     },
     {
+      "path": "pages/group/index",
+      "style": {
+        "navigationBarTitleText": "群组打卡"
+      }
+    },
+    {
       "path": "pages/settings/steps",
       "style": {
         "navigationBarTitleText": "微信运动步数"
+      }
+    },
+    {
+      "path": "pages/solar-terms/index",
+      "style": {
+        "navigationBarTitleText": "二十四节气"
       }
     },
     {

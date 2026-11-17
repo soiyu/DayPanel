@@ -74,6 +74,27 @@ export interface TimelineEvent {
   backfilled?: boolean;
 }
 
+export interface GroupSummary {
+  id: string;
+  name: string;
+  code: string;
+  memberCount: number;
+  isOwner: boolean;
+}
+
+export interface GroupMemberView {
+  label: string;
+  records: number;
+  isOwner: boolean;
+  isMe: boolean;
+}
+
+export interface GroupHomeView {
+  group: GroupSummary;
+  members: GroupMemberView[];
+  day: DayKey;
+}
+
 export interface ReminderJobView {
   id: string;
   kind: 'once' | 'digest';
@@ -113,6 +134,10 @@ export interface CloudGateway {
   cards(): Promise<CardsView>;
   insights(range: InsightRange): Promise<Insights>;
   syncSteps(cloudID: string): Promise<Array<{ day: DayKey; steps: number }>>;
+  createGroup(name: string): Promise<GroupSummary>;
+  joinGroup(code: string): Promise<GroupSummary>;
+  groupHome(code: string): Promise<GroupHomeView>;
+  myGroups(): Promise<GroupSummary[]>;
   challenges(): Promise<{
     revision: number;
     challenges: ChallengeProgress[];
@@ -361,6 +386,26 @@ export class WechatCloudGateway implements CloudGateway {
   async timeline(month: string): Promise<TimelineEvent[]> {
     const result = await call<{ events: TimelineEvent[] }>('timeline', { month });
     return result.events;
+  }
+
+  async createGroup(name: string): Promise<GroupSummary> {
+    const result = await call<{ group: GroupSummary }>('createGroup', { name });
+    return result.group;
+  }
+
+  async joinGroup(code: string): Promise<GroupSummary> {
+    const result = await call<{ group: GroupSummary }>('joinGroup', { code });
+    return result.group;
+  }
+
+  async groupHome(code: string): Promise<GroupHomeView> {
+    const result = await call<GroupHomeView>('groupHome', { code });
+    return result;
+  }
+
+  async myGroups(): Promise<GroupSummary[]> {
+    const result = await call<{ groups: GroupSummary[] }>('myGroups', {});
+    return result.groups;
   }
 
   async syncSteps(cloudID: string): Promise<Array<{ day: DayKey; steps: number }>> {

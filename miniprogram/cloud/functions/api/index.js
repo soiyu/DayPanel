@@ -1038,6 +1038,7 @@ function saveCardReflection(state, day, reflection) {
 // cloud/functions/api/index.ts
 import_wx_server_sdk.default.init({ env: import_wx_server_sdk.default.DYNAMIC_CURRENT_ENV });
 var db = import_wx_server_sdk.default.database();
+var _ = db.command;
 var COLLECTIONS = [
   "dp_days",
   "dp_profile",
@@ -1051,7 +1052,9 @@ var COLLECTIONS = [
   "dp_jobs",
   "dp_backfills",
   "dp_challenges",
-  "dp_step_days"
+  "dp_step_days",
+  "dp_groups",
+  "dp_group_members"
 ];
 function fail(code) {
   return { ok: false, error: code };
@@ -1392,6 +1395,127 @@ async function deleteAccount(openid, expected) {
   for (const collection of COLLECTIONS) await removeAll(collection, openid);
   return { revision: revision + (meta?.deleted === true ? 0 : 1) };
 }
+var GROUP_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function newGroupCode() {
+  const bytes = (0, import_node_crypto.randomBytes)(8);
+  let code = "";
+  for (let i = 0; i < 8; i += 1) {
+    code += GROUP_CHARS[bytes[i] % GROUP_CHARS.length];
+  }
+  return code;
+}
+async function groupByCode(code) {
+  const normalized = String(code ?? "").trim().toUpperCase();
+  if (!/^[A-Z0-9]{6,12}$/.test(normalized)) return null;
+  const result = await db.collection("dp_groups").where({ code: normalized, archived: false }).limit(1).get();
+  return result.data[0] ?? null;
+}
+async function memberDoc(groupId, openid) {
+  try {
+    return (await db.collection("dp_group_members").doc(`${groupId}_${openid}`).get()).data;
+  } catch {
+    return null;
+  }
+}
+async function createGroup(openid, event) {
+  const name = String(event?.name ?? "").trim();
+  if (!name || name.length > 30) return fail("invalid_group_name");
+  let code = newGroupCode();
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const exists = await db.collection("dp_groups").where({ code, archived: false }).limit(1).get();
+    if (!exists.data.length) break;
+    code = newGroupCode();
+  }
+  const groupId = `group_${(0, import_node_crypto.randomUUID)()}`;
+  await db.collection("dp_groups").doc(groupId).set({
+    data: {
+      _openid: openid,
+      ownerOpenid: openid,
+      name,
+      code,
+      archived: false,
+      createdAt: db.serverDate()
+    }
+  });
+  await db.collection("dp_group_members").doc(`${groupId}_${openid}`).set({
+    data: { _openid: openid, groupId, joinedAt: db.serverDate() }
+  });
+  return {
+    ok: true,
+    group: { id: groupId, name, code, memberCount: 1, isOwner: true }
+  };
+}
+async function joinGroup(openid, event) {
+  const group = await groupByCode(event?.code);
+  if (!group) return fail("group_not_found");
+  const existing = await memberDoc(group._id, openid);
+  if (!existing) {
+    await db.collection("dp_group_members").doc(`${group._id}_${openid}`).set({
+      data: { _openid: openid, groupId: group._id, joinedAt: db.serverDate() }
+    });
+  }
+  return {
+    ok: true,
+    group: {
+      id: group._id,
+      name: group.name,
+      code: group.code,
+      memberCount: 0,
+      isOwner: group.ownerOpenid === openid
+    }
+  };
+}
+async function groupHome(openid, event) {
+  const group = await groupByCode(event?.code);
+  if (!group) return fail("group_not_found");
+  const membership = await memberDoc(group._id, openid);
+  if (!membership) return fail("not_group_member");
+  const memberRows = await db.collection("dp_group_members").where({ groupId: group._id }).limit(100).get();
+  const memberOpenids = memberRows.data.map((row) => row._openid);
+  const day = event?.day ? parseDay(event.day) : todayKey();
+  let dayRows = { data: [] };
+  if (memberOpenids.length) {
+    dayRows = await db.collection("dp_days").where({ _openid: _.in(memberOpenids), day }).limit(100).get();
+  }
+  const counts = /* @__PURE__ */ new Map();
+  for (const row of dayRows.data) {
+    counts.set(row._openid, Object.keys(row.entries ?? {}).length);
+  }
+  const members = memberOpenids.map((member, index) => ({
+    label: `\u6210\u5458 ${index + 1}`,
+    records: counts.get(member) ?? 0,
+    isOwner: member === group.ownerOpenid,
+    isMe: member === openid
+  }));
+  return {
+    ok: true,
+    group: {
+      id: group._id,
+      name: group.name,
+      code: group.code,
+      memberCount: memberOpenids.length,
+      isOwner: group.ownerOpenid === openid
+    },
+    members,
+    day
+  };
+}
+async function myGroups(openid) {
+  const memberships = await db.collection("dp_group_members").where({ _openid: openid }).limit(100).get();
+  const ids = memberships.data.map((row) => row.groupId);
+  if (!ids.length) return { ok: true, groups: [] };
+  const groups = await db.collection("dp_groups").where({ _id: _.in(ids), archived: false }).limit(100).get();
+  return {
+    ok: true,
+    groups: groups.data.map((group) => ({
+      id: group._id,
+      name: group.name,
+      code: group.code,
+      memberCount: 0,
+      isOwner: group.ownerOpenid === openid
+    }))
+  };
+}
 function normalizeJobPayload(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const result = {};
@@ -1592,6 +1716,18 @@ async function main(event) {
   const { OPENID } = import_wx_server_sdk.default.getWXContext();
   if (!OPENID) return fail("unauthenticated");
   try {
+    if (event?.action === "createGroup") {
+      return await createGroup(OPENID, event);
+    }
+    if (event?.action === "joinGroup") {
+      return await joinGroup(OPENID, event);
+    }
+    if (event?.action === "groupHome") {
+      return await groupHome(OPENID, event);
+    }
+    if (event?.action === "myGroups") {
+      return await myGroups(OPENID);
+    }
     if (event?.action === "reminderStatus") {
       return await reminderStatus(OPENID, event);
     }

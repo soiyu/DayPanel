@@ -35,6 +35,8 @@ dp_jobs
 dp_backfills
 dp_challenges
 dp_step_days
+dp_groups
+dp_group_members
 ```
 
 建议索引：
@@ -49,6 +51,8 @@ dp_jobs:        _openid, day, status, sendAt
 dp_backfills:   _openid, habitId, day
 dp_challenges:  _openid, status
 dp_step_days:  _openid, day
+dp_groups:      _openid, code
+dp_group_members: _openid, groupId
 dp_meta:        _openid
 dp_profile:     _openid
 ```
@@ -94,7 +98,9 @@ npm run prepare:wechat
 7. 断网：显示云端错误；不能写入；不得出现本地假数据。
 8. 微信运动：授权/拒绝；`cloudID` 换取步数；步数习惯只填入今天；不得伪造步数。
 9. 挑战：21/100 天；休息日不计失败；放弃保留记录；无押金/排行榜。
-10. `npm run verify`：typecheck、测试、构建、云函数打包、包体审计全部通过。
+10. 群组：分享链接/邀请码加入；成员只看到完成项数，不看到手记；无排行榜。
+11. 节气：2026 年 24 节气展示；不参与统计/运势。
+12. `npm run verify`：typecheck、测试、构建、云函数打包、包体审计全部通过。
 
 ## 当前未完成（不要宣称已验收）
 
