@@ -46,6 +46,9 @@
         <button class="secondary" :disabled="!!activeBreak" @tap="skipToday">
           {{ t('skipToday') }}
         </button>
+        <button class="secondary" :disabled="!!activeBreak" @tap="vacationWeek">
+          {{ t('vacationWeek') }}
+        </button>
         <button class="secondary" @tap="archiveHabit">{{ t('archive') }}</button>
         <button class="danger" @tap="deleteHabit">{{ t('deleteHabit') }}</button>
       </view>
@@ -61,6 +64,7 @@ import { computed, ref } from 'vue';
 import { onLoad, onShow } from '@dcloudio/uni-app';
 import { useTodayStore } from '../../stores/today.ts';
 import { currentPlan, type Habit } from '../../domain/models.ts';
+import { addDays } from '../../domain/day.ts';
 import { countText, quantityText } from '../../domain/quantity.ts';
 import { habitIconSrc } from '../../domain/icons.ts';
 
@@ -136,6 +140,17 @@ async function togglePause(): Promise<void> {
     return;
   }
   const ok = await store.startBreak(habit.value.id, 'pause', store.today, null);
+  if (!ok) uni.showToast({ title: t('loadFailed'), icon: 'none' });
+}
+
+async function vacationWeek(): Promise<void> {
+  if (!habit.value) return;
+  const ok = await store.startBreak(
+    habit.value.id,
+    'vacation',
+    store.today,
+    addDays(store.today, 6),
+  );
   if (!ok) uni.showToast({ title: t('loadFailed'), icon: 'none' });
 }
 
