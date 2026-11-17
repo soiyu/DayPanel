@@ -80,6 +80,12 @@
       }
     },
     {
+      "path": "pages/review/index",
+      "style": {
+        "navigationBarTitleText": "复盘长图"
+      }
+    },
+    {
       "path": "pages/statistics/year",
       "style": {
         "navigationBarTitleText": "年历"

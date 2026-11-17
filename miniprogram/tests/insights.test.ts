@@ -59,7 +59,7 @@ test('insights: pair co-occurrence counts days where both are achieved', () => {
 });
 
 test('insights: invalid range rejected and empty state is safe', () => {
-  assert.throws(() => insights(emptyState(), 7 as any, TODAY), /Invalid insight range/);
+  assert.throws(() => insights(emptyState(), 14 as any, TODAY), /Invalid insight range/);
   const result = insights(emptyState(), 90, TODAY);
   assert.equal(result.overall.planned, 0);
   assert.equal(result.overall.rate, 0);

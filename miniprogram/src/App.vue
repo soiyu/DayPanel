@@ -44,10 +44,62 @@ page {
   --dp-shadow-soft: rgba(15, 23, 42, 0.04);
   --dp-icon-radius: 20rpx;
   --dp-icon-border: 0;
+  --dp-art-base: #edf3ff;
+  --dp-art-dawn-bg: linear-gradient(180deg, #dbeafe, #ede9fe);
+  --dp-art-sun: #f2c49f;
+  --dp-art-hill-back: #b7a4e7;
+  --dp-art-hill-front: #5885d9;
+  --dp-art-cloud: rgba(255, 255, 255, 0.75);
+  --dp-art-plant-bg: linear-gradient(180deg, #f1f5f9, #e2e8f0);
+  --dp-art-stem: #5885d9;
+  --dp-art-leaf-a: #b7a4e7;
+  --dp-art-leaf-b: #5885d9;
+  --dp-art-pot: #f2c49f;
+  --dp-art-root: #dbeafe;
+  --dp-art-river-bg: linear-gradient(180deg, #ede9fe 0 42%, #dbeafe 42% 100%);
+  --dp-art-bank-a: #b7a4e7;
+  --dp-art-bank-b: #5885d9;
+  --dp-art-water: rgba(255, 255, 255, 0.58);
+  --dp-art-stairs-bg: linear-gradient(160deg, #fff7ed, #fef3c7);
+  --dp-art-step: #c2410c;
+  --dp-art-stairs-sun: #f59e0b;
+  --dp-art-window-bg: linear-gradient(180deg, #f5f3ff, #e0e7ff);
+  --dp-art-window-frame: #6d28d9;
+  --dp-art-window-pane: #c4b5fd;
+  --dp-art-window-light: rgba(255, 255, 255, 0.7);
+  --dp-art-stars-bg: linear-gradient(180deg, #0f172a, #1e293b 55%, #312e81);
+  --dp-art-star: #f8fafc;
+  --dp-art-moon: #e0e7ff;
 }
 .page.frame-soft {
   --dp-icon-radius: 20rpx;
   --dp-icon-border: 0;
+  --dp-art-base: #edf3ff;
+  --dp-art-dawn-bg: linear-gradient(180deg, #dbeafe, #ede9fe);
+  --dp-art-sun: #f2c49f;
+  --dp-art-hill-back: #b7a4e7;
+  --dp-art-hill-front: #5885d9;
+  --dp-art-cloud: rgba(255, 255, 255, 0.75);
+  --dp-art-plant-bg: linear-gradient(180deg, #f1f5f9, #e2e8f0);
+  --dp-art-stem: #5885d9;
+  --dp-art-leaf-a: #b7a4e7;
+  --dp-art-leaf-b: #5885d9;
+  --dp-art-pot: #f2c49f;
+  --dp-art-root: #dbeafe;
+  --dp-art-river-bg: linear-gradient(180deg, #ede9fe 0 42%, #dbeafe 42% 100%);
+  --dp-art-bank-a: #b7a4e7;
+  --dp-art-bank-b: #5885d9;
+  --dp-art-water: rgba(255, 255, 255, 0.58);
+  --dp-art-stairs-bg: linear-gradient(160deg, #fff7ed, #fef3c7);
+  --dp-art-step: #c2410c;
+  --dp-art-stairs-sun: #f59e0b;
+  --dp-art-window-bg: linear-gradient(180deg, #f5f3ff, #e0e7ff);
+  --dp-art-window-frame: #6d28d9;
+  --dp-art-window-pane: #c4b5fd;
+  --dp-art-window-light: rgba(255, 255, 255, 0.7);
+  --dp-art-stars-bg: linear-gradient(180deg, #0f172a, #1e293b 55%, #312e81);
+  --dp-art-star: #f8fafc;
+  --dp-art-moon: #e0e7ff;
 }
 .page.frame-ring {
   --dp-icon-radius: 50%;
@@ -94,6 +146,29 @@ page {
   --dp-rose-soft: #2a1620;
   --dp-orange-soft: #2a211d;
   --dp-bg-translucent: rgba(10, 15, 29, 0.96);
+  --dp-art-base: #152a33;
+  --dp-art-dawn-bg: linear-gradient(180deg, #1e293b, #312e81);
+  --dp-art-sun: #f0bc8b;
+  --dp-art-hill-back: #6d5fa3;
+  --dp-art-hill-front: #3b5f9e;
+  --dp-art-cloud: rgba(148, 163, 184, 0.35);
+  --dp-art-plant-bg: linear-gradient(180deg, #152a33, #122620);
+  --dp-art-stem: #7dd3fc;
+  --dp-art-leaf-a: #a78bfa;
+  --dp-art-leaf-b: #60a5fa;
+  --dp-art-pot: #d9a06b;
+  --dp-art-root: #1e3a4a;
+  --dp-art-river-bg: linear-gradient(180deg, #1d162c 0 42%, #152a33 42% 100%);
+  --dp-art-bank-a: #6d5fa3;
+  --dp-art-bank-b: #3b5f9e;
+  --dp-art-water: rgba(226, 232, 240, 0.35);
+  --dp-art-stairs-bg: linear-gradient(160deg, #2a211d, #3a2a1f);
+  --dp-art-step: #f0bc8b;
+  --dp-art-stairs-sun: #fbbf24;
+  --dp-art-window-bg: linear-gradient(180deg, #1d162c, #2a1f44);
+  --dp-art-window-frame: #c4b5fd;
+  --dp-art-window-pane: #7c6bb0;
+  --dp-art-window-light: rgba(226, 232, 240, 0.25);
 }
 .page.theme-dark .earned-card,
 .page.theme-dark .habit,

@@ -131,6 +131,7 @@ const store = useInsightsStore();
 const t = (key: Parameters<typeof translate>[1]) => translate('zh', key);
 
 const ranges: Array<{ value: InsightRange; label: string }> = [
+  { value: 7, label: '7 天' },
   { value: 30, label: '30 天' },
   { value: 90, label: '90 天' },
   { value: 365, label: '365 天' },

@@ -71,10 +71,10 @@ withDefaults(
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #edf3ff;
+  background: var(--dp-art-base);
 }
 .art.compact {
-  background: #edf3ff;
+  background: var(--dp-art-base);
 }
 .dawn,
 .plant,
@@ -89,7 +89,7 @@ withDefaults(
   bottom: 0;
 }
 .dawn {
-  background: linear-gradient(180deg, #dbeafe, #ede9fe);
+  background: var(--dp-art-dawn-bg);
 }
 .sun {
   position: absolute;
@@ -98,7 +98,7 @@ withDefaults(
   width: 18%;
   height: 30%;
   border-radius: 50%;
-  background: #f2c49f;
+  background: var(--dp-art-sun);
 }
 .hill {
   position: absolute;
@@ -109,20 +109,20 @@ withDefaults(
 }
 .hill-back {
   left: -18%;
-  background: #b7a4e7;
+  background: var(--dp-art-hill-back);
   transform: rotate(7deg);
 }
 .hill-front {
   right: -20%;
   bottom: -34%;
-  background: #5885d9;
+  background: var(--dp-art-hill-front);
   transform: rotate(-5deg);
 }
 .cloud {
   position: absolute;
   height: 5%;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--dp-art-cloud);
 }
 .cloud-a {
   left: 10%;
@@ -135,7 +135,7 @@ withDefaults(
   width: 26%;
 }
 .plant {
-  background: linear-gradient(180deg, #f1f5f9, #e2e8f0);
+  background: var(--dp-art-plant-bg);
 }
 .stem {
   position: absolute;
@@ -144,13 +144,13 @@ withDefaults(
   width: 4%;
   height: 42%;
   border-radius: 999px;
-  background: #5885d9;
+  background: var(--dp-art-stem);
 }
 .leaf {
   position: absolute;
   width: 26%;
   height: 22%;
-  background: #b7a4e7;
+  background: var(--dp-art-hill-back);
   border-radius: 80% 0 80% 0;
 }
 .leaf-left {
@@ -161,7 +161,7 @@ withDefaults(
 .leaf-right {
   right: 18%;
   top: 18%;
-  background: #5885d9;
+  background: var(--dp-art-leaf-b);
   transform: rotate(22deg);
 }
 .pot {
@@ -170,7 +170,7 @@ withDefaults(
   bottom: 18%;
   width: 36%;
   height: 24%;
-  background: #f2c49f;
+  background: var(--dp-art-pot);
   border-radius: 6% 6% 14% 14%;
 }
 .root {
@@ -178,21 +178,21 @@ withDefaults(
   bottom: 6%;
   width: 3%;
   height: 16%;
-  background: #dbeafe;
+  background: var(--dp-art-root);
   border-radius: 999px;
 }
 .root-a { left: 42%; transform: rotate(12deg); }
 .root-b { left: 50%; transform: rotate(-8deg); }
 .root-c { left: 58%; transform: rotate(18deg); }
 .river {
-  background: linear-gradient(180deg, #ede9fe 0 42%, #dbeafe 42% 100%);
+  background: linear-gradient(180deg, #ede9fe 0 42%, var(--dp-art-root) 42% 100%);
 }
 .bank {
   position: absolute;
   bottom: 0;
   width: 52%;
   height: 54%;
-  background: #b7a4e7;
+  background: var(--dp-art-hill-back);
   border-radius: 50% 50% 0 0;
 }
 .bank-left {
@@ -201,7 +201,7 @@ withDefaults(
 }
 .bank-right {
   right: -20%;
-  background: #5885d9;
+  background: var(--dp-art-hill-front);
   transform: rotate(-8deg);
 }
 .water {
@@ -210,18 +210,18 @@ withDefaults(
   right: 8%;
   height: 5%;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.58);
+  background: var(--dp-art-water);
 }
 .water-a { top: 56%; }
 .water-b { top: 68%; left: 18%; right: 20%; }
 .water-c { top: 80%; left: 24%; right: 12%; }
 .stairs {
-  background: linear-gradient(160deg, #fff7ed, #fef3c7);
+  background: var(--dp-art-stairs-bg);
 }
 .step {
   position: absolute;
   bottom: 0;
-  background: #c2410c;
+  background: var(--dp-art-step);
   border-radius: 4% 4% 0 0;
 }
 .step-1 { left: 4%; width: 20%; height: 20%; opacity: 0.55; }
@@ -235,11 +235,11 @@ withDefaults(
   width: 16%;
   height: 26%;
   border-radius: 50%;
-  background: #f59e0b;
+  background: var(--dp-art-stairs-sun);
   opacity: 0.7;
 }
 .window {
-  background: linear-gradient(180deg, #f5f3ff, #e0e7ff);
+  background: var(--dp-art-window-bg);
 }
 .window-frame {
   position: absolute;
@@ -247,7 +247,7 @@ withDefaults(
   right: 18%;
   top: 12%;
   bottom: 12%;
-  border: 8rpx solid #6d28d9;
+  border: 8rpx solid var(--dp-art-window-frame);
   border-radius: 12rpx;
   box-sizing: border-box;
 }
@@ -256,30 +256,30 @@ withDefaults(
   top: 12%;
   bottom: 12%;
   width: 2rpx;
-  background: #6d28d9;
+  background: var(--dp-art-window-frame);
 }
 .pane-a { left: 50%; }
 .pane-b { left: 18%; right: 18%; top: 50%; width: auto; height: 2rpx; }
-.pane-c { left: 15%; top: 24%; width: 10%; height: 12%; background: #c4b5fd; border-radius: 50%; }
-.pane-d { right: 15%; bottom: 24%; width: 14%; height: 10%; background: #a78bfa; border-radius: 50%; }
+.pane-c { left: 15%; top: 24%; width: 10%; height: 12%; background: var(--dp-art-window-pane); border-radius: 50%; }
+.pane-d { right: 15%; bottom: 24%; width: 14%; height: 10%; background: var(--dp-art-leaf-a); border-radius: 50%; }
 .window-light {
   position: absolute;
   left: 30%;
   right: 30%;
   bottom: 4%;
   height: 8%;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--dp-art-window-light);
   border-radius: 50%;
 }
 .stars {
-  background: linear-gradient(180deg, #0f172a, #1e293b 55%, #312e81);
+  background: var(--dp-art-stars-bg);
 }
 .star {
   position: absolute;
   width: 4rpx;
   height: 4rpx;
   border-radius: 50%;
-  background: #f8fafc;
+  background: var(--dp-art-star);
 }
 .star-1 { left: 18%; top: 22%; width: 6rpx; height: 6rpx; }
 .star-2 { left: 34%; top: 40%; }
@@ -294,7 +294,7 @@ withDefaults(
   width: 18%;
   height: 30%;
   border-radius: 50%;
-  background: #e0e7ff;
+  background: var(--dp-art-moon);
   opacity: 0.85;
 }
 </style>

@@ -14,18 +14,21 @@ const ACCENTS: Record<string, { accent: string; soft: string; ink: string }> = {
 export const useThemeStore = defineStore('theme', () => {
   const gateway = new WechatCloudGateway();
   const settings = ref<Settings>({ ...defaultProfile().settings });
+  const previewSettings = ref<Settings | null>(null);
   const revision = ref(0);
   const systemDark = ref(false);
   const loaded = ref(false);
 
+  const effective = computed(() => previewSettings.value ?? settings.value);
+  const hasPreview = computed(() => previewSettings.value !== null);
   const dark = computed(
     () =>
-      settings.value.theme === 'dark' ||
-      (settings.value.theme === 'system' && systemDark.value),
+      effective.value.theme === 'dark' ||
+      (effective.value.theme === 'system' && systemDark.value),
   );
   const themeClass = computed(
     () =>
-      `${dark.value ? 'theme-dark' : 'theme-light'} palette-${settings.value.palette} font-${settings.value.font} frame-${settings.value.iconFrame}`,
+      `${dark.value ? 'theme-dark' : 'theme-light'} palette-${effective.value.palette} font-${effective.value.font} frame-${effective.value.iconFrame}`,
   );
 
   function readSystem(): void {
@@ -38,7 +41,7 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   function applyNative(): void {
-    const accent = ACCENTS[settings.value.palette] ?? ACCENTS.blue;
+    const accent = ACCENTS[effective.value.palette] ?? ACCENTS.blue;
     try {
       uni.setNavigationBarColor({
         frontColor: dark.value ? '#ffffff' : '#000000',
@@ -65,17 +68,31 @@ export const useThemeStore = defineStore('theme', () => {
       settings.value = result.settings;
       revision.value = result.revision;
       loaded.value = true;
+      previewSettings.value = null;
     } catch {
       loaded.value = false;
     }
     applyNative();
   }
 
-  async function update(patch: Partial<Settings>): Promise<boolean> {
+  function preview(patch: Partial<Settings>): void {
+    previewSettings.value = { ...effective.value, ...patch };
+    applyNative();
+  }
+
+  function cancelPreview(): void {
+    previewSettings.value = null;
+    applyNative();
+  }
+
+  async function savePreview(): Promise<boolean> {
+    if (!previewSettings.value) return true;
+    const next = previewSettings.value;
     try {
-      await gateway.updateSettings(patch, revision.value);
-      settings.value = { ...settings.value, ...patch };
+      await gateway.updateSettings(next, revision.value);
+      settings.value = next;
       revision.value += 1;
+      previewSettings.value = null;
       applyNative();
       return true;
     } catch {
@@ -90,5 +107,19 @@ export const useThemeStore = defineStore('theme', () => {
     });
   }
 
-  return { settings, revision, loaded, dark, themeClass, load, update, applyNative };
+  return {
+    settings,
+    previewSettings,
+    effective,
+    hasPreview,
+    revision,
+    loaded,
+    dark,
+    themeClass,
+    load,
+    preview,
+    cancelPreview,
+    savePreview,
+    applyNative,
+  };
 });

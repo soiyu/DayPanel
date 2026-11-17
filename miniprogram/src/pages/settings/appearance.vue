@@ -12,7 +12,7 @@
           v-for="option in modes"
           :key="option.value"
           class="option"
-          :class="{ active: theme.settings.theme === option.value }"
+          :class="{ active: theme.effective.theme === option.value }"
           @tap="setTheme(option.value)"
         >
           {{ t(option.label) }}
@@ -27,7 +27,7 @@
           v-for="option in palettes"
           :key="option.value"
           class="palette"
-          :class="{ active: theme.settings.palette === option.value }"
+          :class="{ active: theme.effective.palette === option.value }"
           @tap="setPalette(option.value)"
         >
           <view class="swatch" :style="{ background: option.color }" />
@@ -43,7 +43,7 @@
           v-for="option in fonts"
           :key="option.value"
           class="option"
-          :class="{ active: theme.settings.font === option.value }"
+          :class="{ active: theme.effective.font === option.value }"
           @tap="setFont(option.value)"
         >
           {{ t(option.label) }}
@@ -58,7 +58,7 @@
           v-for="option in frames"
           :key="option.value"
           class="option"
-          :class="{ active: theme.settings.iconFrame === option.value }"
+          :class="{ active: theme.effective.iconFrame === option.value }"
           @tap="setFrame(option.value)"
         >
           {{ t(option.label) }}
@@ -67,10 +67,16 @@
     </view>
 
     <text class="footnote">{{ t('appearancePartial') }}</text>
+
+    <view class="footer">
+      <button class="cancel" @tap="cancel">{{ t('cancel') }}</button>
+      <button class="save" @tap="save">{{ t('save') }}</button>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
+import { onUnload } from '@dcloudio/uni-app';
 import { useThemeStore } from '../../stores/theme.ts';
 import { useThemeClass } from '../../composables/useTheme.ts';
 import { translate } from '../../i18n/index.ts';
@@ -102,26 +108,40 @@ const frames: Array<{ value: Settings['iconFrame']; label: string }> = [
   { value: 'plain', label: 'framePlain' },
 ];
 
-async function save(patch: Partial<Settings>): Promise<void> {
-  const ok = await theme.update(patch);
+function preview(patch: Partial<Settings>): void {
+  theme.preview(patch);
+}
+
+function setTheme(value: Settings['theme']): void {
+  preview({ theme: value });
+}
+function setPalette(value: Settings['palette']): void {
+  preview({ palette: value });
+}
+function setFont(value: Settings['font']): void {
+  preview({ font: value });
+}
+function setFrame(value: Settings['iconFrame']): void {
+  preview({ iconFrame: value });
+}
+
+async function save(): Promise<void> {
+  const ok = await theme.savePreview();
   uni.showToast({
     title: ok ? t('appearanceSaved') : t('appearanceFailed'),
     icon: 'none',
   });
+  if (ok) setTimeout(() => uni.navigateBack(), 300);
 }
 
-function setTheme(value: Settings['theme']): void {
-  void save({ theme: value });
+function cancel(): void {
+  theme.cancelPreview();
+  uni.navigateBack();
 }
-function setPalette(value: Settings['palette']): void {
-  void save({ palette: value });
-}
-function setFont(value: Settings['font']): void {
-  void save({ font: value });
-}
-function setFrame(value: Settings['iconFrame']): void {
-  void save({ iconFrame: value });
-}
+
+onUnload(() => {
+  if (theme.hasPreview) theme.cancelPreview();
+});
 </script>
 
 <style scoped>
@@ -211,6 +231,36 @@ function setFrame(value: Settings['iconFrame']): void {
   font-size: 22rpx;
   color: var(--dp-faint);
   line-height: 1.6;
-  padding: 8rpx 4rpx;
+  padding: 8rpx 4rpx 140rpx;
+}
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: var(--dp-bg-translucent);
+  border-top: 1rpx solid var(--dp-line);
+}
+.cancel,
+.save {
+  flex: 1;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  line-height: 1;
+  padding: 22rpx 0;
+  border: none;
+}
+.cancel {
+  background: var(--dp-paper);
+  color: var(--dp-ink-4);
+  border: 1rpx solid var(--dp-line);
+}
+.save {
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  font-weight: 700;
 }
 </style>

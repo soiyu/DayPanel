@@ -690,7 +690,7 @@ function rate(counts) {
 }
 function insights(state, requestedRange, today) {
   const range = requestedRange;
-  if (![30, 90, 365].includes(range)) throw new RangeError("Invalid insight range");
+  if (![7, 30, 90, 365].includes(range)) throw new RangeError("Invalid insight range");
   const end = addDays(today, -1);
   const start = addDays(end, -(range - 1));
   const previousEnd = addDays(start, -1);

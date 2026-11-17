@@ -8,7 +8,7 @@ import {
   type UserState,
 } from './models.ts';
 
-export type InsightRange = 30 | 90 | 365;
+export type InsightRange = 7 | 30 | 90 | 365;
 
 export interface InsightOverall {
   planned: number;
@@ -123,7 +123,7 @@ export function insights(
   today: DayKey,
 ): Insights {
   const range = requestedRange;
-  if (![30, 90, 365].includes(range)) throw new RangeError('Invalid insight range');
+  if (![7, 30, 90, 365].includes(range)) throw new RangeError('Invalid insight range');
   const end = addDays(today, -1);
   const start = addDays(end, -(range - 1));
   const previousEnd = addDays(start, -1);

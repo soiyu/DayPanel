@@ -27,6 +27,10 @@
         <text class="row-title">{{ t('cards') }}</text>
         <text class="row-meta">›</text>
       </view>
+      <view class="row" @tap="openReviewPoster">
+        <text class="row-title">{{ t('reviewPoster') }}</text>
+        <text class="row-meta">7 / 30</text>
+      </view>
       <view class="row" @tap="openInsights">
         <text class="row-title">{{ t('insightsTitle') }}</text>
         <text class="row-meta">30 / 90 / 365</text>
@@ -99,6 +103,10 @@ function openCards(): void {
 
 function openInsights(): void {
   uni.navigateTo({ url: '/pages/insights/index' });
+}
+
+function openReviewPoster(): void {
+  uni.navigateTo({ url: '/pages/review/index' });
 }
 
 function openYear(): void {
