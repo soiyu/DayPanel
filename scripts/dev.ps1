@@ -1,5 +1,5 @@
 param(
-  [ValidateSet('doctor','pub','format','analyze','test','assemble','verify','run','native-test','fix','bundle','release-check')]
+  [ValidateSet('doctor','pub','format','analyze','test','assemble','assemble-release','verify','run','native-test','fix','bundle','release-check')]
   [string]$Command = 'verify',
   [string[]]$Extra = @()
 )
@@ -52,6 +52,7 @@ try {
     'analyze' { Invoke-Flutter @('analyze') }
     'test' { Invoke-Flutter (@('test') + $Extra) }
     'assemble' { Invoke-Flutter (@('build','apk','--debug') + $Extra) }
+    'assemble-release' { Invoke-Flutter (@('build','apk','--release') + $Extra) }
     'run' { Invoke-Flutter (@('run') + $Extra) }
     'native-test' { Invoke-Gradle (@(':app:testDebugUnitTest',':app:assembleDebugAndroidTest')+$Extra) }
     'verify' {

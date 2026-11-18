@@ -14,10 +14,19 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'data/widget_platform.dart';
 import 'presentation/home_widgets.dart';
+import 'data/note_media_platform.dart';
 export 'application/widget_action_runner.dart' show widgetActionMain;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
   LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString(
       'assets/fonts/OFL-NotoSerifSC.txt',
@@ -48,6 +57,7 @@ class _BootstrapState extends State<Bootstrap> {
       reminderPlatform: AndroidReminders(),
       completionFeedback: AndroidCompletionFeedback(),
       widgetPlatform: AndroidWidgets(),
+      noteMediaPlatform: AndroidNoteMediaPlatform(),
     );
     try {
       await app.load();

@@ -219,6 +219,10 @@ void main() {
   testWidgets(
     'restore Today returns actual HomePage from Mine tab to daily tab',
     (t) async {
+      t.view.physicalSize = const Size(360, 640);
+      t.view.devicePixelRatio = 1.0;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
       app.select(today.plus(-3));
       await t.pumpWidget(shell(HomePage(app: app)));
       await t.pumpAndSettle();

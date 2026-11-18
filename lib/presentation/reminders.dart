@@ -8,6 +8,7 @@ import 'components.dart';
 import 'theme.dart';
 import 'habit_icon.dart';
 import 'refined_components.dart';
+import 'plus_page.dart';
 
 String formatReminderTimes(BuildContext context, List<int> minutes) =>
     (minutes.toList()..sort())
@@ -16,19 +17,22 @@ String formatReminderTimes(BuildContext context, List<int> minutes) =>
 
 Future<void> openReminderEditor(
   BuildContext context,
-  AppController app,
-  Habit habit,
-) => showModalBottomSheet<void>(
+  AppController app, [
+  Habit? habit,
+  SmallTask? task,
+]) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
-  builder: (_) => ReminderEditor(app: app, habit: habit),
+  builder: (_) => ReminderEditor(app: app, habit: habit, task: task),
 );
 
 class ReminderEditor extends StatefulWidget {
-  const ReminderEditor({super.key, required this.app, required this.habit});
+  const ReminderEditor({super.key, required this.app, this.habit, this.task})
+    : assert(habit != null || task != null);
   final AppController app;
-  final Habit habit;
+  final Habit? habit;
+  final SmallTask? task;
   @override
   State<ReminderEditor> createState() => _ReminderEditorState();
 }
@@ -42,9 +46,15 @@ class _ReminderEditorState extends State<ReminderEditor> {
   @override
   void initState() {
     super.initState();
-    final r = widget.app.reminderFor(widget.habit.id);
-    enabled = r.enabled;
-    times = List.of(r.minutes);
+    if (widget.habit != null) {
+      final r = widget.app.reminderFor(widget.habit!.id);
+      enabled = r.enabled;
+      times = List.of(r.minutes);
+    } else {
+      final r = widget.app.taskReminderFor(widget.task!.id);
+      enabled = r.enabled;
+      times = List.of(r.minutes);
+    }
     epoch = widget.app.generation;
   }
 
@@ -75,6 +85,44 @@ class _ReminderEditorState extends State<ReminderEditor> {
     });
   }
 
+  Future<void> toggleAlert({bool? sound, bool? vibrate}) async {
+    final s = AppLocalizations.of(context);
+    final turningOn = (sound ?? false) || (vibrate ?? false);
+    if (turningOn) {
+      if (!widget.app.plus.enabled) {
+        final unlocked = await requirePlus(context, widget.app);
+        if (!unlocked || !mounted) return;
+      }
+      if (!widget.app.reminderStatus.exact) {
+        if (!mounted) return;
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(s.exactReminder),
+            content: Text(s.reminderExactRequired),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(s.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(s.reminderExactSetupAction),
+              ),
+            ],
+          ),
+        );
+        if (proceed == true) {
+          await widget.app.reminderPlatform?.openSettings(exact: true);
+          await widget.app.syncReminders();
+        }
+        if (!widget.app.reminderStatus.exact) return;
+      }
+    }
+    await widget.app.setReminderAlerts(sound: sound, vibrate: vibrate);
+    if (mounted) setState(() {});
+  }
+
   Future<void> save() async {
     if (saving) return;
     final s = AppLocalizations.of(context);
@@ -91,16 +139,25 @@ class _ReminderEditorState extends State<ReminderEditor> {
         /* Save config even when system permission cannot be requested. */
       }
     }
-    final ok = await widget.app.run(
-      () => widget.app.store.saveReminder(
-        HabitReminder(
-          habitId: widget.habit.id,
-          enabled: enabled,
-          minutes: times,
-        ),
-      ),
-      expectedGeneration: epoch,
-    );
+    final ok = await widget.app.run(() async {
+      if (widget.habit != null) {
+        await widget.app.store.saveReminder(
+          HabitReminder(
+            habitId: widget.habit!.id,
+            enabled: enabled,
+            minutes: times,
+          ),
+        );
+      } else {
+        await widget.app.store.saveTaskReminder(
+          TaskReminder(
+            taskId: widget.task!.id,
+            enabled: enabled,
+            minutes: times,
+          ),
+        );
+      }
+    }, expectedGeneration: epoch);
     if (!mounted) return;
     if (ok) {
       final message = widget.app.reminderSyncFailed
@@ -123,18 +180,23 @@ class _ReminderEditorState extends State<ReminderEditor> {
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context);
+    final isHabit = widget.habit != null;
+    final title = isHabit ? s.habitReminder : s.taskReminder;
+    final subtitle = widget.habit?.title ?? widget.task?.title ?? '';
+    final tone = isHabit ? UiTone.peach : UiTone.violet;
+
     return SheetFrame(
-      title: s.habitReminder,
-      subtitle: widget.habit.title,
-      icon: Icons.notifications_none_rounded,
-      tone: UiTone.peach,
+      title: title,
+      subtitle: subtitle,
+      icon: isHabit ? Icons.notifications_none_rounded : Icons.alarm_rounded,
+      tone: tone,
       busy: saving,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SoftPanel(
             tinted: true,
-            tone: UiTone.peach,
+            tone: tone,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Material(
               color: Colors.transparent,
@@ -151,20 +213,27 @@ class _ReminderEditorState extends State<ReminderEditor> {
             ),
           ),
           const SizedBox(height: 10),
-          Text(s.calendarHint, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 18),
-          Text(
-            s.reminderPermissionHint,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          Text(
-            widget.app.planAt(widget.habit, widget.app.today).schedule ==
-                    ScheduleKind.weeklyTotal
-                ? s.reminderSharedWeekGoal
-                : s.reminderSharedGoal,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          SectionTitle(s.reminderTimes, tone: UiTone.peach),
+          if (isHabit) ...[
+            Text(s.calendarHint, style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 18),
+            Text(
+              s.reminderPermissionHint,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            Text(
+              widget.app.planAt(widget.habit!, widget.app.today).schedule ==
+                      ScheduleKind.weeklyTotal
+                  ? s.reminderSharedWeekGoal
+                  : s.reminderSharedGoal,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ] else ...[
+            Text(
+              s.taskReminderSubtitle,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+          SectionTitle(s.reminderTimes, tone: tone),
           for (final minute in times)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -176,45 +245,50 @@ class _ReminderEditorState extends State<ReminderEditor> {
                     hour: minute ~/ 60,
                     minute: minute % 60,
                   ).format(context),
-                  tone: UiTone.peach,
+                  tone: tone,
                   onTap: saving ? null : () => pick(minute),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        tooltip: s.calendarAdd,
-                        icon: const Icon(Icons.event_available_outlined),
-                        onPressed: saving
-                            ? null
-                            : () async {
-                                try {
-                                  final opened = await CalendarPlatform().add(
-                                    widget.habit.id,
-                                    epoch,
-                                    minute,
-                                  );
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          opened
-                                              ? s.calendarOpened
-                                              : s.calendarUnavailable,
+                      if (isHabit)
+                        IconButton(
+                          tooltip: s.calendarAdd,
+                          icon: const Icon(Icons.event_available_outlined),
+                          onPressed: saving
+                              ? null
+                              : () async {
+                                  try {
+                                    final opened = await CalendarPlatform().add(
+                                      widget.habit!.id,
+                                      epoch,
+                                      minute,
+                                    );
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            opened
+                                                ? s.calendarOpened
+                                                : s.calendarUnavailable,
+                                          ),
                                         ),
-                                      ),
-                                    );
+                                      );
+                                    }
+                                  } catch (_) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(s.calendarUnavailable),
+                                        ),
+                                      );
+                                    }
                                   }
-                                } catch (_) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(s.calendarUnavailable),
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                      ),
+                                },
+                        ),
                       IconButton(
                         tooltip: s.removeTime,
                         onPressed: saving || times.length == 1
@@ -230,22 +304,102 @@ class _ReminderEditorState extends State<ReminderEditor> {
           AppAction(
             label: s.addReminderTime,
             icon: Icons.add,
-            tone: UiTone.violet,
+            tone: tone,
             onTap: saving || times.length >= 5 ? null : pick,
           ),
           const SizedBox(height: 18),
-          Text(
-            s.reminderScheduleHint,
-            style: Theme.of(context).textTheme.bodySmall,
+          SectionTitle(s.reminderAlertStyle, tone: UiTone.violet),
+          SoftPanel(
+            tinted: true,
+            tone: UiTone.violet,
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        '✦ Plus 专属',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF7C3AED),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        s.reminderAlertHint,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Material(
+                  color: Colors.transparent,
+                  child: SwitchListTile(
+                    key: const Key('toggle-sound'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      s.reminderSound,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    subtitle: Text(
+                      s.reminderSoundSubtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    value: widget.app.reminderSound,
+                    onChanged: saving ? null : (v) => toggleAlert(sound: v),
+                  ),
+                ),
+                const Divider(height: 1),
+                Material(
+                  color: Colors.transparent,
+                  child: SwitchListTile(
+                    key: const Key('toggle-vibrate'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      s.reminderVibrate,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    subtitle: Text(
+                      s.reminderVibrateSubtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    value: widget.app.reminderVibrate,
+                    onChanged: saving ? null : (v) => toggleAlert(vibrate: v),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 14),
+          if (isHabit) ...[
+            Text(
+              s.reminderScheduleHint,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+          ],
           Text(
             s.reminderLocalTime,
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          if (widget.habit.archived) ...[
+          if (widget.habit?.archived == true ||
+              widget.task?.archived == true) ...[
             const SizedBox(height: 12),
-            AppBadge(s.reminderArchived, tone: UiTone.peach),
+            AppBadge(s.reminderArchived, tone: tone),
           ],
           if (error != null) ...[
             const SizedBox(height: 12),
@@ -329,6 +483,44 @@ class _RemindersPageState extends State<RemindersPage>
     if (mounted) setState(() => working = false);
   }
 
+  Future<void> _toggleAlert({bool? sound, bool? vibrate}) async {
+    final app = widget.app;
+    final s = AppLocalizations.of(context);
+    final isEnabling = sound == true || vibrate == true;
+    if (isEnabling) {
+      if (!app.plus.enabled) {
+        final unlocked = await requirePlus(context, app);
+        if (!unlocked || !mounted) return;
+      }
+      if (!app.reminderStatus.exact) {
+        if (!mounted) return;
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(s.exactReminder),
+            content: Text(s.reminderExactRequired),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(s.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(s.reminderExactSetupAction),
+              ),
+            ],
+          ),
+        );
+        if (proceed == true) {
+          await app.reminderPlatform?.openSettings(exact: true);
+          await app.syncReminders();
+        }
+        if (!app.reminderStatus.exact) return;
+      }
+    }
+    await app.setReminderAlerts(sound: sound, vibrate: vibrate);
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: widget.app,
@@ -386,7 +578,90 @@ class _RemindersPageState extends State<RemindersPage>
                   child: Text(s.retry),
                 ),
               ],
-              const SizedBox(height: 6),
+              const SizedBox(height: 12),
+              SectionTitle(s.reminderAlertStyle, tone: UiTone.violet),
+              SoftPanel(
+                tinted: true,
+                tone: UiTone.violet,
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF8B5CF6,
+                            ).withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            '✦ Plus 专属',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF7C3AED),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            s.reminderAlertHint,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Material(
+                      color: Colors.transparent,
+                      child: SwitchListTile(
+                        key: const Key('reminders-page-sound'),
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          s.reminderSound,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        subtitle: Text(
+                          s.reminderSoundSubtitle,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        value: app.reminderSound,
+                        onChanged: working
+                            ? null
+                            : (v) => _toggleAlert(sound: v),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Material(
+                      color: Colors.transparent,
+                      child: SwitchListTile(
+                        key: const Key('reminders-page-vibrate'),
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          s.reminderVibrate,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        subtitle: Text(
+                          s.reminderVibrateSubtitle,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        value: app.reminderVibrate,
+                        onChanged: working
+                            ? null
+                            : (v) => _toggleAlert(vibrate: v),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               SectionTitle(
                 s.manageHabits,
                 count: app.habits.length,
@@ -425,6 +700,44 @@ class _RemindersPageState extends State<RemindersPage>
                       onTap: app.busy
                           ? null
                           : () => openReminderEditor(context, app, h),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              SectionTitle(
+                s.manageTasks,
+                count: app.tasks.where((t) => !t.archived && !t.done).length,
+                tone: UiTone.violet,
+              ),
+              if (app.tasks.where((t) => !t.archived && !t.done).isEmpty)
+                EmptyState(
+                  icon: Icons.checklist_rounded,
+                  title: s.noTaskReminders,
+                  body: s.noTaskRemindersBody,
+                  tone: UiTone.violet,
+                ),
+              for (final t in app.tasks.where((t) => !t.archived && !t.done))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: SoftPanel(
+                    padding: const EdgeInsets.all(4),
+                    child: SettingRow(
+                      icon: t.resident
+                          ? Icons.bookmark_border_rounded
+                          : Icons.check_circle_outline_rounded,
+                      title: t.title,
+                      tone: t.resident ? UiTone.violet : UiTone.blue,
+                      subtitle: t.archived
+                          ? s.reminderArchived
+                          : app.taskReminderFor(t.id).enabled
+                          ? formatReminderTimes(
+                              context,
+                              app.taskReminderFor(t.id).minutes,
+                            )
+                          : s.reminderOff,
+                      onTap: app.busy
+                          ? null
+                          : () => openReminderEditor(context, app, null, t),
                     ),
                   ),
                 ),

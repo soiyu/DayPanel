@@ -8,6 +8,8 @@ import 'home_widgets.dart';
 import 'editors.dart';
 import 'review_card.dart';
 import 'appearance.dart';
+import 'reminders.dart';
+import 'journal.dart';
 
 Future<bool> requirePlus(BuildContext context, AppController app) async {
   if (app.plus.enabled) return true;
@@ -134,8 +136,8 @@ class _PlusPageState extends State<PlusPage> {
                           p.testing
                               ? s.plusTesting
                               : (isZh
-                                    ? '您已永久解锁全部 6 项高级特权，无订阅、无广告，纯本地私密运行。'
-                                    : 'All 6 premium privileges unlocked. 100% private, no subscriptions.'),
+                                    ? '您已永久解锁全部 7 项高级特权，无订阅、无广告，纯本地私密运行。'
+                                    : 'All 7 premium privileges unlocked. 100% private, no subscriptions.'),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
@@ -236,6 +238,40 @@ class _PlusPageState extends State<PlusPage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 10),
+
+                  // 7. Sound & Vibration Reminders
+                  _PrivilegeCard(
+                    icon: Icons.notification_important_outlined,
+                    title: isZh ? '到时响铃与触感震动' : 'Sound & Vibrate Alerts',
+                    description: isZh
+                        ? '支持高精度提醒响铃与震动，即使锁屏也能强提醒不错过关键习惯与小事'
+                        : 'Exact alarms with ringtone sounds and distinct vibrations to keep you on track',
+                    actionLabel: isZh ? '设置提醒风格' : 'Configure Reminders',
+                    onAction: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => RemindersPage(app: widget.app),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // 8. Multi-photo Journal
+                  _PrivilegeCard(
+                    icon: Icons.photo_library_outlined,
+                    title: isZh ? '九宫格多图手记' : 'Multi-photo Journal',
+                    description: isZh
+                        ? '支持单篇手记插入最多 9 张精选配图，自动排版优雅九宫格并支持大图浏览'
+                        : 'Attach up to 9 photos per entry with auto-layout 9-grid and full-screen viewer',
+                    actionLabel: isZh ? '去写手记' : 'Write Journal',
+                    onAction: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => JournalPage(app: widget.app),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 14),
                   SoftPanel(
                     padding: const EdgeInsets.all(16),
@@ -316,6 +352,14 @@ class _PlusPageState extends State<PlusPage> {
                     (Icons.insights_outlined, s.reviewBuilder),
                     (Icons.auto_graph_rounded, s.insightsTitle),
                     (Icons.palette_outlined, s.styleExtra),
+                    (
+                      Icons.notification_important_outlined,
+                      isZh ? '到时响铃与触感震动' : 'Sound & Vibrate Alerts',
+                    ),
+                    (
+                      Icons.photo_library_outlined,
+                      isZh ? '九宫格多图手记' : 'Multi-photo Journal',
+                    ),
                   ])
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -356,7 +400,10 @@ class _PlusPageState extends State<PlusPage> {
                     onTap: p.busy ? null : p.restore,
                   ),
                   const SizedBox(height: 12),
-                  AppAction(label: s.retry, onTap: p.busy ? null : p.refresh),
+                  AppAction(
+                    label: s.retry,
+                    onTap: p.busy ? null : () => p.refresh(userInitiated: true),
+                  ),
                   const SizedBox(height: 16),
                   SoftPanel(
                     padding: const EdgeInsets.all(16),

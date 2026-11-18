@@ -5,6 +5,8 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import app.daypanel.next.MainActivity
@@ -16,12 +18,14 @@ import java.util.UUID
 import java.util.concurrent.Executors
 
 data class AlarmEvent(val id: String, val day: LocalDate, val minute: Int, val at: Long,
-    val generation: Long, val revision: Long, val token: String, val snoozed: Boolean = false) {
+    val generation: Long, val revision: Long, val token: String, val snoozed: Boolean = false,
+    val kind: String = "habit") {
     fun json() = JSONObject().put("id",id).put("day",day.toString()).put("minute",minute).put("at",at)
         .put("generation",generation).put("revision",revision).put("token",token).put("snoozed",snoozed)
+        .put("kind", kind)
     companion object {
         fun from(j: JSONObject) = AlarmEvent(j.getString("id"),LocalDate.parse(j.getString("day")),j.getInt("minute"),j.getLong("at"),
-            j.getLong("generation"),j.getLong("revision"),j.getString("token"),j.optBoolean("snoozed"))
+            j.getLong("generation"),j.getLong("revision"),j.getString("token"),j.optBoolean("snoozed"),j.optString("kind", "habit"))
     }
 }
 
@@ -43,15 +47,58 @@ object ReminderEngine {
         check(prefs(c).edit().putString(name,j.toString()).commit())
     }
 
-    fun ensureChannel(c: Context) {
+    fun channelId(sound: Boolean, vibrate: Boolean) =
+        "reminder_channel_${if (sound) "s1" else "s0"}_${if (vibrate) "v1" else "v0"}"
+
+    fun ensureChannel(c: Context) = ensureChannels(c)
+
+    fun ensureChannels(c: Context) {
+        val m = manager(c)
         val zh = c.resources.configuration.locales[0].language == "zh"
-        manager(c).createNotificationChannel(NotificationChannel(CHANNEL,if (zh) "习惯提醒" else "Habit reminders",NotificationManager.IMPORTANCE_DEFAULT).apply {
-            description = if (zh) "按你设置的时刻提醒尚未完成的习惯" else "Reminders for your unfinished habits"
-            enableVibration(true)
-        })
+        for (sound in listOf(false, true)) {
+            for (vibrate in listOf(false, true)) {
+                val id = channelId(sound, vibrate)
+                if (m.getNotificationChannel(id) == null) {
+                    val name = when {
+                        sound && vibrate -> if (zh) "习惯与小事提醒（铃声与震动）" else "Reminders (Sound & Vibration)"
+                        sound -> if (zh) "习惯与小事提醒（仅铃声）" else "Reminders (Sound Only)"
+                        vibrate -> if (zh) "习惯与小事提醒（仅震动）" else "Reminders (Vibration Only)"
+                        else -> if (zh) "习惯与小事提醒（静音通知）" else "Reminders (Silent)"
+                    }
+                    val importance = if (sound || vibrate) NotificationManager.IMPORTANCE_HIGH else NotificationManager.IMPORTANCE_DEFAULT
+                    val channel = NotificationChannel(id, name, importance).apply {
+                        description = if (zh) "按设置时刻提醒习惯与小事" else "Reminders for habits and tasks"
+                        if (vibrate) {
+                            enableVibration(true)
+                            vibrationPattern = longArrayOf(0, 350, 200, 350)
+                        } else {
+                            enableVibration(false)
+                            vibrationPattern = longArrayOf(0)
+                        }
+                        if (sound) {
+                            val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                            val audioAttributes = AudioAttributes.Builder()
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                                .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+                                .build()
+                            setSound(soundUri, audioAttributes)
+                        } else {
+                            setSound(null, null)
+                        }
+                    }
+                    m.createNotificationChannel(channel)
+                }
+            }
+        }
+        if (m.getNotificationChannel(CHANNEL) == null) {
+            m.createNotificationChannel(NotificationChannel(CHANNEL, if (zh) "习惯提醒" else "Habit reminders", NotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = if (zh) "按你设置的时刻提醒尚未完成的习惯" else "Reminders for your unfinished habits"
+                enableVibration(true)
+            })
+        }
     }
     fun status(c: Context): Map<String,Any> {
-        ensureChannel(c)
+        ensureChannels(c)
         val permitted = Build.VERSION.SDK_INT < 33 || c.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED
         return mapOf("notifications" to (permitted && manager(c).areNotificationsEnabled() && manager(c).getNotificationChannel(CHANNEL)?.importance != NotificationManager.IMPORTANCE_NONE),
             "exact" to (Build.VERSION.SDK_INT < 31 || alarms(c).canScheduleExactAlarms()), "pending" to readMap(c,"scheduled").size)
@@ -71,8 +118,14 @@ object ReminderEngine {
         } catch (_: SecurityException) { alarm.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,e.at,pi) }
     }
     private fun valid(e: AlarmEvent,s: ReminderSnapshot,now: ZonedDateTime): Boolean {
-        val h = s.habits.firstOrNull { it.id==e.id } ?: return false
-        return e.generation==s.generation && e.revision==h.revision && e.minute in h.minutes && ReminderRules.eligible(h,now.toLocalDate()) && e.day==now.toLocalDate()
+        if (e.generation != s.generation || e.day != now.toLocalDate()) return false
+        if (e.kind == "task") {
+            val t = s.tasks.firstOrNull { it.id == e.id } ?: return false
+            return e.revision == t.revision && e.minute in t.minutes && ReminderRules.eligibleTask(t, now.toLocalDate())
+        } else {
+            val h = s.habits.firstOrNull { it.id == e.id } ?: return false
+            return e.revision == h.revision && e.minute in h.minutes && ReminderRules.eligible(h, now.toLocalDate())
+        }
     }
     private fun discardStale(c: Context,s: ReminderSnapshot,now: ZonedDateTime) {
         val notices = readMap(c,"notices")
@@ -89,7 +142,7 @@ object ReminderEngine {
     // All entry points run on worker. SQLite reads only, preferences are runtime
     // state; every delivery rechecks the authoritative user database.
     fun sync(c: Context, resetClock: Boolean = false) {
-        ensureChannel(c)
+        ensureChannels(c)
         val snapshot = SnapshotReader.read(c) ?: return
         val now = ZonedDateTime.now()
         discardStale(c,snapshot,now)
@@ -108,10 +161,17 @@ object ReminderEngine {
         val scheduled=mutableMapOf<String,AlarmEvent>()
         for(h in snapshot.habits) {
             val due=ReminderRules.next(h,now,delivered,snapshot.generation)
-            val normal=due?.let { AlarmEvent(h.id,it.day,it.minute,it.instant.toEpochMilli(),snapshot.generation,h.revision,UUID.randomUUID().toString()) }
+            val normal=due?.let { AlarmEvent(h.id,it.day,it.minute,it.instant.toEpochMilli(),snapshot.generation,h.revision,UUID.randomUUID().toString(),kind = "habit") }
             val snooze=snoozes[h.id]
             val next=if(snooze!=null&&(normal==null||snooze.at<normal.at))snooze else normal
             if(next!=null) scheduled[h.id]=next
+        }
+        for(t in snapshot.tasks) {
+            val due=ReminderRules.nextTask(t,now,delivered,snapshot.generation)
+            val normal=due?.let { AlarmEvent(t.id,it.day,it.minute,it.instant.toEpochMilli(),snapshot.generation,t.revision,UUID.randomUUID().toString(),kind = "task") }
+            val snooze=snoozes[t.id]
+            val next=if(snooze!=null&&(normal==null||snooze.at<normal.at))snooze else normal
+            if(next!=null) scheduled[t.id]=next
         }
         saveMap(c,"snoozes",snoozes)
         // Save all tokens before registering any alarm, so a cold receiver can validate it.
@@ -147,25 +207,41 @@ object ReminderEngine {
         val snoozes=readMap(c,"snoozes");snoozes.remove(e.id);saveMap(c,"snoozes",snoozes)
         if(canSend) {
             // Token is consumed by sync at the end; repeated broadcasts cannot post twice.
-            post(c,e,s.habits.first { it.id==e.id },s.chinese)
+            post(c,e,s)
             val notices=readMap(c,"notices");notices[e.id]=e;saveMap(c,"notices",notices)
         }
         sync(c)
     }
-    private fun post(c: Context,e: AlarmEvent,h: ReminderHabit,zh: Boolean) {
+    private fun post(c: Context,e: AlarmEvent,s: ReminderSnapshot) {
+        val title = if (e.kind == "task") {
+            s.tasks.firstOrNull { it.id == e.id }?.title ?: return
+        } else {
+            s.habits.firstOrNull { it.id == e.id }?.title ?: return
+        }
+        val content = if (e.kind == "task") {
+            if (s.chinese) "该处理这件待办小事了。" else "Time for your task."
+        } else {
+            if (s.chinese) "给这件小事留一点时间。" else "A little time for your habit."
+        }
+        val actionText = if (e.kind == "task") {
+            if (s.chinese) "去完成" else "Complete"
+        } else {
+            if (s.chinese) "去记录" else "Log habit"
+        }
+        val targetChannel = channelId(s.sound, s.vibrate)
         val open=Intent(c,MainActivity::class.java).apply {
-            action=OPEN;data=Uri.Builder().scheme("daypanel-open").authority("habit").appendPath(e.id).appendPath(e.token).build()
+            action=OPEN;data=Uri.Builder().scheme("daypanel-open").authority(e.kind).appendPath(e.id).appendPath(e.token).build()
             putExtra("reminder",e.json().toString()); flags=Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         val openPi=PendingIntent.getActivity(c,0,open,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val snoozePi=PendingIntent.getBroadcast(c,0,intent(c,e,SNOOZE).apply { data=data!!.buildUpon().appendPath(e.token).build() },PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        val n=Notification.Builder(c,CHANNEL).setSmallIcon(R.drawable.ic_reminder).setContentTitle(h.title)
-            .setContentText(if(zh) "给这件小事留一点时间。" else "A little time for your habit.")
+        val n=Notification.Builder(c,targetChannel).setSmallIcon(R.drawable.ic_reminder).setContentTitle(title)
+            .setContentText(content)
             .setVisibility(Notification.VISIBILITY_PRIVATE).setAutoCancel(true).setContentIntent(openPi)
             .setCategory(Notification.CATEGORY_REMINDER).setOnlyAlertOnce(false)
             .setTimeoutAfter(Duration.between(ZonedDateTime.now(),e.day.plusDays(1).atStartOfDay(ZoneId.systemDefault())).toMillis().coerceAtLeast(1))
-            .addAction(Notification.Action.Builder(null,if(zh) "去记录" else "Log habit",openPi).build())
-        if(ReminderRules.snooze(ZonedDateTime.now(),e.day)!=null) n.addAction(Notification.Action.Builder(null,if(zh) "10分钟后" else "In 10 minutes",snoozePi).build())
+            .addAction(Notification.Action.Builder(null,actionText,openPi).build())
+        if(ReminderRules.snooze(ZonedDateTime.now(),e.day)!=null) n.addAction(Notification.Action.Builder(null,if(s.chinese) "10分钟后" else "In 10 minutes",snoozePi).build())
         try { manager(c).notify(e.id,1,n.build()) } catch (_: SecurityException) { /* revoked between check and post */ }
     }
     fun openRequest(c: Context, encoded: String?): Map<String,Any>? {
@@ -174,6 +250,6 @@ object ReminderEngine {
         if(!valid(e,snapshot,ZonedDateTime.now())||readMap(c,"notices")[e.id]?.token!=e.token)return null
         manager(c).cancel(e.id,1)
         val notices=readMap(c,"notices");notices.remove(e.id);saveMap(c,"notices",notices)
-        return mapOf("id" to e.id,"day" to e.day.toString(),"generation" to e.generation)
+        return mapOf("id" to e.id,"kind" to e.kind,"day" to e.day.toString(),"generation" to e.generation)
     }
 }

@@ -9,6 +9,8 @@ import 'package:daypanel/data/schema.dart';
 import 'package:daypanel/domain/backup.dart';
 import 'package:daypanel/domain/journal.dart';
 import 'package:daypanel/domain/models.dart';
+import 'package:flutter/widgets.dart';
+import 'package:daypanel/presentation/note_format.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -256,6 +258,8 @@ void main() {
         final snapshot = await store.exportSnapshot();
         final bytes = transform(snapshot, (p) {
           p['schema'] = version;
+          (p['tables'] as Map).remove('note_images');
+          (p['tables'] as Map).remove('task_reminders');
           (p['tables'] as Map).remove('record_events');
           (p['tables'] as Map).remove('habit_breaks');
           for (final h in p['tables']['habits'] as List) {
@@ -335,7 +339,7 @@ void main() {
           factory: databaseFactoryFfi,
           path: path,
         );
-        expect(await migrated.db.getVersion(), 12);
+        expect(await migrated.db.getVersion(), 14);
         expect((await migrated.notes()).single.toMap(), {
           'id': 'old',
           'body': '原始手记 🌙',
@@ -347,4 +351,102 @@ void main() {
       },
     );
   }
+
+  test(
+    'notes save, load, update, and cascade delete up to 9 image attachments',
+    () async {
+      final note = Note(
+        id: 'n-img',
+        body: 'Entry with 3 photos',
+        day: today,
+        images: const ['img1.jpg', 'img2.jpg', 'img3.jpg'],
+      );
+      await store.saveNote(note, create: true, today: today);
+
+      var loaded = await store.notes();
+      expect(loaded.single.images, ['img1.jpg', 'img2.jpg', 'img3.jpg']);
+
+      await store.saveNote(
+        note.copyWith(images: const ['img2.jpg', 'img3.jpg', 'img4.jpg']),
+        today: today,
+      );
+      loaded = await store.notes();
+      expect(loaded.single.images, ['img2.jpg', 'img3.jpg', 'img4.jpg']);
+
+      await store.remove('notes', 'n-img');
+      expect(await store.notes(), isEmpty);
+      final remainingImages = await store.db.query('note_images');
+      expect(remainingImages, isEmpty);
+    },
+  );
+
+  test('cannot save more than 9 images in note', () async {
+    final note = Note(
+      id: 'n-overflow',
+      body: 'Overflow',
+      day: today,
+      images: List.generate(10, (i) => 'overflow_$i.jpg'),
+    );
+    expect(
+      () => store.saveNote(note, create: true, today: today),
+      throwsA(isA<ArgumentError>()),
+    );
+  });
+
+  test(
+    'backup and recovery snapshot round-trip includes note_images with schema 14',
+    () async {
+      final note = Note(
+        id: 'n-backup',
+        body: 'Backup photo note',
+        day: today,
+        images: const ['a.jpg', 'b.jpg'],
+      );
+      await store.saveNote(note, create: true, today: today);
+      final snap = await store.exportSnapshot();
+      expect(snap.count('note_images'), 2);
+
+      final encoded = snap.encode();
+      final decoded = BackupSnapshot.decode(encoded);
+      expect(decoded.count('note_images'), 2);
+
+      await store.remove('notes', 'n-backup');
+      expect(await store.notes(), isEmpty);
+      await store.restoreSnapshot(decoded);
+      final restored = (await store.notes()).single;
+      expect(restored.images, ['a.jpg', 'b.jpg']);
+    },
+  );
+
+  test(
+    'NoteFormatHelper wraps selection and toggles line prefixes cleanly',
+    () {
+      final ctrl = TextEditingController(text: 'Hello World');
+      ctrl.selection = const TextSelection(baseOffset: 6, extentOffset: 11);
+      NoteFormatHelper.wrapSelection(ctrl, '**', '**', placeholder: 'bold');
+      expect(ctrl.text, 'Hello **World**');
+
+      ctrl.text = 'Important text';
+      ctrl.selection = const TextSelection(baseOffset: 0, extentOffset: 9);
+      NoteFormatHelper.wrapSelection(ctrl, '==', '==', placeholder: 'mark');
+      expect(ctrl.text, '==Important== text');
+
+      ctrl.text = 'Heading text';
+      ctrl.selection = const TextSelection.collapsed(offset: 4);
+      NoteFormatHelper.toggleLinePrefix(ctrl, '## ');
+      expect(ctrl.text, '## Heading text');
+      NoteFormatHelper.toggleLinePrefix(ctrl, '## ');
+      expect(ctrl.text, 'Heading text');
+
+      NoteFormatHelper.toggleLinePrefix(ctrl, '- ');
+      expect(ctrl.text, '- Heading text');
+      NoteFormatHelper.toggleLinePrefix(ctrl, '- ');
+      expect(ctrl.text, 'Heading text');
+
+      NoteFormatHelper.toggleLinePrefix(ctrl, '> ');
+      expect(ctrl.text, '> Heading text');
+      NoteFormatHelper.toggleLinePrefix(ctrl, '> ');
+      expect(ctrl.text, 'Heading text');
+    },
+  );
 }

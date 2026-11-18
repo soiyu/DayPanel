@@ -1979,7 +1979,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plusOwned => '已解锁 Plus';
 
   @override
-  String get plusDescription => '组合桌面、每次记录、周累计目标、复盘卡、深度洞察和原创装扮。一次购买，没有订阅。';
+  String get plusDescription =>
+      '组合桌面、每次记录、周累计目标、复盘卡、深度洞察、原创装扮与到时强提醒。一次购买，没有订阅。';
 
   @override
   String get plusUnavailable => '暂时无法从 Google Play 获取商品，请稍后重试。';
@@ -2274,4 +2275,99 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get cardNextMilestone => '下一里程碑';
+
+  @override
+  String get taskReminder => '小事提醒';
+
+  @override
+  String get taskReminderSubtitle => '到时提醒这件小事';
+
+  @override
+  String get residentTaskReminder => '常驻小事提醒';
+
+  @override
+  String get oneTimeTaskReminder => '待办小事提醒';
+
+  @override
+  String get reminderAlertStyle => '提醒方式';
+
+  @override
+  String get reminderAlertHint => '基于系统准时提醒精度，到达时刻时发出独立响铃或强触感震动。';
+
+  @override
+  String get reminderSound => '铃声提醒';
+
+  @override
+  String get reminderSoundSubtitle => '到达时刻发出系统通知提示音';
+
+  @override
+  String get reminderVibrate => '震动提醒';
+
+  @override
+  String get reminderVibrateSubtitle => '到达时刻触发规律触感震动';
+
+  @override
+  String get reminderExactRequired => '开启铃声或震动提醒需要先设置“准时提醒精度”，否则无法保证准时触达。';
+
+  @override
+  String get reminderExactSetupAction => '设置提醒精度';
+
+  @override
+  String get reminderPlusOnly => '铃声与震动提醒为 Plus 会员专属特权';
+
+  @override
+  String get reminderPlusHint => '✦ Plus 专属：到时响铃与强震动，不再错过重要习惯与待办小事';
+
+  @override
+  String get manageTasks => '管理小事提醒';
+
+  @override
+  String get noTaskReminders => '暂无小事提醒';
+
+  @override
+  String get noTaskRemindersBody => '可在创建或编辑小事时直接开启到时提醒';
+
+  @override
+  String get formatBold => '粗体';
+
+  @override
+  String get formatHeading => '标题';
+
+  @override
+  String get formatList => '列表';
+
+  @override
+  String get formatQuote => '引用';
+
+  @override
+  String get formatHighlight => '高亮';
+
+  @override
+  String get noteImages => '手记配图';
+
+  @override
+  String noteImageCount(Object count) {
+    return '配图 ($count/9)';
+  }
+
+  @override
+  String get noteAddImage => '添加配图';
+
+  @override
+  String get noteImageLimitFree => '免费版支持 1 张配图，升级 Plus 可解锁 2~9 张九宫格多图与大图排版';
+
+  @override
+  String get noteImageRemove => '移除配图';
+
+  @override
+  String get noteImageMaxReached => '单篇手记最多只能添加 9 张配图';
+
+  @override
+  String get plusMultiPhotoTitle => '九宫格多图手记';
+
+  @override
+  String get plusMultiPhotoDesc => '支持单篇手记插入最多 9 张精选配图，自动排版优雅九宫格并支持大图浏览';
+
+  @override
+  String get plusMultiPhotoAction => '去写手记';
 }

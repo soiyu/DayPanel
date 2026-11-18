@@ -1,6 +1,6 @@
 package app.daypanel.next
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import android.app.Activity
@@ -9,11 +9,17 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 import android.Manifest
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import android.net.Uri
+import androidx.activity.enableEdgeToEdge
 import app.daypanel.next.reminders.ReminderEngine
 
-open class MainActivity : FlutterActivity() {
+open class MainActivity : FlutterFragmentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+    }
     // Keep the main Dart owner alive across Activity recreation. sqflite's native
     // handles outlive a detached engine; destroying Dart mid-transaction could
     // strand a lock until process death. Widget flows explicitly close their store.
@@ -28,15 +34,17 @@ open class MainActivity : FlutterActivity() {
             plusBilling?.close();plusBilling=null
             dataReceiver?.let { unregisterReceiver(it) };dataReceiver=null;widgetChanges=null
             completionFeedback?.release();completionFeedback=null
+            journalImages?.release();journalImages=null
             pending?.error("closed","Document activity closed",null);pending=null;exportBytes=null
             permissionReply?.error("closed","Permission activity closed",null);permissionReply=null
-            for(name in listOf("widgets","reminders","documents","feedback","calendar","about","card-image"))
+            for(name in listOf("widgets","reminders","documents","feedback","calendar","about","card-image","note-images"))
                 MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"app.daypanel.next/$name").setMethodCallHandler(null)
             worker.shutdown()
         }
         super.cleanUpFlutterEngine(flutterEngine)
     }
     private var plusBilling: PlusBilling? = null
+    private var journalImages: JournalImageBridge? = null
     private var pending: MethodChannel.Result? = null
     private var exportBytes: ByteArray? = null
     private val worker = Executors.newSingleThreadExecutor()
@@ -70,6 +78,7 @@ open class MainActivity : FlutterActivity() {
         }
         CalendarBridge.register(this,flutterEngine)
         CardImageBridge.register(this,flutterEngine)
+        journalImages = JournalImageBridge(this, flutterEngine)
         completionFeedback = try { CompletionFeedback(this) } catch (_: Exception) { null }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "app.daypanel.next/feedback").setMethodCallHandler { call, reply ->
             if (call.method != "complete") reply.notImplemented()
@@ -186,6 +195,7 @@ open class MainActivity : FlutterActivity() {
     @Deprecated("Activity result compatibility")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (journalImages?.onActivityResult(requestCode, resultCode, data) == true) return
         if (requestCode != 4101 && requestCode != 4102) return
         val reply = pending ?: return
         val bytes = exportBytes

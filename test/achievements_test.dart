@@ -253,7 +253,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: '${dir.path}/data.db',
       );
-      expect(await store.db.getVersion(), 12);
+      expect(await store.db.getVersion(), 14);
       expect(await store.cards(), isEmpty);
       expect((await store.entries()).single.value, 1000);
       expect((await store.notes()).single.habitId, 'a');
@@ -320,6 +320,8 @@ void main() {
         final snapshot = await store.exportSnapshot();
         final old = alter(snapshot, (p) {
           p['schema'] = schema;
+          (p['tables'] as Map).remove('note_images');
+          (p['tables'] as Map).remove('task_reminders');
           (p['tables'] as Map).remove('record_events');
           (p['tables'] as Map).remove('habit_breaks');
           for (final h in p['tables']['habits'] as List) {

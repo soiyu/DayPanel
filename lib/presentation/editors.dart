@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../application/app_controller.dart';
 import '../domain/models.dart';
 import '../domain/record_event.dart';
+import '../domain/reminder.dart';
 import '../l10n/app_localizations.dart';
 import 'components.dart';
 import 'plus_page.dart';
@@ -14,6 +15,8 @@ import 'refined_components.dart';
 import 'habit_catalog.dart';
 import 'habit_icon.dart';
 import 'habits.dart';
+import 'note_format.dart';
+import 'note_images.dart';
 import '../domain/habit_templates.dart';
 
 String noteHabitLabel(BuildContext context, AppController app, String? id) {
@@ -181,6 +184,7 @@ class _EntryEditorState extends State<EntryEditor> {
   String? groupId;
   String? noteHabitId;
   late Day noteDay;
+  late List<String> noteImages;
   late final TextEditingController scheduleNumber;
   late int epoch;
   Day? due;
@@ -188,6 +192,8 @@ class _EntryEditorState extends State<EntryEditor> {
   bool resident = false;
   bool iconManuallyPicked = false;
   String? error;
+  bool reminderEnabled = false;
+  List<int> reminderTimes = [9 * 60];
   bool get isHabit => widget.type == 'habit';
   bool get isNote => widget.type == 'note';
   @override
@@ -232,6 +238,126 @@ class _EntryEditorState extends State<EntryEditor> {
     epoch = widget.expectedGeneration ?? widget.app.generation;
     noteDay = widget.note?.day ?? widget.noteDay ?? widget.app.today;
     noteHabitId = widget.note?.habitId ?? widget.noteHabitId;
+    noteImages = List<String>.from(widget.note?.images ?? const []);
+    if (isHabit && widget.habit != null) {
+      final r = widget.app.reminderFor(widget.habit!.id);
+      reminderEnabled = r.enabled;
+      reminderTimes = List.of(r.minutes);
+    } else if (!isHabit && !isNote && widget.task != null) {
+      final r = widget.app.taskReminderFor(widget.task!.id);
+      reminderEnabled = r.enabled;
+      reminderTimes = List.of(r.minutes);
+    }
+  }
+
+  Future<void> pickReminderTime([int? old]) async {
+    final s = AppLocalizations.of(context);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: old == null
+          ? const TimeOfDay(hour: 9, minute: 0)
+          : TimeOfDay(hour: old ~/ 60, minute: old % 60),
+    );
+    if (picked == null || !mounted) return;
+    final minute = picked.hour * 60 + picked.minute;
+    if (reminderTimes.contains(minute) && minute != old) {
+      setState(() => error = s.reminderLimit);
+      return;
+    }
+    setState(() {
+      if (old != null) {
+        reminderTimes.remove(old);
+      } else if (reminderTimes.length >= 5) {
+        error = s.reminderLimit;
+        return;
+      }
+      reminderTimes.add(minute);
+      reminderTimes = reminderTimes.toSet().toList()..sort();
+      error = null;
+    });
+  }
+
+  Future<void> toggleReminderAlert({bool? sound, bool? vibrate}) async {
+    final s = AppLocalizations.of(context);
+    final turningOn = (sound ?? false) || (vibrate ?? false);
+    if (turningOn) {
+      if (!widget.app.plus.enabled) {
+        final unlocked = await requirePlus(context, widget.app);
+        if (!unlocked || !mounted) return;
+      }
+      if (!widget.app.reminderStatus.exact) {
+        if (!mounted) return;
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(s.exactReminder),
+            content: Text(s.reminderExactRequired),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(s.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(s.reminderExactSetupAction),
+              ),
+            ],
+          ),
+        );
+        if (proceed == true) {
+          await widget.app.reminderPlatform?.openSettings(exact: true);
+          await widget.app.syncReminders();
+        }
+        if (!widget.app.reminderStatus.exact) return;
+      }
+    }
+    await widget.app.setReminderAlerts(sound: sound, vibrate: vibrate);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _pickImages() async {
+    final media = widget.app.noteMediaPlatform;
+    if (media == null) return;
+
+    if (!widget.app.plus.enabled && noteImages.isNotEmpty) {
+      final unlocked = await requirePlus(context, widget.app);
+      if (!unlocked) return;
+    }
+
+    final maxCount = widget.app.plus.enabled ? (9 - noteImages.length) : 1;
+    if (maxCount <= 0) return;
+
+    final picked = await media.pickImages(maxCount: maxCount);
+    if (!mounted || picked.isEmpty) return;
+
+    if (!widget.app.plus.enabled && (noteImages.length + picked.length > 1)) {
+      final unlocked = await requirePlus(context, widget.app);
+      if (!unlocked) {
+        setState(() {
+          if (noteImages.isEmpty && picked.isNotEmpty) {
+            noteImages.add(picked.first);
+          }
+        });
+        return;
+      }
+    }
+
+    setState(() {
+      for (final p in picked) {
+        if (noteImages.length < 9) {
+          noteImages.add(p);
+        }
+      }
+    });
+  }
+
+  void _removeImage(int index) {
+    if (index >= 0 && index < noteImages.length) {
+      setState(() {
+        final removed = noteImages.removeAt(index);
+        widget.app.noteMediaPlatform?.deleteImage(removed);
+      });
+    }
   }
 
   @override
@@ -276,11 +402,20 @@ class _EntryEditorState extends State<EntryEditor> {
     final createdId = isHabit && widget.habit == null
         ? const Uuid().v4()
         : null;
+    final createdTaskId = !isHabit && !isNote && widget.task == null
+        ? const Uuid().v4()
+        : null;
+    if (reminderEnabled && app.reminderPlatform != null) {
+      try {
+        app.reminderStatus = await app.reminderPlatform!.requestPermission();
+      } catch (_) {}
+    }
     final ok = await app.run(() async {
       if (isHabit) {
+        final habitId = widget.habit?.id ?? createdId!;
         await app.store.saveHabit(
           Habit(
-            id: widget.habit?.id ?? createdId!,
+            id: habitId,
             title: title.text.trim(),
             kind: kind,
             startDay: widget.habit?.startDay ?? app.today,
@@ -305,6 +440,13 @@ class _EntryEditorState extends State<EntryEditor> {
           create: widget.habit == null,
           today: app.today,
         );
+        await app.store.saveReminder(
+          HabitReminder(
+            habitId: habitId,
+            enabled: reminderEnabled,
+            minutes: reminderTimes,
+          ),
+        );
       } else if (isNote) {
         await app.store.saveNote(
           Note(
@@ -312,14 +454,17 @@ class _EntryEditorState extends State<EntryEditor> {
             body: title.text.trim(),
             day: noteDay,
             habitId: noteHabitId,
+            images: noteImages,
           ),
           create: widget.note == null,
           today: app.today,
+          images: noteImages,
         );
       } else {
+        final taskId = widget.task?.id ?? createdTaskId!;
         await app.store.saveTask(
           SmallTask(
-            id: widget.task?.id ?? const Uuid().v4(),
+            id: taskId,
             title: title.text.trim(),
             dueDay: resident ? null : due,
             resident: resident,
@@ -329,7 +474,15 @@ class _EntryEditorState extends State<EntryEditor> {
           create: widget.task == null,
           today: app.today,
         );
+        await app.store.saveTaskReminder(
+          TaskReminder(
+            taskId: taskId,
+            enabled: reminderEnabled,
+            minutes: reminderTimes,
+          ),
+        );
       }
+      await app.syncReminders(notify: false);
     }, expectedGeneration: epoch);
     if (!mounted) return;
     if (ok) {
@@ -343,6 +496,159 @@ class _EntryEditorState extends State<EntryEditor> {
         error = s.storageError;
       });
     }
+  }
+
+  Widget reminderSection(BuildContext context, {required UiTone tone}) {
+    final s = AppLocalizations.of(context);
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 20),
+        fieldLabel(isHabit ? s.habitReminder : s.taskReminder),
+        SoftPanel(
+          tinted: reminderEnabled,
+          tone: tone,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Material(
+            color: Colors.transparent,
+            child: SwitchListTile(
+              key: const Key('editor-reminder-toggle'),
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                s.reminderOn,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              subtitle: Text(
+                isHabit ? s.uiReminderIntro : s.taskReminderSubtitle,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              value: reminderEnabled,
+              onChanged: saving
+                  ? null
+                  : (v) => setState(() => reminderEnabled = v),
+            ),
+          ),
+        ),
+        if (reminderEnabled) ...[
+          const SizedBox(height: 10),
+          for (final minute in reminderTimes)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SoftPanel(
+                padding: const EdgeInsets.all(4),
+                child: SettingRow(
+                  icon: Icons.schedule_rounded,
+                  title: TimeOfDay(
+                    hour: minute ~/ 60,
+                    minute: minute % 60,
+                  ).format(context),
+                  tone: tone,
+                  onTap: saving ? null : () => pickReminderTime(minute),
+                  trailing: reminderTimes.length > 1
+                      ? IconButton(
+                          tooltip: s.removeTime,
+                          onPressed: saving
+                              ? null
+                              : () => setState(
+                                  () => reminderTimes.remove(minute),
+                                ),
+                          icon: const Icon(Icons.remove_circle_outline),
+                        )
+                      : null,
+                ),
+              ),
+            ),
+          if (reminderTimes.length < 5)
+            AppAction(
+              label: s.addReminderTime,
+              icon: Icons.add,
+              tone: tone,
+              onTap: saving ? null : pickReminderTime,
+            ),
+          const SizedBox(height: 12),
+          SoftPanel(
+            tinted: true,
+            tone: UiTone.violet,
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        isZh ? '✦ Plus 专属' : '✦ Plus',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF7C3AED),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        s.reminderAlertHint,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Material(
+                  color: Colors.transparent,
+                  child: SwitchListTile(
+                    key: const Key('editor-sound-toggle'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      s.reminderSound,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    subtitle: Text(
+                      s.reminderSoundSubtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    value: widget.app.reminderSound,
+                    onChanged: saving
+                        ? null
+                        : (v) => toggleReminderAlert(sound: v),
+                  ),
+                ),
+                const Divider(height: 1),
+                Material(
+                  color: Colors.transparent,
+                  child: SwitchListTile(
+                    key: const Key('editor-vibrate-toggle'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      s.reminderVibrate,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    subtitle: Text(
+                      s.reminderVibrateSubtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    value: widget.app.reminderVibrate,
+                    onChanged: saving
+                        ? null
+                        : (v) => toggleReminderAlert(vibrate: v),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
   }
 
   Widget fieldLabel(String text) => Padding(
@@ -428,6 +734,16 @@ class _EntryEditorState extends State<EntryEditor> {
                   : null,
             ),
             if (isNote) ...[
+              _NoteFormattingToolbar(
+                controller: title,
+                onAddPhoto: _pickImages,
+              ),
+              NoteImagePickerSection(
+                images: noteImages,
+                app: widget.app,
+                onAdd: _pickImages,
+                onRemove: _removeImage,
+              ),
               const SizedBox(height: 16),
               fieldLabel(s.noteDate),
               SoftPanel(
@@ -919,6 +1235,8 @@ class _EntryEditorState extends State<EntryEditor> {
                   ),
                 ),
               ),
+              const SizedBox(height: 14),
+              reminderSection(context, tone: tone),
             ],
             if (!isHabit && !isNote) ...[
               const SizedBox(height: 20),
@@ -1006,6 +1324,10 @@ class _EntryEditorState extends State<EntryEditor> {
                     child: Text(s.noDate),
                   ),
                 ),
+            ],
+            if (!isHabit && !isNote) ...[
+              const SizedBox(height: 20),
+              reminderSection(context, tone: tone),
             ],
             if (error != null)
               Padding(
@@ -1551,4 +1873,104 @@ Future<bool> confirmDelete(BuildContext context, {bool habit = false}) async {
         ),
       ) ??
       false;
+}
+
+class _NoteFormattingToolbar extends StatelessWidget {
+  const _NoteFormattingToolbar({
+    required this.controller,
+    required this.onAddPhoto,
+  });
+
+  final TextEditingController controller;
+  final VoidCallback onAddPhoto;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8, bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.35,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          _FormatButton(
+            icon: Icons.format_bold_rounded,
+            tooltip: '${s.formatBold} (**文本**)',
+            onPressed: () => NoteFormatHelper.wrapSelection(
+              controller,
+              '**',
+              '**',
+              placeholder: s.formatBold,
+            ),
+          ),
+          _FormatButton(
+            icon: Icons.title_rounded,
+            tooltip: '${s.formatHeading} (## 标题)',
+            onPressed: () =>
+                NoteFormatHelper.toggleLinePrefix(controller, '## '),
+          ),
+          _FormatButton(
+            icon: Icons.format_list_bulleted_rounded,
+            tooltip: '${s.formatList} (- 事项)',
+            onPressed: () =>
+                NoteFormatHelper.toggleLinePrefix(controller, '- '),
+          ),
+          _FormatButton(
+            icon: Icons.format_quote_rounded,
+            tooltip: '${s.formatQuote} (> 引用)',
+            onPressed: () =>
+                NoteFormatHelper.toggleLinePrefix(controller, '> '),
+          ),
+          _FormatButton(
+            icon: Icons.border_color_rounded,
+            tooltip: '${s.formatHighlight} (==高亮==)',
+            onPressed: () => NoteFormatHelper.wrapSelection(
+              controller,
+              '==',
+              '==',
+              placeholder: s.formatHighlight,
+            ),
+          ),
+          const Spacer(),
+          _FormatButton(
+            icon: Icons.add_photo_alternate_outlined,
+            tooltip: isZh ? '添加配图 (最多9张)' : 'Add photo (up to 9)',
+            onPressed: onAddPhoto,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FormatButton extends StatelessWidget {
+  const _FormatButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 20),
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.all(6),
+      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+      onPressed: onPressed,
+    );
+  }
 }

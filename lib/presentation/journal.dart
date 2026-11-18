@@ -8,6 +8,8 @@ import 'components.dart';
 import 'editors.dart';
 import 'theme.dart';
 import 'refined_components.dart';
+import 'note_format.dart';
+import 'note_images.dart';
 
 class JournalPage extends StatefulWidget {
   const JournalPage({super.key, required this.app});
@@ -524,14 +526,15 @@ class NoteCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                child: Text(
-                  note.body,
+                child: NoteFormattedText(
+                  text: note.body,
                   maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
             ),
+            if (note.images.isNotEmpty)
+              NoteImageGrid(images: note.images, app: app),
           ],
         ),
       ),

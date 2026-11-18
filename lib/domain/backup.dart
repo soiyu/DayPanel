@@ -30,13 +30,15 @@ class BackupSnapshot {
     'habit_activity',
     'habit_breaks',
     'record_events',
+    'task_reminders',
+    'note_images',
   ];
   final DateTime createdAt;
   final Map<String, List<Map<String, Object?>>> tables;
   int count(String table) => tables[table]!.length;
   Uint8List encode() {
     final payload = jsonEncode({
-      'schema': 12,
+      'schema': 14,
       'created_at': createdAt.toUtc().toIso8601String(),
       'tables': tables,
     });
@@ -79,7 +81,21 @@ class BackupSnapshot {
       }
       final content = jsonDecode(payload) as Map<String, dynamic>;
       _keys(content, {'schema', 'created_at', 'tables'});
-      if (!{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}.contains(content['schema'])) {
+      if (!{
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+      }.contains(content['schema'])) {
         throw const BackupInvalid();
       }
       final created = DateTime.parse(content['created_at'] as String);
@@ -125,6 +141,13 @@ class BackupSnapshot {
           }
         }
       }
+      if (schema < 13) {
+        if ((raw['settings'] as List).any(
+          (r) => ['reminder_sound', 'reminder_vibrate'].contains(r['key']),
+        )) {
+          throw const BackupInvalid();
+        }
+      }
       _keys(
         raw,
         tableNames
@@ -135,10 +158,14 @@ class BackupSnapshot {
                   (schema >= 6 || n != 'cards') &&
                   (schema >= 7 || n != 'habit_activity') &&
                   (schema >= 9 || n != 'habit_breaks') &&
-                  (schema >= 12 || n != 'record_events'),
+                  (schema >= 12 || n != 'record_events') &&
+                  (schema >= 13 || n != 'task_reminders') &&
+                  (schema >= 14 || n != 'note_images'),
             )
             .toSet(),
       );
+      if (schema < 14) raw['note_images'] = <Object>[];
+      if (schema < 13) raw['task_reminders'] = <Object>[];
       if (schema < 9) raw['habit_breaks'] = <Object>[];
       if (schema < 8) {
         for (final row in raw['habits'] as List) {
@@ -522,6 +549,34 @@ class BackupSnapshot {
       if (!r.valid ||
           !habitIds.containsKey(r.habitId) ||
           !reminderIds.add(r.habitId)) {
+        throw const BackupInvalid();
+      }
+    }
+    final taskReminderIds = <String>{};
+    for (final m in t['task_reminders']!) {
+      _keys(m, {'task_id', 'enabled', 'minutes', 'revision'});
+      _int(m, 'enabled', 0, 1);
+      _int(m, 'revision', 0, 2147483647);
+      _text(m, 'minutes', 100);
+      final r = TaskReminder.fromMap(m);
+      if (!r.valid ||
+          !taskIds.containsKey(r.taskId) ||
+          !taskReminderIds.add(r.taskId)) {
+        throw const BackupInvalid();
+      }
+    }
+    final noteImageIds = <String>{};
+    for (final m in t['note_images']!) {
+      _keys(m, {'id', 'note_id', 'file_name', 'sort_order', 'revision'});
+      _int(m, 'sort_order', 0, 8);
+      _int(m, 'revision', 0, 2147483647);
+      _text(m, 'id', 128);
+      _text(m, 'file_name', 255);
+      final noteId = m['note_id'];
+      final id = m['id'] as String;
+      if (noteId is! String ||
+          !noteIds.contains(noteId) ||
+          !noteImageIds.add(id)) {
         throw const BackupInvalid();
       }
     }

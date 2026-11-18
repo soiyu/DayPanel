@@ -24,7 +24,7 @@ object WidgetSnapshotReader {
         val file = context.getDatabasePath("daypanel_flutter.db")
         if (!file.exists()) return null
         SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE or SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING).use { db ->
-            if (db.version !in 7..12) return null
+            if (db.version !in 7..13) return null
             if(android.os.Build.VERSION.SDK_INT>=35) db.beginTransactionReadOnly() else db.beginTransactionNonExclusive()
             try {
                 val generation = db.rawQuery("SELECT generation FROM runtime WHERE id=1", null).use { c ->

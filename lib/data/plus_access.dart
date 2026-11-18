@@ -19,22 +19,25 @@ class PlusAccess extends ChangeNotifier {
     defaultValue: false,
   );
 
+  bool _forceFreeActive = _forceFree;
+
   bool owned = _forcePlus,
       available = _forcePlus,
       pending = false,
       busy = false;
-  bool testing = kDebugMode && !_forceFree && !_forcePlus;
+  late bool testing = (kDebugMode || _forcePlus) && !_forceFreeActive;
   String? price, error;
   bool get enabled {
-    if (_forceFree) return false;
     if (_forcePlus) return true;
+    if (_forceFreeActive) return false;
     return testing || owned;
   }
 
-  Future<void> refresh() => _request('status');
-  Future<void> restore() => _request('restore');
-  Future<void> buy() => _request('buy');
-  Future<void> _request(String method) async {
+  Future<void> refresh({bool userInitiated = false}) =>
+      _request('status', userInitiated: userInitiated);
+  Future<void> restore() => _request('restore', userInitiated: true);
+  Future<void> buy() => _request('buy', userInitiated: true);
+  Future<void> _request(String method, {bool userInitiated = false}) async {
     if (busy || _closed) return;
     busy = true;
     error = null;
@@ -48,12 +51,16 @@ class PlusAccess extends ChangeNotifier {
         error = null;
         return;
       }
-      if (_forceFree) {
-        owned = false;
-        available = false;
-        pending = false;
-        testing = false;
-        return;
+      if (_forceFreeActive) {
+        if (userInitiated || method == 'restore' || method == 'buy') {
+          _forceFreeActive = false;
+        } else if (!kDebugMode) {
+          owned = false;
+          available = false;
+          pending = false;
+          testing = false;
+          return;
+        }
       }
       final map = await channel.invokeMapMethod<String, Object?>(method);
       if (_closed) return;
@@ -64,9 +71,21 @@ class PlusAccess extends ChangeNotifier {
         testing = map['testing'] == true && kDebugMode;
         price = map['price'] as String?;
         error = map['error'] as String?;
+        if (userInitiated || method == 'restore' || method == 'buy') {
+          _forceFreeActive = false;
+        }
       }
     } on MissingPluginException {
-      available = false;
+      if (kDebugMode &&
+          (userInitiated || method == 'restore' || method == 'buy')) {
+        _forceFreeActive = false;
+        testing = true;
+        owned = true;
+        available = true;
+        error = null;
+      } else {
+        available = false;
+      }
     } on PlatformException catch (e) {
       error = e.code;
     } finally {

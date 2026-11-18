@@ -276,21 +276,43 @@ class Note {
     required this.body,
     required this.day,
     this.habitId,
+    this.images = const [],
   });
   final String id, body;
   final Day day;
   final String? habitId;
+  final List<String> images;
+
+  Note copyWith({
+    String? id,
+    String? body,
+    Day? day,
+    String? habitId,
+    List<String>? images,
+  }) => Note(
+    id: id ?? this.id,
+    body: body ?? this.body,
+    day: day ?? this.day,
+    habitId: habitId ?? this.habitId,
+    images: images ?? this.images,
+  );
+
   Map<String, Object?> toMap() => {
     'id': id,
     'body': body,
     'day': day.key,
     'habit_id': habitId,
   };
-  factory Note.fromMap(Map<String, Object?> m) => Note(
+
+  factory Note.fromMap(
+    Map<String, Object?> m, {
+    List<String> images = const [],
+  }) => Note(
     id: m['id'] as String,
     body: m['body'] as String,
     day: Day.parse(m['day'] as String),
     habitId: m['habit_id'] as String?,
+    images: images,
   );
 }
 

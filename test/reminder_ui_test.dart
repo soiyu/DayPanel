@@ -9,6 +9,11 @@ import 'package:daypanel/l10n/app_localizations.dart';
 import 'package:daypanel/main.dart';
 import 'package:daypanel/presentation/reminders.dart';
 import 'package:daypanel/presentation/theme.dart';
+import 'package:daypanel/presentation/editors.dart';
+import 'package:daypanel/presentation/tasks.dart';
+import 'package:daypanel/presentation/plus_page.dart';
+import 'package:daypanel/data/reminder_platform.dart';
+import 'package:daypanel/data/plus_access.dart';
 import 'reminders_test.dart' show FakeReminderPlatform;
 
 void main() {
@@ -152,6 +157,193 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('quantity-input')), findsNothing);
       expect(app.entries, isEmpty);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets('task reminder can be configured in ReminderEditor and saved', (
+    tester,
+  ) async {
+    final task = SmallTask(id: 't1', title: 'Buy milk', resident: false);
+    await store.saveTask(task, create: true, today: app.today);
+    await app.load();
+
+    await tester.pumpWidget(shell(ReminderEditor(app: app, task: task)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Enable reminder'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('save-reminder')));
+    await tester.pumpAndSettle();
+
+    expect((await store.taskReminders()).single.enabled, isTrue);
+    expect((await store.taskReminders()).single.taskId, 't1');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets(
+    'EntryEditor allows configuring reminder directly for habit and task',
+    (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      // 1. Habit with reminder
+      await tester.pumpWidget(shell(EntryEditor(app: app, type: 'habit')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, 'Exercise');
+      await tester.tap(find.text('Every day'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Enable reminder'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('save-entry')));
+      await tester.pumpAndSettle();
+
+      expect(app.habits.any((h) => h.title == 'Exercise'), isTrue);
+      final habitId = app.habits.firstWhere((h) => h.title == 'Exercise').id;
+      expect(app.reminderFor(habitId).enabled, isTrue);
+
+      await tester.pumpWidget(const SizedBox());
+
+      // 2. Task with reminder
+      await tester.pumpWidget(shell(EntryEditor(app: app, type: 'task')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, 'Send email');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Enable reminder'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('save-entry')));
+      await tester.pumpAndSettle();
+
+      expect(app.tasks.any((t) => t.title == 'Send email'), isTrue);
+      final taskId = app.tasks.firstWhere((t) => t.title == 'Send email').id;
+      expect(app.taskReminderFor(taskId).enabled, isTrue);
+
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'ResidentTaskPage and OneTimeTaskPage display reminder setting row and open editor',
+    (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final residentTask = SmallTask(
+        id: 'rt1',
+        title: 'Daily walk',
+        resident: true,
+        startDay: app.today,
+      );
+      final oneTimeTask = SmallTask(
+        id: 'ot1',
+        title: 'Pick package',
+        resident: false,
+        dueDay: app.today,
+      );
+      await store.saveTask(residentTask, create: true, today: app.today);
+      await store.saveTask(oneTimeTask, create: true, today: app.today);
+      await app.load();
+
+      // Test ResidentTaskPage
+      await tester.pumpWidget(shell(ResidentTaskPage(app: app, id: 'rt1')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Resident Task Reminder'), findsOneWidget);
+      await tester.tap(find.text('Resident Task Reminder'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ReminderEditor), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(const SizedBox());
+
+      // Test OneTimeTaskPage
+      await tester.pumpWidget(shell(OneTimeTaskPage(app: app, id: 'ot1')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('To-do Reminder'), findsOneWidget);
+      await tester.tap(find.text('To-do Reminder'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ReminderEditor), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'sound and vibration toggles require Plus and exact alarm check',
+    (tester) async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            PlusAccess.channel,
+            (call) async => {'owned': false, 'available': true},
+          );
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(PlusAccess.channel, null),
+      );
+
+      app.plus.testing = false;
+      app.plus.owned = false;
+      expect(app.plus.enabled, isFalse);
+
+      await tester.pumpWidget(shell(RemindersPage(app: app)));
+      await tester.pumpAndSettle();
+
+      // Attempt toggling sound without Plus -> should open PlusPage
+      await tester.tap(find.byKey(const Key('reminders-page-sound')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PlusPage), findsOneWidget);
+      expect(app.reminderSound, isFalse);
+
+      // Dismiss PlusPage
+      Navigator.pop(tester.element(find.byType(PlusPage)));
+      await tester.pumpAndSettle();
+
+      // Now enable Plus, but exact alarm is false
+      app.plus.owned = true;
+      expect(app.plus.enabled, isTrue);
+      app.reminderStatus = const ReminderStatus(
+        notifications: true,
+        exact: false,
+      );
+
+      // Attempt toggling sound -> should prompt exact alarm dialog
+      await tester.tap(find.byKey(const Key('reminders-page-sound')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reminder timing'), findsOneWidget);
+      // Cancel exact alarm prompt
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(app.reminderSound, isFalse);
+
+      // Now set exact to true
+      app.reminderStatus = const ReminderStatus(
+        notifications: true,
+        exact: true,
+      );
+      await tester.tap(find.byKey(const Key('reminders-page-sound')));
+      await tester.pumpAndSettle();
+
+      expect(app.reminderSound, isTrue);
+
       await tester.pumpWidget(const SizedBox());
     },
   );

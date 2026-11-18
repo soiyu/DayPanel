@@ -1,6 +1,31 @@
 import 'package:sqflite/sqflite.dart';
 import '../domain/models.dart';
 
+Future<void> upgradeToV14(DatabaseExecutor db) async {
+  await db.execute(
+    'CREATE TABLE IF NOT EXISTS note_images (id TEXT PRIMARY KEY, note_id TEXT NOT NULL REFERENCES notes(id) ON DELETE CASCADE, file_name TEXT NOT NULL, sort_order INTEGER NOT NULL, revision INTEGER NOT NULL CHECK(revision>=0))',
+  );
+  await db.execute(
+    'CREATE INDEX IF NOT EXISTS note_images_note ON note_images(note_id, sort_order)',
+  );
+  for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
+    await db.execute(
+      'CREATE TRIGGER IF NOT EXISTS note_images_${event.toLowerCase()} AFTER $event ON note_images BEGIN UPDATE runtime SET revision=revision+1 WHERE id=1; END',
+    );
+  }
+}
+
+Future<void> upgradeToV13(DatabaseExecutor db) async {
+  await db.execute(
+    'CREATE TABLE IF NOT EXISTS task_reminders (task_id TEXT PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE, enabled INTEGER NOT NULL CHECK(enabled IN (0,1)), minutes TEXT NOT NULL, revision INTEGER NOT NULL CHECK(revision>=0))',
+  );
+  for (final event in ['INSERT', 'UPDATE', 'DELETE']) {
+    await db.execute(
+      'CREATE TRIGGER IF NOT EXISTS reminder_task_${event.toLowerCase()} AFTER $event ON task_reminders BEGIN UPDATE runtime SET revision=revision+1 WHERE id=1; END',
+    );
+  }
+}
+
 Future<void> upgradeToV12(DatabaseExecutor db) async {
   await db.execute(
     'CREATE TABLE item_revisions(kind TEXT NOT NULL,id TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(kind,id))',

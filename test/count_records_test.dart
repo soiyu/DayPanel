@@ -126,6 +126,8 @@ void main() {
         () => BackupSnapshot.decode(
           altered(snapshot, (p) {
             p['schema'] = 10;
+            (p['tables'] as Map).remove('note_images');
+            (p['tables'] as Map).remove('task_reminders');
             (p['tables'] as Map).remove('record_events');
           }),
         ),
@@ -141,7 +143,7 @@ void main() {
       await store.setRecord('c', today, 1000, today: today);
       final snapshot = await store.exportSnapshot();
       final envelope = jsonDecode(utf8.decode(snapshot.encode())) as Map;
-      expect(jsonDecode(envelope['payload'])['schema'], 12);
+      expect(jsonDecode(envelope['payload'])['schema'], 14);
       await store.setRecord('c', today, 2000, today: today);
       await store.restoreSnapshot(BackupSnapshot.decode(snapshot.encode()));
       expect((await store.entries()).single.value, 1000);
@@ -194,6 +196,8 @@ void main() {
         () => BackupSnapshot.decode(
           altered(snapshot, (p) {
             p['schema'] = schema;
+            (p['tables'] as Map).remove('note_images');
+            (p['tables'] as Map).remove('task_reminders');
             (p['tables'] as Map).remove('record_events');
           }),
         ),
@@ -219,6 +223,8 @@ void main() {
       await store.setRecord('q', today, 1250, today: today);
       final old = altered(await store.exportSnapshot(), (p) {
         p['schema'] = 10;
+        (p['tables'] as Map).remove('note_images');
+        (p['tables'] as Map).remove('task_reminders');
         (p['tables'] as Map).remove('record_events');
       });
       await store.restoreSnapshot(BackupSnapshot.decode(old));
@@ -419,7 +425,9 @@ void main() {
         await fileStore.setRecord('q', today, 1250, today: today);
         final tables = <String, List<Map<String, Object?>>>{};
         for (final table in [
-          ...BackupSnapshot.tableNames.where((name) => name != 'record_events'),
+          ...BackupSnapshot.tableNames.where(
+            (name) => name != 'record_events' && name != 'task_reminders',
+          ),
           'runtime',
           'recovery',
         ]) {
@@ -432,7 +440,7 @@ void main() {
           factory: databaseFactoryFfiNoIsolate,
           path: '${dir.path}/data.db',
         );
-        expect(await fileStore.db.getVersion(), 12);
+        expect(await fileStore.db.getVersion(), 14);
         for (final table in tables.keys) {
           expect(
             await fileStore.db.query(table, orderBy: 'rowid'),

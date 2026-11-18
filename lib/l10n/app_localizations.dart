@@ -3964,7 +3964,7 @@ abstract class AppLocalizations {
   /// No description provided for @plusDescription.
   ///
   /// In en, this message translates to:
-  /// **'Combined widgets, individual records, weekly totals, review cards, insights and original styles. One purchase, no subscription.'**
+  /// **'Combined widgets, individual records, weekly totals, review cards, insights, original styles, and sound & vibrate alerts. One purchase, no subscription.'**
   String get plusDescription;
 
   /// No description provided for @plusUnavailable.
@@ -4500,6 +4500,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next milestone'**
   String get cardNextMilestone;
+
+  /// No description provided for @taskReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Task Reminder'**
+  String get taskReminder;
+
+  /// No description provided for @taskReminderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind for this task on time'**
+  String get taskReminderSubtitle;
+
+  /// No description provided for @residentTaskReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Resident Task Reminder'**
+  String get residentTaskReminder;
+
+  /// No description provided for @oneTimeTaskReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'To-do Reminder'**
+  String get oneTimeTaskReminder;
+
+  /// No description provided for @reminderAlertStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert Style'**
+  String get reminderAlertStyle;
+
+  /// No description provided for @reminderAlertHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses exact reminder precision to alert with sound or vibration at the scheduled moment.'**
+  String get reminderAlertHint;
+
+  /// No description provided for @reminderSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound alert'**
+  String get reminderSound;
+
+  /// No description provided for @reminderSoundSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Play notification ringtone on time'**
+  String get reminderSoundSubtitle;
+
+  /// No description provided for @reminderVibrate.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration alert'**
+  String get reminderVibrate;
+
+  /// No description provided for @reminderVibrateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trigger rhythmic haptic vibration on time'**
+  String get reminderVibrateSubtitle;
+
+  /// No description provided for @reminderExactRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact reminder precision is required for sound and vibration alerts.'**
+  String get reminderExactRequired;
+
+  /// No description provided for @reminderExactSetupAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Exact Precision'**
+  String get reminderExactSetupAction;
+
+  /// No description provided for @reminderPlusOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound & vibration alerts are exclusive to DayPanel Plus'**
+  String get reminderPlusOnly;
+
+  /// No description provided for @reminderPlusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'✦ Plus Exclusive: Ring and vibrate on time, never miss an important habit or task'**
+  String get reminderPlusHint;
+
+  /// No description provided for @manageTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Task Reminders'**
+  String get manageTasks;
+
+  /// No description provided for @noTaskReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'No Task Reminders'**
+  String get noTaskReminders;
+
+  /// No description provided for @noTaskRemindersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable reminders directly when creating or editing tasks'**
+  String get noTaskRemindersBody;
+
+  /// No description provided for @formatBold.
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get formatBold;
+
+  /// No description provided for @formatHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get formatHeading;
+
+  /// No description provided for @formatList.
+  ///
+  /// In en, this message translates to:
+  /// **'Bullet List'**
+  String get formatList;
+
+  /// No description provided for @formatQuote.
+  ///
+  /// In en, this message translates to:
+  /// **'Quote'**
+  String get formatQuote;
+
+  /// No description provided for @formatHighlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlight'**
+  String get formatHighlight;
+
+  /// No description provided for @noteImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal Photos'**
+  String get noteImages;
+
+  /// No description provided for @noteImageCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos ({count}/9)'**
+  String noteImageCount(Object count);
+
+  /// No description provided for @noteAddImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Photo'**
+  String get noteAddImage;
+
+  /// No description provided for @noteImageLimitFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free version supports 1 photo. Upgrade to Plus to unlock 2–9 photos in a 9-grid layout.'**
+  String get noteImageLimitFree;
+
+  /// No description provided for @noteImageRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get noteImageRemove;
+
+  /// No description provided for @noteImageMaxReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum of 9 photos allowed per journal entry'**
+  String get noteImageMaxReached;
+
+  /// No description provided for @plusMultiPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-photo Journal'**
+  String get plusMultiPhotoTitle;
+
+  /// No description provided for @plusMultiPhotoDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach up to 9 photos per entry with auto-layout 9-grid and full-screen viewer'**
+  String get plusMultiPhotoDesc;
+
+  /// No description provided for @plusMultiPhotoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Write Journal'**
+  String get plusMultiPhotoAction;
 }
 
 class _AppLocalizationsDelegate

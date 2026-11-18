@@ -150,7 +150,10 @@ void main() {
     final full = await store.exportSnapshot();
     final tables = {
       for (final e in full.tables.entries)
-        if (e.key != 'record_events') e.key: e.value,
+        if (e.key != 'record_events' &&
+            e.key != 'task_reminders' &&
+            e.key != 'note_images')
+          e.key: e.value,
     };
     final payload = jsonEncode({
       'schema': 11,

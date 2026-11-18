@@ -7,6 +7,7 @@ import 'components.dart';
 import 'editors.dart';
 import 'theme.dart';
 import 'refined_components.dart';
+import 'reminders.dart';
 
 class TasksPage extends StatelessWidget {
   const TasksPage({super.key, required this.app});
@@ -511,6 +512,28 @@ class _ResidentTaskPageState extends State<ResidentTaskPage>
                 ),
               ),
               const SizedBox(height: 12),
+              SoftPanel(
+                tinted: true,
+                tone: UiTone.peach,
+                padding: EdgeInsets.zero,
+                child: SettingRow(
+                  icon: Icons.notifications_none_rounded,
+                  title: s.residentTaskReminder,
+                  subtitle: task.archived
+                      ? s.reminderArchived
+                      : app.taskReminderFor(task.id).enabled
+                      ? formatReminderTimes(
+                          context,
+                          app.taskReminderFor(task.id).minutes,
+                        )
+                      : s.reminderOff,
+                  tone: UiTone.peach,
+                  onTap: task.archived || app.busy
+                      ? null
+                      : () => openReminderEditor(context, app, null, task),
+                ),
+              ),
+              const SizedBox(height: 12),
               DetailDisclosure(
                 key: const Key('resident-history'),
                 title: s.editTaskHistory,
@@ -846,6 +869,28 @@ class _OneTimeTaskPageState extends State<OneTimeTaskPage> {
                             ),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              SoftPanel(
+                tinted: true,
+                tone: UiTone.peach,
+                padding: EdgeInsets.zero,
+                child: SettingRow(
+                  icon: Icons.notifications_none_rounded,
+                  title: s.oneTimeTaskReminder,
+                  subtitle: task.archived || task.done
+                      ? s.reminderArchived
+                      : app.taskReminderFor(task.id).enabled
+                      ? formatReminderTimes(
+                          context,
+                          app.taskReminderFor(task.id).minutes,
+                        )
+                      : s.reminderOff,
+                  tone: UiTone.peach,
+                  onTap: task.archived || task.done || app.busy
+                      ? null
+                      : () => openReminderEditor(context, app, null, task),
                 ),
               ),
               const SizedBox(height: 12),

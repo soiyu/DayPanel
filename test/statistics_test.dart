@@ -412,7 +412,7 @@ void main() {
           path: '${dir.path}/db',
           migrationDay: today,
         );
-        expect(await store.db.getVersion(), 12);
+        expect(await store.db.getVersion(), 14);
         expect((await store.activity()).single.day, today);
         final s = stats(
           (await store.habits()).single,
@@ -467,6 +467,8 @@ void main() {
           final e = jsonDecode(utf8.decode(snap.encode())) as Map;
           final p = jsonDecode(e['payload'] as String) as Map;
           p['schema'] = schema;
+          (p['tables'] as Map).remove('note_images');
+          (p['tables'] as Map).remove('task_reminders');
           (p['tables'] as Map).remove('record_events');
           (p['tables'] as Map).remove('habit_breaks');
           for (final h in p['tables']['habits'] as List) {

@@ -132,6 +132,8 @@ void main() {
       final payload =
           jsonDecode(e['payload'] as String) as Map<String, dynamic>;
       payload['schema'] = 2;
+      (payload['tables'] as Map).remove('note_images');
+      (payload['tables'] as Map).remove('task_reminders');
       (payload['tables'] as Map).remove('record_events');
       (payload['tables'] as Map).remove('habit_breaks');
       for (final h in payload['tables']['habits'] as List) {
@@ -229,6 +231,92 @@ void main() {
       await app.run(() => store.restoreSnapshot(backup));
       expect(platform.syncs, 3);
       app.dispose();
+    },
+  );
+  test(
+    'task reminder multiple times persist sorted, disabling preserves config with revision',
+    () async {
+      await store.saveTask(
+        SmallTask(id: 't', title: 'Task', resident: true, startDay: day),
+        create: true,
+        today: day,
+      );
+      await store.saveTaskReminder(
+        TaskReminder(taskId: 't', enabled: true, minutes: [1200, 480]),
+      );
+      var r = (await store.taskReminders()).single;
+      expect(r.minutes, [480, 1200]);
+      expect(r.revision, 0);
+      await store.saveTaskReminder(
+        TaskReminder(taskId: 't', enabled: false, minutes: r.minutes),
+      );
+      await store.close();
+      store = await AppStore.open(
+        factory: databaseFactoryFfi,
+        path: '${temp.path}/app.db',
+      );
+      r = (await store.taskReminders()).single;
+      expect(r.enabled, isFalse);
+      expect(r.minutes, [480, 1200]);
+      expect(r.revision, 1);
+    },
+  );
+  test('invalid or missing task reminder cannot be saved', () async {
+    await store.saveTask(
+      SmallTask(id: 't', title: 'Task', resident: false),
+      create: true,
+      today: day,
+    );
+    for (final times in <List<int>>[
+      [],
+      [-1],
+      [1440],
+      [540, 540],
+      [1, 2, 3, 4, 5, 6],
+    ]) {
+      await expectLater(
+        store.saveTaskReminder(
+          TaskReminder(taskId: 't', enabled: true, minutes: times),
+        ),
+        throwsArgumentError,
+      );
+    }
+    await expectLater(
+      store.saveTaskReminder(
+        TaskReminder(taskId: 'missing', enabled: true, minutes: [540]),
+      ),
+      throwsStateError,
+    );
+    expect(await store.taskReminders(), isEmpty);
+  });
+  test(
+    'archive preserves task reminder settings, deleting task cascades reminders',
+    () async {
+      await store.saveTask(
+        SmallTask(id: 't', title: 'Task', resident: true, startDay: day),
+        create: true,
+        today: day,
+      );
+      await store.saveTaskReminder(
+        TaskReminder(taskId: 't', enabled: true, minutes: [540]),
+      );
+      await store.archiveTask('t', true);
+      expect((await store.taskReminders()).single.enabled, isTrue);
+      await store.remove('tasks', 't');
+      expect(await store.taskReminders(), isEmpty);
+    },
+  );
+  test(
+    'saveReminderAlerts updates preferences for sound and vibrate',
+    () async {
+      expect((await store.settings())['reminder_sound'], isNull);
+      expect((await store.settings())['reminder_vibrate'], isNull);
+      await store.saveReminderAlerts(sound: true, vibrate: true);
+      expect((await store.settings())['reminder_sound'], '1');
+      expect((await store.settings())['reminder_vibrate'], '1');
+      await store.saveReminderAlerts(sound: false, vibrate: false);
+      expect((await store.settings())['reminder_sound'], '0');
+      expect((await store.settings())['reminder_vibrate'], '0');
     },
   );
 }

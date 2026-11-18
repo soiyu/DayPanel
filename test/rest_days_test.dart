@@ -323,6 +323,8 @@ void main() {
       final old = BackupSnapshot.decode(
         mutate((p) {
           p['schema'] = 8;
+          (p['tables'] as Map).remove('note_images');
+          (p['tables'] as Map).remove('task_reminders');
           (p['tables'] as Map).remove('record_events');
           (p['tables'] as Map).remove('habit_breaks');
         }),
@@ -342,7 +344,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: '${dir.path}/db',
       );
-      expect(await store.db.getVersion(), 12);
+      expect(await store.db.getVersion(), 14);
       expect(await store.breaks(), isEmpty);
       expect((await store.habits()).single.title, 'h');
       await store.addBreak(rest('p', 'h', today), today: today);

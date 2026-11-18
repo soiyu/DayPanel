@@ -39,7 +39,7 @@ class AppStore {
     final db = await f.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 12,
+        version: 14,
         singleInstance: false,
         onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
@@ -69,6 +69,8 @@ class AppStore {
           await upgradeToV10(db);
           await upgradeToV11(db);
           await upgradeToV12(db);
+          await upgradeToV13(db);
+          await upgradeToV14(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) await upgradeToV2(db);
@@ -84,6 +86,8 @@ class AppStore {
           if (oldVersion < 10) await upgradeToV10(db);
           if (oldVersion < 11) await upgradeToV11(db);
           if (oldVersion < 12) await upgradeToV12(db);
+          if (oldVersion < 13) await upgradeToV13(db);
+          if (oldVersion < 14) await upgradeToV14(db);
         },
       ),
     );
@@ -166,6 +170,52 @@ class AppStore {
     });
   }
 
+  Future<List<TaskReminder>> taskReminders() async => (await _executor.query(
+    'task_reminders',
+  )).map(TaskReminder.fromMap).toList();
+
+  Future<void> saveTaskReminder(TaskReminder reminder) async {
+    if (!reminder.valid) throw ArgumentError('Invalid task reminder');
+    await _transaction((txn) async {
+      if ((await txn.query(
+        'tasks',
+        where: 'id=?',
+        whereArgs: [reminder.taskId],
+      )).isEmpty) {
+        throw StateError('Task missing');
+      }
+      final old = await txn.query(
+        'task_reminders',
+        where: 'task_id=?',
+        whereArgs: [reminder.taskId],
+      );
+      final revision = old.isEmpty ? 0 : (old.single['revision'] as int) + 1;
+      await txn.insert('task_reminders', {
+        ...reminder.toMap(),
+        'revision': revision,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    });
+  }
+
+  Future<void> saveReminderAlerts({
+    required bool sound,
+    required bool vibrate,
+  }) async {
+    await _transaction((txn) async {
+      await txn.insert('settings', {
+        'key': 'reminder_sound',
+        'value': sound ? '1' : '0',
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      await txn.insert('settings', {
+        'key': 'reminder_vibrate',
+        'value': vibrate ? '1' : '0',
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      await txn.update('runtime', {
+        'revision': (await revision()) + 1,
+      }, where: 'id = 1');
+    });
+  }
+
   Future<List<Habit>> habits() async => (await _executor.query(
     'habits',
     orderBy: 'position,rowid',
@@ -186,10 +236,26 @@ class AppStore {
     'tasks',
     orderBy: 'rowid DESC',
   )).map(SmallTask.fromMap).toList();
-  Future<List<Note>> notes() async => (await _executor.query(
-    'notes',
-    orderBy: 'day DESC, rowid DESC',
-  )).map(Note.fromMap).toList();
+  Future<List<Note>> notes() async {
+    final rows = await _executor.query(
+      'notes',
+      orderBy: 'day DESC, rowid DESC',
+    );
+    final imgRows = await _executor.query(
+      'note_images',
+      orderBy: 'note_id, sort_order ASC',
+    );
+    final imagesByNote = <String, List<String>>{};
+    for (final img in imgRows) {
+      final noteId = img['note_id'] as String;
+      final fileName = img['file_name'] as String;
+      imagesByNote.putIfAbsent(noteId, () => []).add(fileName);
+    }
+    return rows
+        .map((m) => Note.fromMap(m, images: imagesByNote[m['id']] ?? const []))
+        .toList();
+  }
+
   Future<List<HabitEntry>> entries() async => (await _executor.query('entries'))
       .map(
         (m) => HabitEntry(
@@ -632,13 +698,22 @@ class AppStore {
     });
   }
 
-  Future<void> saveNote(Note note, {bool create = false, Day? today}) async {
+  Future<void> saveNote(
+    Note note, {
+    bool create = false,
+    Day? today,
+    List<String>? images,
+  }) async {
     if (note.body.trim().isEmpty || note.body.length > 10000) {
       throw ArgumentError('Invalid note');
     }
     Day.parse(note.day.key);
     if (note.day.compareTo(today ?? Day(DateTime.now())) > 0) {
       throw ArgumentError('Future note date');
+    }
+    final noteImages = images ?? note.images;
+    if (noteImages.length > 9) {
+      throw ArgumentError('Exceeded maximum 9 images');
     }
     await _transaction((txn) async {
       if (note.habitId != null &&
@@ -660,6 +735,20 @@ class AppStore {
           ) !=
           1) {
         throw StateError('Note missing');
+      }
+      await txn.delete(
+        'note_images',
+        where: 'note_id = ?',
+        whereArgs: [note.id],
+      );
+      for (var i = 0; i < noteImages.length; i++) {
+        await txn.insert('note_images', {
+          'id': const Uuid().v4(),
+          'note_id': note.id,
+          'file_name': noteImages[i],
+          'sort_order': i,
+          'revision': 0,
+        });
       }
     });
   }

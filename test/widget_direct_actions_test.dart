@@ -233,15 +233,17 @@ void main() {
         factory: databaseFactoryFfi,
         path: '${dir.path}/db',
       );
-      expect(await store.db.getVersion(), 12);
+      expect(await store.db.getVersion(), 14);
       expect((await store.habits()).single.toMap(), before);
       expect(await store.widgetRevision(), 0);
       final snap = await store.exportSnapshot();
       expect(snap.tables.containsKey('runtime'), isFalse);
       final envelope = jsonDecode(utf8.decode(snap.encode())) as Map;
       final payload = jsonDecode(envelope['payload']) as Map;
-      expect(payload['schema'], 12);
+      expect(payload['schema'], 14);
       payload['schema'] = 9;
+      (payload['tables'] as Map).remove('note_images');
+      (payload['tables'] as Map).remove('task_reminders');
       (payload['tables'] as Map).remove('record_events');
       envelope['payload'] = jsonEncode(payload);
       envelope['sha256'] = sha256

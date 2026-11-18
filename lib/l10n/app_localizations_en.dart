@@ -2123,7 +2123,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plusDescription =>
-      'Combined widgets, individual records, weekly totals, review cards, insights and original styles. One purchase, no subscription.';
+      'Combined widgets, individual records, weekly totals, review cards, insights, original styles, and sound & vibrate alerts. One purchase, no subscription.';
 
   @override
   String get plusUnavailable =>
@@ -2433,4 +2433,108 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cardNextMilestone => 'Next milestone';
+
+  @override
+  String get taskReminder => 'Task Reminder';
+
+  @override
+  String get taskReminderSubtitle => 'Remind for this task on time';
+
+  @override
+  String get residentTaskReminder => 'Resident Task Reminder';
+
+  @override
+  String get oneTimeTaskReminder => 'To-do Reminder';
+
+  @override
+  String get reminderAlertStyle => 'Alert Style';
+
+  @override
+  String get reminderAlertHint =>
+      'Uses exact reminder precision to alert with sound or vibration at the scheduled moment.';
+
+  @override
+  String get reminderSound => 'Sound alert';
+
+  @override
+  String get reminderSoundSubtitle => 'Play notification ringtone on time';
+
+  @override
+  String get reminderVibrate => 'Vibration alert';
+
+  @override
+  String get reminderVibrateSubtitle =>
+      'Trigger rhythmic haptic vibration on time';
+
+  @override
+  String get reminderExactRequired =>
+      'Exact reminder precision is required for sound and vibration alerts.';
+
+  @override
+  String get reminderExactSetupAction => 'Enable Exact Precision';
+
+  @override
+  String get reminderPlusOnly =>
+      'Sound & vibration alerts are exclusive to DayPanel Plus';
+
+  @override
+  String get reminderPlusHint =>
+      '✦ Plus Exclusive: Ring and vibrate on time, never miss an important habit or task';
+
+  @override
+  String get manageTasks => 'Task Reminders';
+
+  @override
+  String get noTaskReminders => 'No Task Reminders';
+
+  @override
+  String get noTaskRemindersBody =>
+      'Enable reminders directly when creating or editing tasks';
+
+  @override
+  String get formatBold => 'Bold';
+
+  @override
+  String get formatHeading => 'Heading';
+
+  @override
+  String get formatList => 'Bullet List';
+
+  @override
+  String get formatQuote => 'Quote';
+
+  @override
+  String get formatHighlight => 'Highlight';
+
+  @override
+  String get noteImages => 'Journal Photos';
+
+  @override
+  String noteImageCount(Object count) {
+    return 'Photos ($count/9)';
+  }
+
+  @override
+  String get noteAddImage => 'Add Photo';
+
+  @override
+  String get noteImageLimitFree =>
+      'Free version supports 1 photo. Upgrade to Plus to unlock 2–9 photos in a 9-grid layout.';
+
+  @override
+  String get noteImageRemove => 'Remove photo';
+
+  @override
+  String get noteImageMaxReached =>
+      'Maximum of 9 photos allowed per journal entry';
+
+  @override
+  String get plusMultiPhotoTitle => 'Multi-photo Journal';
+
+  @override
+  String get plusMultiPhotoDesc =>
+      'Attach up to 9 photos per entry with auto-layout 9-grid and full-screen viewer';
+
+  @override
+  String get plusMultiPhotoAction => 'Write Journal';
 }

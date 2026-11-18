@@ -32,7 +32,7 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = playValue("applicationId", "app.daypanel.next")
         buildConfigField("String", "PLAY_PUBLIC_KEY", quoted(playValue("billingPublicKey")))
-        buildConfigField("String", "PLUS_PRODUCT_ID", quoted(playValue("productId", "daypanel_plus")))
+        buildConfigField("String", "PLUS_PRODUCT_ID", quoted(playValue("productId", "daypanel_plus_lifetime")))
         buildConfigField("String", "PRIVACY_URL", quoted(playValue("privacyUrl")))
         buildConfigField("String", "SUPPORT_EMAIL", quoted(playValue("supportEmail")))
         // You can update the following values to match your application needs.
@@ -60,7 +60,10 @@ android {
     }
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
+            val suffix = playValue("debugSuffix", ".debug")
+            if (suffix.isNotBlank()) {
+                applicationIdSuffix = suffix
+            }
             resValue("string", "app_name", "DayPanel Next")
         }
         release {
@@ -82,6 +85,7 @@ flutter {
 }
 
 dependencies {
+    implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("com.android.billingclient:billing:9.1.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test:runner:1.6.2")

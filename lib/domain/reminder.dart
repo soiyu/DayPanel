@@ -30,3 +30,34 @@ class HabitReminder {
     'revision': revision,
   };
 }
+
+class TaskReminder {
+  TaskReminder({
+    required this.taskId,
+    required this.enabled,
+    required List<int> minutes,
+    this.revision = 0,
+  }) : minutes = List.unmodifiable(minutes);
+  final String taskId;
+  final bool enabled;
+  final List<int> minutes;
+  final int revision;
+  bool get valid =>
+      minutes.isNotEmpty &&
+      minutes.length <= 5 &&
+      minutes.toSet().length == minutes.length &&
+      minutes.every((m) => m >= 0 && m < 1440) &&
+      revision >= 0;
+  factory TaskReminder.fromMap(Map<String, Object?> m) => TaskReminder(
+    taskId: m['task_id'] as String,
+    enabled: m['enabled'] == 1,
+    minutes: (jsonDecode(m['minutes'] as String) as List).cast<int>(),
+    revision: m['revision'] as int,
+  );
+  Map<String, Object?> toMap() => {
+    'task_id': taskId,
+    'enabled': enabled ? 1 : 0,
+    'minutes': jsonEncode(minutes.toList()..sort()),
+    'revision': revision,
+  };
+}

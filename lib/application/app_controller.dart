@@ -12,6 +12,7 @@ import '../data/completion_feedback.dart';
 import '../domain/reminder.dart';
 import '../data/reminder_platform.dart';
 import '../data/widget_platform.dart';
+import '../data/note_media_platform.dart';
 
 class AppController extends ChangeNotifier {
   AppController(
@@ -20,6 +21,7 @@ class AppController extends ChangeNotifier {
     this.reminderPlatform,
     this.completionFeedback,
     this.widgetPlatform,
+    this.noteMediaPlatform,
   }) : clock = clock ?? DateTime.now {
     selectedDay = today;
     journalQuery = JournalQuery(month: today);
@@ -37,6 +39,7 @@ class AppController extends ChangeNotifier {
   final ReminderPlatform? reminderPlatform;
   final CompletionFeedback? completionFeedback;
   final WidgetPlatform? widgetPlatform;
+  final NoteMediaPlatform? noteMediaPlatform;
   bool widgetSyncFailed = false;
   bool closing = false;
   Future<void> syncWidgets({bool notify = true}) async {
@@ -158,10 +161,30 @@ class AppController extends ChangeNotifier {
 
   ReminderStatus reminderStatus = const ReminderStatus(available: false);
   List<HabitReminder> reminders = [];
+  List<TaskReminder> taskReminders = [];
   bool reminderSyncFailed = false;
   HabitReminder reminderFor(String id) =>
       reminders.where((r) => r.habitId == id).firstOrNull ??
       HabitReminder(habitId: id, enabled: false, minutes: [9 * 60]);
+  TaskReminder taskReminderFor(String id) =>
+      taskReminders.where((r) => r.taskId == id).firstOrNull ??
+      TaskReminder(taskId: id, enabled: false, minutes: [9 * 60]);
+  bool get reminderSound =>
+      preferences['reminder_sound'] == '1' ||
+      preferences['reminder_sound'] == 'on';
+  bool get reminderVibrate =>
+      preferences['reminder_vibrate'] == '1' ||
+      preferences['reminder_vibrate'] == 'on';
+  Future<void> setReminderAlerts({bool? sound, bool? vibrate}) async {
+    final s = sound ?? reminderSound;
+    final v = vibrate ?? reminderVibrate;
+    preferences['reminder_sound'] = s ? '1' : '0';
+    preferences['reminder_vibrate'] = v ? '1' : '0';
+    await store.saveReminderAlerts(sound: s, vibrate: v);
+    await syncReminders(notify: false);
+    notifyListeners();
+  }
+
   Future<void> syncReminders({bool notify = true}) async {
     if (reminderPlatform == null) return;
     try {
@@ -223,6 +246,7 @@ class AppController extends ChangeNotifier {
     final epoch = await store.generation();
     final mutationRevision = await store.revision();
     final remindersSaved = await store.reminders();
+    final taskRemindersSaved = await store.taskReminders();
     final savedCards = await store.cards();
     final activityHistory = await store.activity();
     habits = h;
@@ -237,6 +261,7 @@ class AppController extends ChangeNotifier {
     generation = epoch;
     revision = mutationRevision;
     reminders = remindersSaved;
+    taskReminders = taskRemindersSaved;
     cards = savedCards;
     activity = activityHistory;
     rests = await store.breaks();

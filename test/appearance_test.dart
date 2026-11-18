@@ -162,7 +162,7 @@ void main() {
         factory: databaseFactoryFfi,
         path: '${dir.path}/data.db',
       );
-      expect(await store.db.getVersion(), 12);
+      expect(await store.db.getVersion(), 14);
       expect((await store.habits()).single.toMap(), h.toMap());
       expect((await store.entries()).single.value, 1000);
       expect((await store.cards()).length, 1);
@@ -188,7 +188,7 @@ void main() {
       final payload = jsonDecode(
         jsonDecode(utf8.decode(snap.encode()))['payload'],
       );
-      expect(payload['schema'], 12);
+      expect(payload['schema'], 14);
       await store.saveAppearance(const Appearance());
       await store.saveHabit(h);
       await store.restoreSnapshot(snap);
@@ -222,6 +222,8 @@ void main() {
         final snap = await store.exportSnapshot();
         final bytes = change(snap, (p) {
           p['schema'] = version;
+          (p['tables'] as Map).remove('note_images');
+          (p['tables'] as Map).remove('task_reminders');
           (p['tables'] as Map).remove('record_events');
           (p['tables'] as Map).remove('habit_breaks');
           for (final row in p['tables']['habits']) {

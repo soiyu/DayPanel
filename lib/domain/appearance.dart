@@ -25,6 +25,8 @@ class Appearance {
     'locale': ['system', 'en', 'zh'],
     'completion_sound': ['on', 'off'],
     'completion_haptics': ['on', 'off'],
+    'reminder_sound': ['0', '1', 'on', 'off'],
+    'reminder_vibrate': ['0', '1', 'on', 'off'],
     'palette': palettes,
     'font': fonts,
     'icon_frame': frames,

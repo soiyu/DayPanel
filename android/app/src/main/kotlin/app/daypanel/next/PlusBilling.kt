@@ -22,7 +22,7 @@ object PlusReceipt {
             json.optString("productId")==product && json.optInt("purchaseState",-1)==0 && json.optString("purchaseToken").isNotBlank()
     } catch(_:Exception){false}
     fun owned(c:Context):Boolean {
-        if(BuildConfig.DEBUG)return true
+        if(BuildConfig.DEBUG && BuildConfig.PLAY_PUBLIC_KEY.isBlank())return true
         val p=c.getSharedPreferences("play_receipt",Context.MODE_PRIVATE)
         return valid(p.getString("data","")!!,p.getString("signature","")!!,BuildConfig.PLAY_PUBLIC_KEY,c.packageName,BuildConfig.PLUS_PRODUCT_ID)
     }
@@ -38,16 +38,24 @@ class PlusBilling(private val activity:Activity, engine:FlutterEngine):Purchases
     private var active:MethodChannel.Result?=null
     private var connecting=false
     private var closed=false
+    private var debugOwned=false
     private val handler=android.os.Handler(android.os.Looper.getMainLooper())
     private val timeout=Runnable { finish("unavailable") }
     init {
         channel.setMethodCallHandler { call,reply ->
             if(call.method !in listOf("status","restore","buy")){reply.notImplemented();return@setMethodCallHandler}
-            if(BuildConfig.DEBUG){reply.success(mapOf("testing" to true,"owned" to false,"available" to false));return@setMethodCallHandler}
-            if(BuildConfig.PLAY_PUBLIC_KEY.isBlank()){reply.success(state("unavailable"));return@setMethodCallHandler}
-            if(active!=null){reply.error("busy","A purchase request is already active",null);return@setMethodCallHandler}
-            active=reply;handler.postDelayed(timeout,30000)
-            connect { if(call.method=="buy") purchase() else refresh() }
+            if(BuildConfig.PLAY_PUBLIC_KEY.isNotBlank()){
+                if(active!=null){reply.error("busy","A purchase request is already active",null);return@setMethodCallHandler}
+                active=reply;handler.postDelayed(timeout,30000)
+                connect { if(call.method=="buy") purchase() else refresh() }
+                return@setMethodCallHandler
+            }
+            if(BuildConfig.DEBUG){
+                if(call.method == "restore" || call.method == "buy") debugOwned = true
+                reply.success(mapOf("testing" to true,"owned" to debugOwned,"available" to true,"price" to "Test"))
+                return@setMethodCallHandler
+            }
+            reply.success(state("unavailable"))
         }
     }
     private fun state(error:String?=null):Map<String,Any?> = mapOf(

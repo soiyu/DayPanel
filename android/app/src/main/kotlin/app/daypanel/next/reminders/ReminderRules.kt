@@ -8,11 +8,42 @@ data class Plan(val start: LocalDate, val target: Long, val schedule: String,
 data class ReminderHabit(val id: String, val title: String, val kind: String,
     val start: LocalDate, val archived: Boolean, val enabled: Boolean,
     val minutes: List<Int>, val revision: Long, val plans: List<Plan>, val entries: Map<LocalDate, Long>, val breaks: List<RestPeriod> = emptyList())
+data class ReminderTask(
+    val id: String, val title: String, val dueDay: LocalDate?,
+    val resident: Boolean, val archived: Boolean, val completed: Boolean,
+    val enabled: Boolean, val minutes: List<Int>, val revision: Long,
+    val completedDays: Set<LocalDate> = emptySet()
+)
 data class RestPeriod(val start:LocalDate,val end:LocalDate?,val kind:String) { fun contains(day:LocalDate)=day>=start&&(end==null||day<=end) }
 
 data class DueTime(val day: LocalDate, val minute: Int, val instant: Instant)
 
 object ReminderRules {
+    fun eligibleTask(t: ReminderTask, day: LocalDate): Boolean {
+        if (!t.enabled || t.archived) return false
+        if (t.resident) {
+            return day !in t.completedDays
+        } else {
+            if (t.completed) return false
+            if (t.dueDay != null) return day == t.dueDay
+            return day == LocalDate.now()
+        }
+    }
+
+    fun nextTask(t: ReminderTask, now: ZonedDateTime, delivered: Set<String>, generation: Long): DueTime? {
+        for (offset in 0L..371L) {
+            val day = now.toLocalDate().plusDays(offset)
+            if (!eligibleTask(t, day)) continue
+            for (minute in t.minutes.sorted()) {
+                val at = day.atTime(minute / 60, minute % 60).atZone(now.zone).toInstant()
+                if (at > now.toInstant() && key(t.id, generation, t.revision, day, minute) !in delivered) {
+                    return DueTime(day, minute, at)
+                }
+            }
+        }
+        return null
+    }
+
     fun eligible(h: ReminderHabit, day: LocalDate): Boolean {
         if (!h.enabled || h.archived || day < h.start || h.breaks.any { it.contains(day) }) return false
         val p = h.plans.lastOrNull { it.start <= day } ?: return false

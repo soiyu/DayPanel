@@ -314,89 +314,85 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               ],
             ),
             if (scale <= 1.3)
-              LayoutBuilder(
-                builder: (context, c) {
-                  final cell =
-                      ((c.maxWidth - 6 * 4) / 7).clamp(48.0, 64.0) *
-                      scale.clamp(1.0, 1.35);
-                  return SizedBox(
-                    height: 54 * scale.clamp(1.0, 1.8),
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: 7,
-                      separatorBuilder: (_, _) => const SizedBox(width: 4),
-                      itemBuilder: (context, i) {
-                        final d = day.plus(i - (day.date.weekday - 1));
-                        final selected = d == day;
-                        return SizedBox(
-                          width: cell,
-                          child: Semantics(
-                            label: MaterialLocalizations.of(
-                              context,
-                            ).formatFullDate(d.date),
-                            selected: selected,
-                            button: true,
-                            child: Material(
-                              color: selected
-                                  ? scheme.primary
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(14),
-                              child: InkWell(
+              SizedBox(
+                height: 54 * scale.clamp(1.0, 1.8),
+                child: Row(
+                  children: [
+                    for (var i = 0; i < 7; i++) ...[
+                      if (i > 0) const SizedBox(width: 4),
+                      Expanded(
+                        child: Builder(
+                          builder: (context) {
+                            final d = day.plus(i - (day.date.weekday - 1));
+                            final selected = d == day;
+                            return Semantics(
+                              label: MaterialLocalizations.of(
+                                context,
+                              ).formatFullDate(d.date),
+                              selected: selected,
+                              button: true,
+                              child: Material(
+                                color: selected
+                                    ? scheme.primary
+                                    : Colors.transparent,
                                 borderRadius: BorderRadius.circular(14),
-                                onTap: () => app.select(d),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      DateFormat.E(
-                                        Localizations.localeOf(
-                                          context,
-                                        ).languageCode,
-                                      ).format(d.date),
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: selected
-                                            ? FontWeight.w600
-                                            : FontWeight.w500,
-                                        color: selected
-                                            ? scheme.onPrimary
-                                            : scheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${d.date.day}',
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w700,
-                                        color: selected
-                                            ? scheme.onPrimary
-                                            : scheme.onSurface,
-                                      ),
-                                    ),
-                                    if (d == app.today)
-                                      Container(
-                                        width: 4,
-                                        height: 4,
-                                        margin: const EdgeInsets.only(top: 2),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(14),
+                                  onTap: () => app.select(d),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        DateFormat.E(
+                                          Localizations.localeOf(
+                                            context,
+                                          ).languageCode,
+                                        ).format(d.date),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: selected
+                                              ? FontWeight.w600
+                                              : FontWeight.w500,
                                           color: selected
                                               ? scheme.onPrimary
-                                              : scheme.primary,
+                                              : scheme.onSurfaceVariant,
                                         ),
-                                      )
-                                    else
-                                      const SizedBox(height: 6),
-                                  ],
+                                      ),
+                                      Text(
+                                        '${d.date.day}',
+                                        style: TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w700,
+                                          color: selected
+                                              ? scheme.onPrimary
+                                              : scheme.onSurface,
+                                        ),
+                                      ),
+                                      if (d == app.today)
+                                        Container(
+                                          width: 4,
+                                          height: 4,
+                                          margin: const EdgeInsets.only(top: 2),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: selected
+                                                ? scheme.onPrimary
+                                                : scheme.primary,
+                                          ),
+                                        )
+                                      else
+                                        const SizedBox(height: 6),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             if (app.contextFilter != null || app.groupFilter != null)
               Padding(
